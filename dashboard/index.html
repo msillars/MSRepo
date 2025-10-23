@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management System - Matthew Sillars</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .date-time {
+            color: #718096;
+            font-size: 1rem;
+        }
+        
+        .priority-banner {
+            background: #f56565;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .domain-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .domain-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+        
+        .domain-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .domain-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-active { background: #48bb78; }
+        .status-attention { background: #f6ad55; }
+        .status-urgent { background: #f56565; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .domain-content {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+        
+        .action-btn:hover {
+            background: #5568d3;
+        }
+        
+        .action-btn.secondary {
+            background: #4a5568;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #2d3748;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            flex: 1;
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Management System</h1>
+            <div class="date-time" id="datetime"></div>
+            <div class="priority-banner">
+                🎯 Today's Priority: 7 Job Applications
+            </div>
+        </header>
+        
+        <div class="domains-grid">
+            <!-- Photography Domain -->
+            <div class="domain-card">
+                <div class="domain-header">
+                    <div class="domain-title">📷 Photography</div>
+                    <div class="status-indicator status-attention"></div>
+                </div>
+                <div class="domain-content">
+                    <strong>Backlog:</strong> De-duplicate RAW files<br>
+                    <strong>Infrastructure:</strong> NAS → Lightroom → Website → Print-on-Demand
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">?</div>
+                        <div class="stat-label">RAW Files</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">?</div>
+                        <div class="stat-label">Published</div>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <a href="https://drive.google.com/drive/folders/1F4DZiDIfUDpurQddqdc7psyU8LkxjMkT" class="action-btn" target="_blank">📂 Photography Admin</a>
+                    <button class="action-btn secondary" onclick="alert('Workflow automation coming soon!')">⚙️ Run Deduplication</button>
+                </div>
+            </div>
+            
+            <!-- Work Domain -->
+            <div class="domain-card">
+                <div class="domain-header">
+                    <div class="domain-title">💼 Work</div>
+                    <div class="status-indicator status-urgent"></div>
+                </div>
+                <div class="domain-content">
+                    <strong>Today:</strong> 7 job applications to complete<br>
+                    <strong>Tools:</strong> Experience CSV, CV templates, cover letters
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">18</div>
+                        <div class="stat-label">Roles Tracked</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">7</div>
+                        <div class="stat-label">Due Today</div>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <a href="https://drive.google.com/drive/folders/1bNDug6HJC_vr8xlwfhXjKp2CfoYrIB8N" class="action-btn" target="_blank">📂 Job Hunting</a>
+                    <button class="action-btn" onclick="alert('Opening CV builder...')">📝 Start Application</button>
+                </div>
+            </div>
+            
+            <!-- Life Admin Domain -->
+            <div class="domain-card">
+                <div class="domain-header">
+                    <div class="domain-title">🏠 Life Admin</div>
+                    <div class="status-indicator status-active"></div>
+                </div>
+                <div class="domain-content">
+                    <strong>Focus:</strong> House administration, finances, utilities<br>
+                    <strong>Status:</strong> Under control
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Urgent Items</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">✓</div>
+                        <div class="stat-label">Up to Date</div>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button class="action-btn secondary" onclick="alert('Admin tools coming soon!')">📋 View Tasks</button>
+                </div>
+            </div>
+            
+            <!-- Relationships Domain -->
+            <div class="domain-card">
+                <div class="domain-header">
+                    <div class="domain-title">👥 Relationships</div>
+                    <div class="status-indicator status-active"></div>
+                </div>
+                <div class="domain-content">
+                    <strong>Focus:</strong> Friends, family connections<br>
+                    <strong>Next:</strong> Schedule catch-ups
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">?</div>
+                        <div class="stat-label">Last Contact</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">?</div>
+                        <div class="stat-label">Upcoming</div>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button class="action-btn secondary" onclick="alert('Relationship tracker coming soon!')">💌 Track Connections</button>
+                </div>
+            </div>
+            
+            <!-- Living Domain -->
+            <div class="domain-card">
+                <div class="domain-header">
+                    <div class="domain-title">🌟 Living</div>
+                    <div class="status-indicator status-active"></div>
+                </div>
+                <div class="domain-content">
+                    <strong>Focus:</strong> Socializing, travel, personal enjoyment<br>
+                    <strong>Status:</strong> Balanced
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">?</div>
+                        <div class="stat-label">Events</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">?</div>
+                        <div class="stat-label">Trips Planned</div>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button class="action-btn secondary" onclick="alert('Living tracker coming soon!')">🎉 Plan Activities</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Update date/time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('datetime').textContent = now.toLocaleDateString('en-AU', options);
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+    </script>
+</body>
+</html>

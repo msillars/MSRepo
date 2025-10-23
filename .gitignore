@@ -1,0 +1,38 @@
+# Local data (not committed)
+data/*
+!data/.gitkeep
+*.csv
+*.sqlite
+*.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+config.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+.Trash-*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Reports (keep structure, not content)
+reports/*.csv
+reports/*.json
+!reports/.gitkeep
