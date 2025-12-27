@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 3 Test - Ideas Data Layer</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            border-radius: 4px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 11px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-passed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .test-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Phase 3 Test: Ideas Data Layer with SQL</h1>
+        
+        <div class="status info">
+            <strong>Testing:</strong> ideas-data.js now reads/writes from SQL database instead of localStorage
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 1: Database Initialization</h3>
+            <div id="test1"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 2: Read Ideas</h3>
+            <div id="test2"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 3: Read Projects</h3>
+            <div id="test3"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 4: Add New Idea</h3>
+            <button onclick="testAddIdea()">Run Test</button>
+            <div id="test4"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 5: Update Idea</h3>
+            <button onclick="testUpdateIdea()">Run Test</button>
+            <div id="test5"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 6: Move Idea to Different Status</h3>
+            <button onclick="testMoveStatus()">Run Test</button>
+            <div id="test6"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 7: Get Top Priorities</h3>
+            <div id="test7"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 8: Reorder Ideas</h3>
+            <button onclick="testReorder()">Run Test</button>
+            <div id="test8"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Summary</h3>
+            <div id="summary"></div>
+        </div>
+    </div>
+
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="ideas-data.js"></script>
+    
+    <script>
+        let testResults = [];
+        
+        function logTest(name, passed, message, data = null) {
+            testResults.push({ name, passed, message, data });
+            return { passed, message, data };
+        }
+        
+        function displayResult(elementId, result) {
+            const el = document.getElementById(elementId);
+            const className = result.passed ? 'test-passed' : 'test-failed';
+            let html = `<div class="test-result ${className}">
+                ${result.passed ? '✅' : '❌'} ${result.message}
+            </div>`;
+            
+            if (result.data) {
+                html += `<pre>${JSON.stringify(result.data, null, 2)}</pre>`;
+            }
+            
+            el.innerHTML = html;
+        }
+        
+        async function runTests() {
+            // Wait a bit for database initialization
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 1: Database Initialization
+            try {
+                const stats = getDatabaseStats();
+                const result = logTest(
+                    'Database Init',
+                    stats.initialized && stats.ideas > 0,
+                    stats.initialized ? `Database initialized with ${stats.ideas} ideas and ${stats.projects} projects` : 'Database not initialized',
+                    stats
+                );
+                displayResult('test1', result);
+            } catch (error) {
+                const result = logTest('Database Init', false, 'Error: ' + error.message);
+                displayResult('test1', result);
+            }
+            
+            // Test 2: Read Ideas
+            try {
+                const ideas = getIdeas();
+                const result = logTest(
+                    'Read Ideas',
+                    ideas.length > 0,
+                    `Successfully read ${ideas.length} ideas from SQL database`,
+                    ideas.slice(0, 3) // Show first 3
+                );
+                displayResult('test2', result);
+            } catch (error) {
+                const result = logTest('Read Ideas', false, 'Error: ' + error.message);
+                displayResult('test2', result);
+            }
+            
+            // Test 3: Read Projects
+            try {
+                const projects = getProjects();
+                const result = logTest(
+                    'Read Projects',
+                    projects.length > 0,
+                    `Successfully read ${projects.length} projects from SQL database`,
+                    projects
+                );
+                displayResult('test3', result);
+            } catch (error) {
+                const result = logTest('Read Projects', false, 'Error: ' + error.message);
+                displayResult('test3', result);
+            }
+            
+            // Test 7: Get Top Priorities
+            try {
+                const priorities = getTopPriorities(5);
+                const result = logTest(
+                    'Top Priorities',
+                    priorities.length > 0,
+                    `Successfully calculated top ${priorities.length} priorities`,
+                    priorities.map(p => ({ text: p.text, score: p.score, ranking: p.ranking }))
+                );
+                displayResult('test7', result);
+            } catch (error) {
+                const result = logTest('Top Priorities', false, 'Error: ' + error.message);
+                displayResult('test7', result);
+            }
+            
+            updateSummary();
+        }
+        
+        async function testAddIdea() {
+            try {
+                const beforeCount = getIdeas().length;
+                const newIdea = addIdea('Test idea from Phase 3', 'work', 3, 'medium', 'new');
+                const afterCount = getIdeas().length;
+                
+                const result = logTest(
+                    'Add Idea',
+                    newIdea && afterCount === beforeCount + 1,
+                    `Successfully added idea. Count: ${beforeCount} → ${afterCount}`,
+                    newIdea
+                );
+                displayResult('test4', result);
+                
+                // Clean up - delete the test idea
+                if (newIdea) {
+                    deleteIdea(newIdea.id);
+                }
+                
+                updateSummary();
+            } catch (error) {
+                const result = logTest('Add Idea', false, 'Error: ' + error.message);
+                displayResult('test4', result);
+                updateSummary();
+            }
+        }
+        
+        async function testUpdateIdea() {
+            try {
+                const ideas = getIdeas();
+                if (ideas.length === 0) {
+                    throw new Error('No ideas available to test update');
+                }
+                
+                const testIdea = ideas[0];
+                const oldText = testIdea.text;
+                const newText = oldText + ' [UPDATED]';
+                
+                const success = updateIdea(testIdea.id, { text: newText });
+                const updated = getIdeas().find(i => i.id === testIdea.id);
+                
+                const result = logTest(
+                    'Update Idea',
+                    success && updated && updated.text === newText,
+                    `Successfully updated idea text`,
+                    { before: oldText, after: updated?.text }
+                );
+                displayResult('test5', result);
+                
+                // Restore original
+                updateIdea(testIdea.id, { text: oldText });
+                
+                updateSummary();
+            } catch (error) {
+                const result = logTest('Update Idea', false, 'Error: ' + error.message);
+                displayResult('test5', result);
+                updateSummary();
+            }
+        }
+        
+        async function testMoveStatus() {
+            try {
+                const newIdeas = getIdeasByStatus('new');
+                if (newIdeas.length === 0) {
+                    throw new Error('No ideas in "new" status to test');
+                }
+                
+                const testIdea = newIdeas[0];
+                const originalStatus = testIdea.status;
+                
+                // Move to backlog
+                const success = moveToBacklog(testIdea.id);
+                const movedIdea = getIdeas().find(i => i.id === testIdea.id);
+                
+                const result = logTest(
+                    'Move Status',
+                    success && movedIdea && movedIdea.status === 'backlog',
+                    `Successfully moved idea from ${originalStatus} to backlog`,
+                    { id: testIdea.id, from: originalStatus, to: movedIdea?.status }
+                );
+                displayResult('test6', result);
+                
+                // Move back to original status
+                moveToNew(testIdea.id);
+                
+                updateSummary();
+            } catch (error) {
+                const result = logTest('Move Status', false, 'Error: ' + error.message);
+                displayResult('test6', result);
+                updateSummary();
+            }
+        }
+        
+        async function testReorder() {
+            try {
+                const newIdeas = getIdeasByStatus('new');
+                if (newIdeas.length < 2) {
+                    throw new Error('Need at least 2 ideas in "new" status to test reordering');
+                }
+                
+                // Get original order
+                const originalOrder = newIdeas.map(i => i.id);
+                
+                // Reverse the order
+                const reversedOrder = [...originalOrder].reverse();
+                
+                // Reorder
+                const success = reorderIdeas(reversedOrder, 'new');
+                
+                // Get new order
+                const reorderedIdeas = getIdeasByStatus('new');
+                const newOrder = reorderedIdeas.map(i => i.id);
+                
+                // Check if reordering worked
+                const orderChanged = JSON.stringify(originalOrder) !== JSON.stringify(newOrder);
+                
+                const result = logTest(
+                    'Reorder Ideas',
+                    success && orderChanged,
+                    `Successfully reordered ${reversedOrder.length} ideas`,
+                    { originalFirst: originalOrder[0], newFirst: newOrder[0] }
+                );
+                displayResult('test8', result);
+                
+                // Restore original order
+                reorderIdeas(originalOrder, 'new');
+                
+                updateSummary();
+            } catch (error) {
+                const result = logTest('Reorder Ideas', false, 'Error: ' + error.message);
+                displayResult('test8', result);
+                updateSummary();
+            }
+        }
+        
+        function updateSummary() {
+            const total = testResults.length;
+            const passed = testResults.filter(r => r.passed).length;
+            const failed = total - passed;
+            
+            const summaryEl = document.getElementById('summary');
+            const allPassed = failed === 0;
+            
+            summaryEl.innerHTML = `
+                <div class="status ${allPassed ? 'success' : 'error'}">
+                    <h3>Test Results</h3>
+                    <p><strong>Total Tests:</strong> ${total}</p>
+                    <p><strong>Passed:</strong> ${passed} ✅</p>
+                    <p><strong>Failed:</strong> ${failed} ❌</p>
+                    <p><strong>Status:</strong> ${allPassed ? 'All tests passed! Phase 3 is working correctly.' : 'Some tests failed. Review the errors above.'}</p>
+                </div>
+            `;
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('load', () => {
+            runTests();
+        });
+    </script>
+</body>
+</html>

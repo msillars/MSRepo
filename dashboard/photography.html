@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography - Management System</title>
+    <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+    
+    <!-- Windows 3.1 CSS -->
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <link rel="stylesheet" href="topic-page.css">
+    <link rel="stylesheet" href="edit-modal.css">
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div class="topic-icon-large" id="topic-icon">
+                <img src="../Icons/Photography.ICO" alt="Photography">
+            </div>
+            <h1 id="topic-name">Photography</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-danger" onclick="deleteTopicHandler()">Remove Topic</button>
+            <a href="finished.html" class="btn btn-secondary">✓ View Finished</a>
+            <a href="ideas.html" class="btn">+ Add Idea</a>
+            <a href="index.html" class="btn">← Dashboard</a>
+        </div>
+    </header>
+    <main>
+        <div class="lists-container">
+            <div class="list-section">
+                <div class="list-header">
+                    <span>💡 Ideas</span>
+                    <span class="list-count" id="ideas-count">0</span>
+                </div>
+                <div class="ideas-list" id="ideas-list" data-status="new"></div>
+            </div>
+            <div class="list-section">
+                <div class="list-header">
+                    <span>📋 Backlog</span>
+                    <span class="list-count" id="backlog-count">0</span>
+                </div>
+                <div class="ideas-list" id="backlog-list" data-status="backlog"></div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Edit Idea Modal (populated dynamically) -->
+    <div id="edit-idea-modal" class="modal-overlay"></div>
+    
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="database-init-helper.js"></script>
+    <script src="weight-utils.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="topic-config.js"></script>
+    <script src="shared-rendering.js"></script>
+    <script src="shared-drag-drop.js"></script>
+    <script src="shared-topic-page.js"></script>
+    <script src="edit-idea-modal.js"></script>
+    <script>
+        // Initialize the Photography topic page when database is ready
+        waitForDatabaseThen(() => {
+            initializeTopicPage('photography');
+        });
+    </script>
+</body>
+</html>

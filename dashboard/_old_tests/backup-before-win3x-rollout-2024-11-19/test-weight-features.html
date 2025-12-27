@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight Badge & Edit Modal Test</title>
+    <link rel="stylesheet" href="edit-modal.css">
+    <style>
+        body {
+            font-family: 'Futura', 'Century Gothic', 'Arial Narrow', sans-serif;
+            background: #F5F5F7;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 12px;
+        }
+        
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 30px 0 16px 0;
+        }
+        
+        .test-section {
+            background: white;
+            border: 2px solid #000;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .weight-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .weight-example {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .weight-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .test-btn {
+            padding: 12px 24px;
+            background: #000080;
+            color: white;
+            border: 2px solid #000;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        
+        .test-btn:hover {
+            background: #000060;
+        }
+        
+        .test-results {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .idea-card {
+            background: #FAFAFA;
+            border: 1px solid #E0E0E0;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #999;
+        }
+        
+        .idea-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .idea-text {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .idea-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .idea-difficulty {
+            padding: 4px 8px;
+            border: 1px solid #000;
+            font-weight: 600;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weight Badge & Edit Modal Test</h1>
+    
+    <div class="test-section">
+        <h2>✅ Weight Badge Gradient (1-10)</h2>
+        <p>This shows how weight badges display across the full range from 1 (low priority, yellow) to 10 (high priority, red).</p>
+        
+        <div class="weight-grid"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Sample Idea Cards with Weight Badges</h2>
+        <p>These cards demonstrate how weight badges appear in the actual UI.</p>
+        
+        <div id="sample-cards"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Edit Modal Test</h2>
+        <p>Click the button below to test the edit modal with weight picker.</p>
+        
+        <button class="test-btn" onclick="testEditModal()">Open Edit Modal</button>
+        
+        <div id="test-results" class="test-results" style="display: none;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Database Integration Test</h2>
+        <p>Test that weight values are properly saved to and loaded from the database.</p>
+        
+        <button class="test-btn" onclick="testDatabaseIntegration()">Run Database Test</button>
+        
+        <div id="db-results" class="test-results" style="display: none;"></div>
+    </div>
+    
+    <!-- Edit Idea Modal -->
+    <div id="edit-idea-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Edit Idea</span>
+                <div class="modal-close" onclick="closeEditIdeaModal()">×</div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-form-group">
+                    <label for="modal-edit-text">Idea Text</label>
+                    <textarea id="modal-edit-text" placeholder="What's the idea?"></textarea>
+                </div>
+                
+                <div class="modal-form-group">
+                    <label for="modal-edit-topic">Topic</label>
+                    <select id="modal-edit-topic">
+                        <option value="">Untagged</option>
+                    </select>
+                </div>
+                
+                <div class="modal-form-group">
+                    <label for="modal-edit-difficulty">Difficulty</label>
+                    <select id="modal-edit-difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                
+                <div class="modal-form-group">
+                    <label>Weight (1-10)</label>
+                    <div class="weight-picker-section">
+                        <div class="weight-slider-container">
+                            <input 
+                                type="range" 
+                                id="modal-edit-weight" 
+                                min="1" 
+                                max="10" 
+                                value="5"
+                                oninput="handleWeightInput()"
+                            />
+                            <div class="weight-scale">
+                                <span>1 - Low</span>
+                                <span>5 - Medium</span>
+                                <span>10 - High</span>
+                            </div>
+                        </div>
+                        <div class="weight-preview-container">
+                            <div class="weight-preview-label">Preview</div>
+                            <div id="weight-preview" class="weight-badge">5</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-shortcut-hint">
+                    Press Esc to cancel • ⌘+Enter to save
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeEditIdeaModal()">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveEditIdeaModal()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="database-init-helper.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="topic-config.js"></script>
+    <script src="shared-rendering.js"></script>
+    <script src="edit-idea-modal.js"></script>
+    
+    <script>
+        // Generate weight badge examples
+        function generateWeightExamples() {
+            const grid = document.querySelector('.weight-grid');
+            
+            for (let i = 1; i <= 10; i++) {
+                const color = getWeightColor(i);
+                const example = document.createElement('div');
+                example.className = 'weight-example';
+                example.innerHTML = `
+                    <div class="weight-badge" style="background: ${color};">${i}</div>
+                    <div class="weight-label">Weight ${i}</div>
+                `;
+                grid.appendChild(example);
+            }
+        }
+        
+        // Generate sample idea cards
+        function generateSampleCards() {
+            const container = document.getElementById('sample-cards');
+            
+            const samples = [
+                { weight: 10, text: 'High priority task - needs immediate attention', difficulty: 'hard' },
+                { weight: 7, text: 'Important feature to implement this week', difficulty: 'medium' },
+                { weight: 5, text: 'Regular task with moderate priority', difficulty: 'medium' },
+                { weight: 3, text: 'Nice-to-have enhancement for later', difficulty: 'easy' },
+                { weight: 1, text: 'Low priority idea to revisit eventually', difficulty: 'easy' }
+            ];
+            
+            samples.forEach(sample => {
+                const card = document.createElement('div');
+                card.className = 'idea-card';
+                const color = getWeightColor(sample.weight);
+                const diffColor = getDifficultyColor(sample.difficulty);
+                
+                card.innerHTML = `
+                    <div class="idea-header">
+                        <div class="weight-badge" style="background: ${color};">${sample.weight}</div>
+                        <div class="idea-text">${sample.text}</div>
+                    </div>
+                    <div class="idea-meta">
+                        <span class="idea-difficulty" style="background: ${diffColor}; border-color: ${diffColor}">${sample.difficulty.toUpperCase()}</span>
+                        <span>Just now</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+        
+        // Test edit modal
+        function testEditModal() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.textContent = 'Opening edit modal with test data...\n\n';
+            
+            // Mock idea data
+            document.getElementById('modal-edit-text').value = 'Test idea for modal verification';
+            document.getElementById('modal-edit-difficulty').value = 'medium';
+            document.getElementById('modal-edit-weight').value = 7;
+            updateWeightPreview(7);
+            
+            // Populate topics
+            populateTopicDropdown();
+            
+            // Show modal
+            document.getElementById('edit-idea-modal').style.display = 'flex';
+            
+            resultsDiv.textContent += 'Modal opened successfully!\n';
+            resultsDiv.textContent += '- Test the weight slider (should update preview badge)\n';
+            resultsDiv.textContent += '- Try keyboard shortcuts (Esc to close, Cmd+Enter to save)\n';
+            resultsDiv.textContent += '- Verify all form fields are populated\n';
+        }
+        
+        // Test database integration
+        function testDatabaseIntegration() {
+            const resultsDiv = document.getElementById('db-results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.textContent = 'Running database integration test...\n\n';
+            
+            try {
+                // Create a test idea with weight
+                const testId = Date.now();
+                const testIdea = {
+                    id: testId,
+                    text: 'Database weight test idea',
+                    topic: '',
+                    difficulty: 'easy',
+                    weight: 8,
+                    ranking: 8,
+                    status: 'new',
+                    order: 0,
+                    timestamp: new Date().toISOString()
+                };
+                
+                resultsDiv.textContent += '1. Creating test idea with weight=8...\n';
+                
+                // Insert into database
+                db.run(`
+                    INSERT INTO ideas (id, text, topic, difficulty, ranking, weight, status, list_order, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [testId, testIdea.text, testIdea.topic, testIdea.difficulty, testIdea.ranking, testIdea.weight, testIdea.status, testIdea.order, testIdea.timestamp]);
+                
+                resultsDiv.textContent += '   ✓ Inserted into database\n\n';
+                
+                // Read it back
+                resultsDiv.textContent += '2. Reading idea back from database...\n';
+                const result = db.exec(`SELECT * FROM ideas WHERE id = ?`, [testId]);
+                
+                if (result.length > 0) {
+                    const row = result[0];
+                    const columns = row.columns;
+                    const values = row.values[0];
+                    
+                    const idea = {};
+                    columns.forEach((col, idx) => {
+                        idea[col] = values[idx];
+                    });
+                    
+                    resultsDiv.textContent += '   ✓ Retrieved from database\n';
+                    resultsDiv.textContent += `   Weight field: ${idea.weight}\n\n`;
+                    
+                    // Verify weight
+                    if (idea.weight === 8) {
+                        resultsDiv.textContent += '✓ SUCCESS: Weight correctly saved and retrieved!\n';
+                    } else {
+                        resultsDiv.textContent += `✗ ERROR: Expected weight=8, got weight=${idea.weight}\n`;
+                    }
+                    
+                    // Clean up
+                    db.run(`DELETE FROM ideas WHERE id = ?`, [testId]);
+                    resultsDiv.textContent += '\n3. Test cleanup completed\n';
+                    
+                } else {
+                    resultsDiv.textContent += '✗ ERROR: Could not retrieve test idea\n';
+                }
+                
+            } catch (error) {
+                resultsDiv.textContent += `\n✗ ERROR: ${error.message}\n`;
+                console.error('Database test error:', error);
+            }
+        }
+        
+        // Initialize when database is ready
+        waitForDatabaseThen(() => {
+            console.log('Database ready, generating examples...');
+            generateWeightExamples();
+            generateSampleCards();
+        });
+    </script>
+</body>
+</html>

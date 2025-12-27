@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finished Items - Management System</title>
+    <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+    
+    <!-- Windows 3.1 CSS -->
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    
+    <style>
+        body {
+            background: var(--desktop-bg);
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+            font-size: 11px;
+            padding: 20px;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-header {
+            margin-bottom: 16px;
+        }
+        
+        .header-content {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--window-bg);
+        }
+        
+        .header-content h1 {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .filters-window {
+            margin-bottom: 16px;
+        }
+        
+        .filters-content {
+            padding: 12px 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            background: var(--window-bg);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .filter-group label {
+            font-weight: bold;
+            font-size: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 12px;
+            font-size: 10px;
+            margin-left: auto;
+        }
+        
+        .stat-item {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            background: var(--button-bg);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .finished-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            background: var(--window-bg);
+        }
+        
+        .idea-card {
+            border: 1px solid var(--border);
+            padding: 12px;
+            margin-bottom: 12px;
+            background: white;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .idea-card.archived {
+            opacity: 0.6;
+        }
+        
+        .idea-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .idea-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .idea-text {
+            flex: 1;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .idea-meta {
+            display: flex;
+            gap: 8px;
+            font-size: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .idea-project {
+            font-weight: bold;
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+        }
+        
+        .idea-difficulty {
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            font-weight: bold;
+            color: white;
+        }
+        
+        .idea-timestamp {
+            color: var(--button-dark);
+        }
+        
+        .completed-badge {
+            padding: 2px 6px;
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+            border: 1px solid #4CAF50;
+        }
+        
+        .idea-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .idea-btn {
+            padding: 4px 8px;
+            font-size: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--button-dark);
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="window page-header active">
+        <div class="title-bar">
+            <div class="title-bar-text">Finished Items</div>
+            <div class="title-bar-buttons">
+                <button data-minimize></button>
+                <button data-maximize></button>
+                <button data-close></button>
+            </div>
+        </div>
+        <div class="header-content">
+            <h1>Finished Items</h1>
+            <div>
+                <a href="ideas.html"><button>+ Add Idea</button></a>
+                <a href="index.html"><button>← Dashboard</button></a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="window filters-window active">
+        <div class="title-bar">
+            <div class="title-bar-text">Filters</div>
+            <div class="title-bar-buttons">
+                <button data-minimize></button>
+                <button data-maximize></button>
+            </div>
+        </div>
+        <div class="filters-content">
+            <div class="filter-group">
+                <label>Topic:</label>
+                <select id="project-filter" onchange="loadFinishedItems()">
+                    <option value="all">All Topics</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Show Archived:</label>
+                <input type="checkbox" id="show-archived" onchange="loadFinishedItems()">
+            </div>
+            <div class="stats">
+                <div class="stat-item">Total: <span id="total-count">0</span></div>
+                <div class="stat-item">Archived: <span id="archived-count">0</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Finished List -->
+    <div class="window main-content active">
+        <div class="title-bar">
+            <div class="title-bar-text">✓ Completed</div>
+            <div class="title-bar-buttons">
+                <button data-minimize></button>
+                <button data-maximize></button>
+            </div>
+        </div>
+        <div class="finished-content" id="finished-list"></div>
+    </div>
+    
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="database-init-helper.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="shared-rendering.js"></script>
+    <script>
+        function initializePage() {
+            loadProjectFilter();
+            loadFinishedItems();
+        }
+
+        function loadProjectFilter() {
+            const select = document.getElementById('project-filter');
+            const topics = getTopics();
+            const options = topics.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+            select.innerHTML = '<option value="all">All Topics</option>' + options;
+        }
+
+        function loadFinishedItems() {
+            const projectFilter = document.getElementById('project-filter').value;
+            const showArchived = document.getElementById('show-archived').checked;
+            
+            let items = getIdeasByStatus('done');
+            
+            if (projectFilter !== 'all') {
+                items = items.filter(idea => idea.project === projectFilter);
+            }
+            
+            if (!showArchived) {
+                items = items.filter(idea => !idea.archived);
+            }
+            
+            const archivedCount = items.filter(idea => idea.archived).length;
+            document.getElementById('total-count').textContent = items.length;
+            document.getElementById('archived-count').textContent = archivedCount;
+            
+            items.sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt));
+            
+            const container = document.getElementById('finished-list');
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">✓</div>
+                        <div>No finished items yet</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const topics = getTopics();
+            const topicMap = {};
+            topics.forEach(t => topicMap[t.id] = t);
+            
+            container.innerHTML = items.map(idea => {
+                const topic = topicMap[idea.project];
+                const topicName = topic ? topic.name : 'Untagged';
+                const topicColor = topic ? topic.color : '#666';
+                
+                const completedDate = idea.completedAt ? new Date(idea.completedAt).toLocaleDateString() : 'Unknown';
+                
+                const difficultyColors = {
+                    'easy': '#4CAF50',
+                    'medium': '#FF9800',
+                    'hard': '#F44336'
+                };
+                
+                return `
+                    <div class="idea-card ${idea.archived ? 'archived' : ''}">
+                        <div class="idea-header">
+                            <div class="idea-rank" style="background: ${getRankingColor(idea.ranking)}; color: white; border-color: ${getRankingColor(idea.ranking)};">
+                                ${idea.ranking}
+                            </div>
+                            <div class="idea-text">${idea.text}</div>
+                        </div>
+                        <div class="idea-meta">
+                            <div class="idea-project" style="background: ${topicColor}20; border-color: ${topicColor}; color: ${topicColor}">
+                                ${topicName}
+                            </div>
+                            <div class="idea-difficulty" style="background: ${difficultyColors[idea.difficulty]}">
+                                ${idea.difficulty}
+                            </div>
+                            <div class="completed-badge">Completed ${completedDate}</div>
+                            ${idea.archived ? '<div class="completed-badge" style="background: #666;">ARCHIVED</div>' : ''}
+                        </div>
+                        <div class="idea-actions">
+                            ${!idea.archived ? `<button class="idea-btn" onclick="restoreToBacklog(${idea.id})">↩ Restore to Backlog</button>` : ''}
+                            ${!idea.archived ? `<button class="idea-btn" onclick="archiveIdea(${idea.id})">📦 Archive</button>` : ''}
+                            ${idea.archived ? `<button class="idea-btn" onclick="unarchiveIdea(${idea.id})">📂 Unarchive</button>` : ''}
+                            <button class="idea-btn" onclick="deleteIdeaConfirm(${idea.id})">🗑 Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function restoreToBacklog(ideaId) {
+            if (confirm('Restore this item to your backlog?')) {
+                moveToBacklog(ideaId);
+                loadFinishedItems();
+            }
+        }
+
+        function archiveIdea(ideaId) {
+            if (confirm('Archive this item?')) {
+                updateIdea(ideaId, { archived: true });
+                loadFinishedItems();
+            }
+        }
+
+        function unarchiveIdea(ideaId) {
+            updateIdea(ideaId, { archived: false });
+            loadFinishedItems();
+        }
+
+        function deleteIdeaConfirm(ideaId) {
+            if (confirm('Permanently delete this item? This cannot be undone.')) {
+                deleteIdea(ideaId);
+                loadFinishedItems();
+            }
+        }
+
+        waitForDatabaseThen(() => {
+            initializePage();
+        });
+        
+        window.addEventListener('ideasUpdated', () => {
+            loadFinishedItems();
+        });
+    </script>
+</body>
+</html>

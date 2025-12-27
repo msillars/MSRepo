@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management System</title>
+    <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Futura', 'Century Gothic', 'Arial Narrow', sans-serif;
+            background: #E8E8EA;
+            color: #1D1D1F;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Retro Window Chrome */
+        .window {
+            background: #F0F0F0;
+            border: 2px solid #000;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+        }
+        
+        .window-title {
+            background: linear-gradient(180deg, #fff 0%, #E0E0E0 100%);
+            border-bottom: 2px solid #000;
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .window-controls {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .window-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid #000;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .window-dot:hover {
+            transform: scale(1.2);
+        }
+        
+        .window-dot:active {
+            transform: scale(0.9);
+        }
+        
+        .dot-close { background: #FF5F57; }
+        .dot-minimize { background: #FEBC2E; }
+        .dot-maximize { background: #28C840; }
+        
+        /* Windows 3.1 Style Icons */
+        .win31-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        .win31-icon img {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        /* Header */
+        header {
+            background: #F0F0F0;
+            border-bottom: 2px solid #000;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 20px;
+            background: #FAFAFA;
+            border: 2px solid #000;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #000;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #000;
+            color: white;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+        }
+        
+        .btn:active {
+            transform: translate(0, 0);
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: #000;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #333;
+        }
+        
+        /* Main Content */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            gap: 40px;
+        }
+        
+        /* Top Priorities Section */
+        .priorities-section {
+            flex: 0 0 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .priorities-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .priorities-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .priority-item {
+            background: #FAFAFA;
+            border: 2px solid #000;
+            margin-bottom: 16px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        
+        .priority-content {
+            flex: 1;
+        }
+        
+        .priority-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .priority-project-icon {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        .priority-project-icon img {
+            width: 24px;
+            height: 24px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        .priority-text {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        
+        .priority-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .priority-project {
+            font-weight: 600;
+        }
+        
+        .priority-badges {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .badge {
+            padding: 2px 8px;
+            border: 1px solid #000;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        /* Projects Grid */
+        .projects-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            padding: 20px;
+        }
+        
+        .project-card {
+            background: #FAFAFA;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .project-card-header {
+            background: linear-gradient(180deg, #fff 0%, #E0E0E0 100%);
+            border-bottom: 2px solid #000;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .project-card-body {
+            padding: 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .weight-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #000;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        
+        .project-weight {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            font-size: 14px;
+        }
+        
+        .project-card:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.2);
+        }
+        
+        .project-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .project-icon {
+            border: 2px solid #000;
+        }
+        
+        .project-name {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            flex: 1;
+        }
+        
+        .project-ideas-count {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border: 1px solid #000;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .project-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .project-btn {
+            flex: 1;
+            padding: 8px;
+            background: white;
+            border: 1px solid #000;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+        
+        .project-btn:hover {
+            background: #000;
+            color: white;
+        }
+        
+        /* Add Project Card */
+        .add-project-card {
+            border: 2px dashed #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: transparent;
+        }
+        
+        .add-project-card:hover {
+            border-color: #000;
+            background: #FAFAFA;
+        }
+        
+        .add-project-content {
+            text-align: center;
+            color: #666;
+        }
+        
+        .add-project-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #F0F0F0;
+            border: 2px solid #000;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #000;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        /* Icon Picker Grid */
+        .icon-picker-container {
+            border: 2px solid #E0E0E0;
+            background: #FAFAFA;
+        }
+        
+        .icon-search {
+            padding: 12px;
+            border-bottom: 2px solid #E0E0E0;
+            background: #FAFAFA;
+        }
+        
+        .icon-search input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #000;
+            font-family: inherit;
+            font-size: 12px;
+        }
+        
+        .icon-picker {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        
+        .icon-option {
+            aspect-ratio: 1;
+            border: 2px solid #E0E0E0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .icon-option:hover {
+            border-color: #000;
+            transform: scale(1.05);
+        }
+        
+        .icon-option.selected {
+            border-color: #000;
+            border-width: 3px;
+            background: #F0F0F0;
+        }
+        
+        .icon-option img {
+            width: 24px;
+            height: 24px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        .icon-label {
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 2px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .icon-option:hover .icon-label {
+            opacity: 1;
+        }
+        
+        .icon-count {
+            padding: 8px 12px;
+            background: #F0F0F0;
+            border-top: 2px solid #E0E0E0;
+            font-size: 10px;
+            text-align: center;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    
+        /* Idea Card Editing Styles */
+        .idea-text-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #000;
+            font-family: inherit;
+            font-size: 14px;
+            min-height: 60px;
+            resize: vertical;
+        }
+        
+        .idea-edit-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .idea-edit-controls select {
+            flex: 1;
+            padding: 6px;
+            border: 2px solid #000;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .idea-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .idea-btn {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #000;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .idea-btn:hover {
+            background: #000;
+            color: white;
+        }
+        
+        .idea-btn.move-btn {
+            background: #FDD835;
+        }
+        
+        .idea-btn.move-btn:hover {
+            background: #F9A825;
+        }
+        
+        .idea-btn.done-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .idea-btn.done-btn:hover {
+            background: #388E3C;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: #999;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+</style>
+</head>
+<body>
+    <header>
+        <h1>Management System</h1>
+        <div class="header-actions">
+            <a href="ideas.html" class="btn btn-primary">
+                Ideas (<span id="total-ideas">0</span>)
+            </a>
+        </div>
+    </header>
+    
+    <main>
+        <!-- Top Priorities Section -->
+        <div class="priorities-section">
+            <div class="window priorities-window">
+                <div class="window-title">
+                    <span>🏆 Top 5 Priorities (All Projects)</span>
+                    <div class="window-controls">
+                        <div class="window-dot dot-close" onclick="window.location.href='index.html'"></div>
+                        <div class="window-dot dot-minimize" onclick="window.location.href='ideas.html'"></div>
+                        <div class="window-dot dot-maximize" onclick="window.location.href='ideas.html'"></div>
+                    </div>
+                </div>
+                <div class="priorities-content" id="priorities-list">
+                    <!-- Top 5 priorities will load here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Projects Section -->
+        <div class="projects-section">
+            <div class="projects-grid" id="projects-grid">
+                <!-- Project cards will load here -->
+            </div>
+        </div>
+    </main>
+    
+    <!-- Add Topic Modal -->
+    <div class="modal" id="add-topic-modal">
+        <div class="modal-content">
+            <div class="window-title">
+                <span>New Topic</span>
+                <div class="window-controls">
+                    <div class="window-dot dot-close" onclick="closeAddTopicModal()"></div>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-topic-name">Topic Name</label>
+                    <input type="text" id="new-topic-name" placeholder="Enter topic name">
+                </div>
+                <div class="form-group">
+                    <div id="new-topic-weight-picker"></div>
+                </div>
+                <div class="form-group">
+                    <label>Icon</label>
+                    <div class="icon-picker-container">
+                        <div class="icon-search">
+                            <input type="text" id="icon-search-input" placeholder="Search icons..." onkeyup="filterIcons()">
+                        </div>
+                        <div class="icon-picker" id="icon-picker">
+                            <!-- Icons will be loaded here by JavaScript -->
+                        </div>
+                        <div class="icon-count" id="icon-count">Loading icons...</div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeAddTopicModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="createNewTopic()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Topic Modal -->
+    <div class="modal" id="edit-topic-modal">
+        <div class="modal-content">
+            <div class="window-title">
+                <span id="edit-topic-title">Edit Topic</span>
+                <div class="window-controls">
+                    <div class="window-dot dot-close" onclick="closeEditTopicModal()"></div>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-topic-name">Topic Name</label>
+                    <input type="text" id="edit-topic-name" placeholder="Enter topic name">
+                </div>
+                <div class="form-group">
+                    <div id="edit-topic-weight-picker"></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeEditTopicModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveTopicEdit()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="weight-utils.js"></script>
+    <script src="shared-weight-picker.js"></script>
+    <script src="icons-list.js"></script>
+    <script src="shared-rendering.js"></script>
+    <script src="shared-top-priorities.js"></script>
+    <script>
+        // Selected icon (default to Door)
+        let selectedIcon = 'Door.ICO';
+        let allIcons = ALL_AVAILABLE_ICONS; // From icons-list.js
+        let filteredIcons = allIcons;
+        
+        // Filter icons by search term
+        function filterIcons() {
+            const searchTerm = document.getElementById('icon-search-input').value.toLowerCase();
+            
+            if (!searchTerm) {
+                filteredIcons = allIcons;
+            } else {
+                filteredIcons = allIcons.filter(icon => 
+                    icon.name.toLowerCase().includes(searchTerm) ||
+                    icon.file.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            loadIconPicker();
+        }
+        
+        // Load icon picker grid
+        function loadIconPicker() {
+            const container = document.getElementById('icon-picker');
+            const countEl = document.getElementById('icon-count');
+            
+            if (filteredIcons.length === 0) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">No icons found</div>';
+                countEl.textContent = '0 icons';
+                return;
+            }
+            
+            container.innerHTML = filteredIcons.map(icon => `
+                <div class="icon-option ${icon.file === selectedIcon ? 'selected' : ''}" 
+                     onclick="selectIcon('${icon.file}')" 
+                     data-icon="${icon.file}"
+                     title="${icon.name}">
+                    <img src="../Icons/${icon.file}" alt="${icon.name}">
+                    <div class="icon-label">${icon.name}</div>
+                </div>
+            `).join('');
+            
+            countEl.textContent = `${filteredIcons.length} of ${allIcons.length} icons`;
+        }
+        
+        // Handle icon selection
+        function selectIcon(iconFile) {
+            selectedIcon = iconFile;
+            // Update visual selection
+            document.querySelectorAll('.icon-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            const selectedEl = document.querySelector(`[data-icon="${iconFile}"]`);
+            if (selectedEl) {
+                selectedEl.classList.add('selected');
+                // Scroll selected icon into view
+                selectedEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        
+        // Project icon file mapping (global for use by controllers)
+        window.PROJECT_ICON_FILES = {
+            'photography': 'Photography.ICO',
+            'work': 'Work.ICO',
+            'life-admin': 'LifeAdmin.ICO',
+            'relationships': 'Relationships.ICO',
+            'living': 'Living.ICO',
+            'health': 'hearts.ICO',
+            'creating-this-dashboard': 'Ideas.ICO'
+        };
+        
+        function loadDashboard() {
+            // Top Priorities now handled by its own controller
+            if (topPrioritiesController) {
+                topPrioritiesController.loadPriorities();
+            }
+            loadProjectCards();
+            updateTotalIdeasCount();
+        }
+        
+        function loadProjectCards() {
+            const container = document.getElementById('projects-grid');
+            const topics = getTopics();
+            
+            // Sort topics by weight (highest first, i.e., most important at top left)
+            topics.sort((a, b) => {
+                const weightA = a.weight || 5;
+                const weightB = b.weight || 5;
+                return weightB - weightA; // Descending order (10, 9, 8... 1)
+            });
+            
+            const counts = getIdeaCounts();
+            
+            const topicCards = topics.map(topic => {
+                const count = counts.byTopic[topic.id] || 0;
+                const priorityInfo = PRIORITY_LEVELS[topic.priority];
+                // Use topic.icon if it exists, otherwise fall back to hardcoded mapping, then default
+                const iconFile = topic.icon || window.PROJECT_ICON_FILES[topic.id] || 'Door.ICO';
+                
+                return `
+                    <div class="project-card" onclick="openTopic('${topic.id}')">
+                        <div class="project-card-header">
+                            <div class="window-controls">
+                                <div class="window-dot dot-close"></div>
+                                <div class="window-dot dot-minimize"></div>
+                                <div class="window-dot dot-maximize"></div>
+                            </div>
+                        </div>
+                        <div class="project-card-body">
+                            <div class="weight-badge project-weight" style="background: ${getWeightColor(topic.weight || 5)};">
+                                ${topic.weight || 5}
+                            </div>
+                            <div class="project-header">
+                                <div class="win31-icon project-icon" style="background-color: ${topic.color}20; border-color: ${topic.color}">
+                                    <img src="../Icons/${iconFile}" alt="${topic.name}">
+                                </div>
+                                <div class="project-name">${topic.name}</div>
+                            </div>
+                            <div class="project-ideas-count" style="background: ${topic.color}20; border-color: ${topic.color}">
+                                ${count} Ideas
+                            </div>
+                            <div class="project-actions">
+                                <button class="project-btn" onclick="event.stopPropagation(); editTopic('${topic.id}')">
+                                    Edit
+                                </button>
+                                <button class="project-btn" onclick="event.stopPropagation(); openTopic('${topic.id}')">
+                                    View →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            const addCard = `
+                <div class="project-card add-project-card" onclick="openAddTopicModal()">
+                    <div class="add-project-content">
+                        <div class="add-project-icon">+</div>
+                        <div style="font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Add Topic</div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = topicCards + addCard;
+        }
+        
+        function openTopic(topicId) {
+            // Check if dedicated HTML file exists for this topic
+            const staticTopics = ['photography', 'work', 'life-admin', 'relationships', 'living', 'health', 'creating-this-dashboard'];
+            if (staticTopics.includes(topicId)) {
+                window.location.href = `${topicId}.html`;
+            } else {
+                // Use dynamic topic page for new topics
+                window.location.href = `topic.html?id=${topicId}`;
+            }
+        }
+        
+        let currentEditingTopicId = null;
+        
+        function editTopic(topicId) {
+            const topics = getTopics();
+            const topic = topics.find(t => t.id === topicId);
+            if (!topic) return;
+            
+            currentEditingTopicId = topicId;
+            
+            // Set title and name
+            document.getElementById('edit-topic-title').textContent = `Edit: ${topic.name}`;
+            document.getElementById('edit-topic-name').value = topic.name;
+            
+            // Render weight picker with current weight
+            document.getElementById('edit-topic-weight-picker').innerHTML = renderWeightPicker({
+                currentWeight: topic.weight || 5,
+                id: 'edit-topic-weight',
+                label: 'Topic Weight (1-10)',
+                showHelp: true
+            });
+            
+            // Show modal
+            document.getElementById('edit-topic-modal').classList.add('active');
+            document.getElementById('edit-topic-name').focus();
+        }
+        
+        function closeEditTopicModal() {
+            document.getElementById('edit-topic-modal').classList.remove('active');
+            currentEditingTopicId = null;
+        }
+        
+        function saveTopicEdit() {
+            if (!currentEditingTopicId) return;
+            
+            const name = document.getElementById('edit-topic-name').value.trim();
+            const weight = getWeightValue('edit-topic-weight');
+            
+            if (!name) {
+                alert('Please enter a topic name');
+                return;
+            }
+            
+            updateTopic(currentEditingTopicId, { name, weight });
+            closeEditTopicModal();
+            loadDashboard();
+        }
+        
+        function openAddTopicModal() {
+            selectedIcon = 'Door.ICO'; // Reset to default
+            document.getElementById('icon-search-input').value = ''; // Clear search
+            filteredIcons = allIcons; // Show all icons
+            loadIconPicker(); // Load the icon grid
+            
+            // Render weight picker
+            document.getElementById('new-topic-weight-picker').innerHTML = renderWeightPicker({
+                currentWeight: 5,
+                id: 'new-topic-weight',
+                label: 'Topic Weight (1-10)',
+                showHelp: true
+            });
+            
+            document.getElementById('add-topic-modal').classList.add('active');
+            document.getElementById('new-topic-name').focus();
+        }
+        
+        function closeAddTopicModal() {
+            document.getElementById('add-topic-modal').classList.remove('active');
+            document.getElementById('new-topic-name').value = '';
+            document.getElementById('icon-search-input').value = '';
+        }
+        
+        function createNewTopic() {
+            const name = document.getElementById('new-topic-name').value.trim();
+            const weight = getWeightValue('new-topic-weight');
+            const icon = selectedIcon; // Use the selected icon from the picker
+            
+            if (!name) {
+                alert('Please enter a topic name');
+                return;
+            }
+            
+            // Use default priority for backwards compatibility, but weight is what matters
+            addTopic(name, 'always-on', icon, weight);
+            closeAddTopicModal();
+            loadDashboard();
+        }
+        
+        function updateTotalIdeasCount() {
+            // Only count unfinished tasks (exclude 'done' status)
+            const ideas = getIdeas().filter(idea => idea.status !== 'done');
+            document.getElementById('total-ideas').textContent = ideas.length;
+        }
+        
+        // Listen for SQL database updates
+        window.addEventListener('ideasUpdated', () => {
+            console.log('[DASHBOARD] Data updated - reloading');
+            loadDashboard();
+        });
+        
+        // Wait for database to be ready, then load
+        function initializePage() {
+            console.log('[DASHBOARD] Waiting for database...');
+            
+            // Check if already ready
+            if (window.isDatabaseReady && isDatabaseReady()) {
+                console.log('[DASHBOARD] Database already ready');
+                loadPageData();
+                return;
+            }
+            
+            // Wait for ready event
+            window.addEventListener('databaseReady', () => {
+                console.log('[DASHBOARD] Database ready event received');
+                loadPageData();
+            }, { once: true });
+            
+            // Timeout fallback
+            setTimeout(() => {
+                console.log('[DASHBOARD] Timeout - attempting to load anyway');
+                loadPageData();
+            }, 3000);
+        }
+        
+        function loadPageData() {
+            console.log('[DASHBOARD] Loading page data...');
+            // Initialize Top Priorities Controller
+            initializeTopPriorities();
+            // Initial load
+            loadDashboard();
+        }
+        
+        // Start initialization
+        initializePage();
+    </script>
+</body>
+</html>

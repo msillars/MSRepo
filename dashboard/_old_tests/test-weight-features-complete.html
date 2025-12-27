@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight Features Test - Management System</title>
+    <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+    <link rel="stylesheet" href="edit-modal.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Futura', 'Century Gothic', 'Arial Narrow', sans-serif; background: #F5F5F7; color: #1D1D1F; padding: 40px; }
+        
+        .test-section { 
+            background: white; 
+            border: 2px solid #000; 
+            padding: 30px; 
+            margin-bottom: 30px; 
+        }
+        
+        h1 { 
+            font-size: 32px; 
+            font-weight: 300; 
+            margin-bottom: 10px; 
+        }
+        
+        h2 { 
+            font-size: 24px; 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid #E0E0E0; 
+        }
+        
+        .status { 
+            display: inline-block; 
+            padding: 4px 12px; 
+            background: #4CAF50; 
+            color: white; 
+            font-weight: 600; 
+            font-size: 12px; 
+            margin-left: 12px; 
+        }
+        
+        .test-item { 
+            padding: 16px; 
+            background: #F8F8F8; 
+            border-left: 4px solid #2196F3; 
+            margin-bottom: 16px; 
+        }
+        
+        .test-item h3 { 
+            font-size: 16px; 
+            margin-bottom: 8px; 
+        }
+        
+        .test-item p { 
+            font-size: 14px; 
+            color: #666; 
+            line-height: 1.6; 
+        }
+        
+        .btn { 
+            padding: 12px 24px; 
+            background: #000080; 
+            color: white; 
+            border: 2px solid #000; 
+            font-family: inherit; 
+            font-size: 14px; 
+            font-weight: 600; 
+            letter-spacing: 0.5px; 
+            text-transform: uppercase; 
+            cursor: pointer; 
+            text-decoration: none; 
+            display: inline-block; 
+            margin-right: 12px; 
+            margin-bottom: 12px; 
+        }
+        
+        .btn:hover { 
+            background: #0000a0; 
+            transform: translate(-2px, -2px); 
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.2); 
+        }
+        
+        .weight-demo { 
+            display: grid; 
+            grid-template-columns: repeat(10, 1fr); 
+            gap: 12px; 
+            margin: 20px 0; 
+        }
+        
+        .weight-demo-item { 
+            aspect-ratio: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 20px; 
+            color: white; 
+            border-radius: 4px; 
+            border: 2px solid rgba(0, 0, 0, 0.2); 
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2); 
+        }
+        
+        .idea-card-demo { 
+            background: #FAFAFA; 
+            border: 1px solid #E0E0E0; 
+            padding: 16px; 
+            margin-bottom: 12px; 
+            border-left: 4px solid #999; 
+        }
+        
+        .idea-header { 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 12px; 
+            margin-bottom: 12px; 
+        }
+        
+        .idea-text { 
+            flex: 1; 
+            font-size: 14px; 
+            line-height: 1.6; 
+        }
+        
+        code { 
+            background: #f0f0f0; 
+            padding: 2px 6px; 
+            border-radius: 3px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 13px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h1>Weight Features Test <span class="status">COMPLETE</span></h1>
+        <p style="font-size: 16px; margin: 20px 0;">All optional weight features have been implemented. Use this page to verify functionality.</p>
+        
+        <div style="margin-top: 30px;">
+            <a href="photography.html" class="btn">Test Photography</a>
+            <a href="work.html" class="btn">Test Work</a>
+            <a href="life-admin.html" class="btn">Test Life Admin</a>
+            <a href="index.html" class="btn">Back to Dashboard</a>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Feature 1: Weight Picker in Edit Modal</h2>
+        
+        <div class="test-item">
+            <h3>How to Test</h3>
+            <p>1. Go to any topic page (e.g., Photography)<br>
+               2. Click "Edit" on any idea<br>
+               3. Try clicking different weight squares (1-10)<br>
+               4. Selected square should have blue border<br>
+               5. Save changes and verify weight badge appears on card</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>Expected Behavior</h3>
+            <p>• Modal opens with grid of 10 colored squares<br>
+               • Clicking a square selects it (blue border)<br>
+               • Color gradient from yellow (1) to red (10)<br>
+               • Save button updates the idea with new weight<br>
+               • Topic is preserved when editing</p>
+        </div>
+        
+        <button class="btn" onclick="openTestModal()">Demo Weight Picker</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Feature 2: Weight Badges on Cards</h2>
+        
+        <div class="test-item">
+            <h3>How to Test</h3>
+            <p>1. View any topic page with ideas<br>
+               2. Ideas with weights should show square colored badges<br>
+               3. Badge color should match weight (yellow to red gradient)<br>
+               4. Badge appears on left side of idea text</p>
+        </div>
+        
+        <h3 style="margin: 30px 0 16px;">Weight Color Demo (1-10)</h3>
+        <div class="weight-demo">
+            <div class="weight-demo-item" style="background: #FFD700;">1</div>
+            <div class="weight-demo-item" style="background: #FFB700;">2</div>
+            <div class="weight-demo-item" style="background: #FF9700;">3</div>
+            <div class="weight-demo-item" style="background: #FF7700;">4</div>
+            <div class="weight-demo-item" style="background: #FF5700;">5</div>
+            <div class="weight-demo-item" style="background: #FF3700;">6</div>
+            <div class="weight-demo-item" style="background: #FF1700;">7</div>
+            <div class="weight-demo-item" style="background: #F71700;">8</div>
+            <div class="weight-demo-item" style="background: #EF1700;">9</div>
+            <div class="weight-demo-item" style="background: #E71700;">10</div>
+        </div>
+        
+        <h3 style="margin: 30px 0 16px;">Example Card with Weight Badge</h3>
+        <div class="idea-card-demo">
+            <div class="idea-header">
+                <div class="weight-badge idea-weight-badge" style="background: #FF5700;">5</div>
+                <div class="idea-text">Example idea with weight of 5</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Feature 3: Visual Polish</h2>
+        
+        <div class="test-item">
+            <h3>Implemented Polish</h3>
+            <p>• Clean modal design with Windows 3.1 aesthetic<br>
+               • Hover effects on weight picker squares<br>
+               • Selected state with blue border highlight<br>
+               • Smooth animations and transitions<br>
+               • Consistent styling across all pages</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📝 Files Updated</h2>
+        
+        <div class="test-item">
+            <h3>Core Files</h3>
+            <p>• <code>shared-rendering.js</code> - Weight badge rendering<br>
+               • <code>edit-idea-modal.js</code> - Grid-based picker<br>
+               • <code>edit-modal.css</code> - Modal and picker styles</p>
+        </div>
+        
+        <div class="test-item">
+            <h3>All Topic Pages Updated</h3>
+            <p>• <code>photography.html</code><br>
+               • <code>work.html</code><br>
+               • <code>life-admin.html</code><br>
+               • <code>relationships.html</code><br>
+               • <code>living.html</code><br>
+               • <code>health.html</code><br>
+               • <code>creating-this-dashboard.html</code></p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎯 Quick Test Checklist</h2>
+        
+        <div class="test-item">
+            <h3>Test Each Item</h3>
+            <p style="line-height: 2;">
+                ☐ Weight picker opens in modal<br>
+                ☐ Clicking weights changes selection<br>
+                ☐ Save updates idea weight<br>
+                ☐ Weight badge appears on card<br>
+                ☐ Badge color matches weight<br>
+                ☐ Can edit same idea again<br>
+                ☐ Topic is preserved after edit<br>
+                ☐ Works on all topic pages
+            </p>
+        </div>
+    </div>
+    
+    <!-- Demo Modal (for testing) -->
+    <div id="edit-idea-modal" class="modal-overlay"></div>
+    
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="database-init-helper.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="weight-utils.js"></script>
+    <script src="edit-idea-modal.js"></script>
+    
+    <script>
+        // Demo function to show the modal
+        function openTestModal() {
+            // Create a fake idea for testing
+            const demoIdea = {
+                id: 'demo-123',
+                text: 'This is a demo idea to test the weight picker',
+                difficulty: 'medium',
+                weight: 5,
+                topic: 'photography'
+            };
+            
+            // Temporarily override getIdeaById for demo
+            const originalGetIdeaById = window.getIdeaById;
+            window.getIdeaById = function(id) {
+                if (id === 'demo-123') return demoIdea;
+                return originalGetIdeaById ? originalGetIdeaById(id) : null;
+            };
+            
+            // Open the modal
+            openEditIdeaModal('demo-123');
+            
+            // Restore original function after a short delay
+            setTimeout(() => {
+                window.getIdeaById = originalGetIdeaById;
+            }, 100);
+        }
+    </script>
+</body>
+</html>

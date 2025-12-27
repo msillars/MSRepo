@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Data Verification & Backup</title>
+    <style>
+        body { font-family: monospace; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .good { background: #d4edda; border: 1px solid #c3e6cb; }
+        .bad { background: #f8d7da; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 10px 5px 10px 0; font-size: 14px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; border: none; }
+        .btn-success { background: #28a745; color: white; border: none; }
+        .btn-danger { background: #dc3545; color: white; border: none; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }
+        th { background: #f5f5f5; font-weight: bold; }
+        .sample-item { margin: 10px 0; padding: 10px; background: #f9f9f9; border-left: 3px solid #007bff; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Management System - Data Verification</h1>
+    
+    <div id="status"></div>
+    
+    <h2>Actions</h2>
+    <button class="btn-success" onclick="exportData()">💾 Export All Data (Backup)</button>
+    <button class="btn-primary" onclick="location.reload()">🔄 Refresh Check</button>
+    
+    <h2>Detailed Report</h2>
+    <div id="report"></div>
+    
+    <script>
+        function checkData() {
+            const statusDiv = document.getElementById('status');
+            const reportDiv = document.getElementById('report');
+            
+            // Check if data exists
+            const ideasData = localStorage.getItem('management_system_ideas');
+            const projectsData = localStorage.getItem('management_system_projects');
+            
+            let statusHTML = '';
+            let reportHTML = '';
+            
+            // Status check
+            if (ideasData && projectsData) {
+                statusHTML = '<div class="status good">✅ <strong>DATA FOUND</strong> - Your data is safe in localStorage</div>';
+            } else if (!ideasData && !projectsData) {
+                statusHTML = '<div class="status bad">❌ <strong>NO DATA FOUND</strong> - localStorage appears empty</div>';
+            } else {
+                statusHTML = '<div class="status warning">⚠️ <strong>PARTIAL DATA</strong> - Some data missing</div>';
+            }
+            
+            statusDiv.innerHTML = statusHTML;
+            
+            // Ideas report
+            if (ideasData) {
+                const ideas = JSON.parse(ideasData);
+                reportHTML += '<h3>💡 Ideas/Tasks Data</h3>';
+                reportHTML += `<p><strong>Total items:</strong> ${ideas.length}</p>`;
+                
+                // Count by project
+                const byProject = {};
+                ideas.forEach(idea => {
+                    byProject[idea.project] = (byProject[idea.project] || 0) + 1;
+                });
+                
+                reportHTML += '<h4>By Project:</h4><table>';
+                reportHTML += '<tr><th>Project</th><th>Count</th></tr>';
+                for (const [project, count] of Object.entries(byProject)) {
+                    reportHTML += `<tr><td>${project}</td><td>${count}</td></tr>`;
+                }
+                reportHTML += '</table>';
+                
+                // Count by status
+                const byStatus = {};
+                ideas.forEach(idea => {
+                    byStatus[idea.status] = (byStatus[idea.status] || 0) + 1;
+                });
+                
+                reportHTML += '<h4>By Status:</h4><table>';
+                reportHTML += '<tr><th>Status</th><th>Count</th></tr>';
+                for (const [status, count] of Object.entries(byStatus)) {
+                    reportHTML += `<tr><td>${status}</td><td>${count}</td></tr>`;
+                }
+                reportHTML += '</table>';
+                
+                // Sample items
+                reportHTML += '<h4>Sample Items (first 5):</h4>';
+                ideas.slice(0, 5).forEach((idea, idx) => {
+                    reportHTML += `
+                        <div class="sample-item">
+                            <strong>#${idx + 1}</strong><br>
+                            <strong>Project:</strong> ${idea.project}<br>
+                            <strong>Status:</strong> ${idea.status}<br>
+                            <strong>Text:</strong> ${idea.text}<br>
+                            <strong>Ranking:</strong> ${idea.ranking}, 
+                            <strong>Difficulty:</strong> ${idea.difficulty}
+                        </div>
+                    `;
+                });
+                
+                // Photography specific
+                const photoIdeas = ideas.filter(i => i.project === 'photography');
+                reportHTML += `<h4>📷 Photography Project Specifically:</h4>`;
+                reportHTML += `<p><strong>Total photography items:</strong> ${photoIdeas.length}</p>`;
+                if (photoIdeas.length > 0) {
+                    reportHTML += '<p>Status breakdown:</p><ul>';
+                    const photoByStatus = {};
+                    photoIdeas.forEach(idea => {
+                        photoByStatus[idea.status] = (photoByStatus[idea.status] || 0) + 1;
+                    });
+                    for (const [status, count] of Object.entries(photoByStatus)) {
+                        reportHTML += `<li>${status}: ${count}</li>`;
+                    }
+                    reportHTML += '</ul>';
+                }
+                
+            } else {
+                reportHTML += '<div class="status bad"><h3>❌ No Ideas Data</h3></div>';
+            }
+            
+            // Projects report
+            if (projectsData) {
+                const projects = JSON.parse(projectsData);
+                reportHTML += '<h3>📁 Projects Data</h3>';
+                reportHTML += `<p><strong>Total projects:</strong> ${projects.length}</p>`;
+                reportHTML += '<table>';
+                reportHTML += '<tr><th>ID</th><th>Name</th><th>Priority</th><th>Color</th></tr>';
+                projects.forEach(project => {
+                    reportHTML += `<tr>
+                        <td>${project.id}</td>
+                        <td>${project.name}</td>
+                        <td>${project.priority}</td>
+                        <td><div style="width:20px;height:20px;background:${project.color};border:1px solid #000"></div></td>
+                    </tr>`;
+                });
+                reportHTML += '</table>';
+            } else {
+                reportHTML += '<div class="status bad"><h3>❌ No Projects Data</h3></div>';
+            }
+            
+            // Backup info
+            const backupKeys = Object.keys(localStorage).filter(k => k.startsWith('management_system_backup_'));
+            reportHTML += `<h3>💾 Backups</h3>`;
+            reportHTML += `<p><strong>Backup count:</strong> ${backupKeys.length}</p>`;
+            
+            reportDiv.innerHTML = reportHTML;
+        }
+        
+        function exportData() {
+            const data = {
+                ideas: JSON.parse(localStorage.getItem('management_system_ideas') || '[]'),
+                projects: JSON.parse(localStorage.getItem('management_system_projects') || '[]'),
+                exportDate: new Date().toISOString(),
+                backupCount: Object.keys(localStorage).filter(k => k.startsWith('management_system_backup_')).length
+            };
+            
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `management-system-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Data exported successfully!\n\nFile saved to your Downloads folder.');
+        }
+        
+        // Run check on load
+        checkData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight UI Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #f5f5f5; padding: 40px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border: 2px solid #000; }
+        h1 { font-size: 24px; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        h2 { font-size: 18px; margin-top: 30px; margin-bottom: 15px; }
+        .status { padding: 10px; margin: 10px 0; border: 2px solid #000; }
+        .status.success { background: #d4edda; border-color: #28a745; }
+        .status.info { background: #d1ecf1; border-color: #17a2b8; }
+        .btn { padding: 10px 20px; background: #000; color: white; border: none; font-family: inherit; font-size: 14px; cursor: pointer; margin: 10px 10px 10px 0; }
+        .btn:hover { background: #333; }
+        .weight-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            border: 2px solid #000; 
+            font-weight: 700; 
+            color: white; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3); 
+            margin: 5px;
+        }
+        .gradient-test { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #000; padding: 12px; text-align: left; }
+        th { background: #000; color: white; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .test-result { padding: 15px; margin: 10px 0; border: 2px solid; }
+        .test-pass { background: #d4edda; border-color: #28a745; }
+        .test-fail { background: #f8d7da; border-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Weight System UI Test</h1>
+        
+        <div class="status info">
+            <strong>Testing:</strong> Weight gradient colors, badge rendering, and database integration
+        </div>
+
+        <h2>1. Color Gradient Test (1-10)</h2>
+        <p>Yellow (1) → Orange (5) → Red (10)</p>
+        <div class="gradient-test" id="gradient-test"></div>
+
+        <h2>2. Badge Size Variations</h2>
+        <div>
+            <strong>Small:</strong> <span id="badge-small"></span>
+            <strong>Medium:</strong> <span id="badge-medium"></span>
+            <strong>Large:</strong> <span id="badge-large"></span>
+        </div>
+
+        <h2>3. Database Integration Test</h2>
+        <button class="btn" onclick="testDatabaseIntegration()">Run Database Test</button>
+        <div id="db-test-result"></div>
+
+        <h2>4. Current Topics with Weights</h2>
+        <button class="btn" onclick="loadTopicsTable()">Load Topics</button>
+        <div id="topics-table"></div>
+
+        <h2>5. Test Weight Changes</h2>
+        <p>Select a topic to change its weight:</p>
+        <select id="topic-select"></select>
+        <input type="range" id="weight-slider" min="1" max="10" value="5">
+        <span id="weight-display">5</span>
+        <button class="btn" onclick="updateTopicWeight()">Update Weight</button>
+
+        <h2>Actions</h2>
+        <button class="btn" onclick="location.reload()">Refresh Page</button>
+        <button class="btn" onclick="window.location.href='index.html'">← Back to Dashboard</button>
+    </div>
+
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="database-init-helper.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="weight-utils.js"></script>
+    
+    <script>
+        // Test 1: Color Gradient
+        function testColorGradient() {
+            const container = document.getElementById('gradient-test');
+            let html = '';
+            for (let i = 1; i <= 10; i++) {
+                const color = getWeightColor(i);
+                html += `<div class="weight-badge" style="width: 50px; height: 50px; font-size: 20px; background: ${color};">${i}</div>`;
+            }
+            container.innerHTML = html;
+            console.log('✓ Color gradient test complete');
+        }
+
+        // Test 2: Badge Sizes
+        function testBadgeSizes() {
+            document.getElementById('badge-small').innerHTML = renderWeightBadge(7, { size: 'small' });
+            document.getElementById('badge-medium').innerHTML = renderWeightBadge(7, { size: 'medium' });
+            document.getElementById('badge-large').innerHTML = renderWeightBadge(7, { size: 'large' });
+            console.log('✓ Badge size test complete');
+        }
+
+        // Test 3: Database Integration
+        async function testDatabaseIntegration() {
+            const container = document.getElementById('db-test-result');
+            container.innerHTML = '<p>Running tests...</p>';
+            
+            try {
+                await waitForDatabase();
+                
+                const tests = [];
+                
+                // Test: Check if weight column exists
+                const tableInfo = queryAsObjects("PRAGMA table_info(topics)");
+                const hasWeight = tableInfo.some(col => col.name === 'weight');
+                tests.push({
+                    name: 'Weight column exists in database',
+                    passed: hasWeight,
+                    message: hasWeight ? 'Column found' : 'Column missing - run migration first'
+                });
+                
+                // Test: Check if topics have weights
+                const topics = getTopics();
+                const topicsWithWeights = topics.filter(t => t.weight && t.weight >= 1 && t.weight <= 10);
+                tests.push({
+                    name: 'Topics have valid weights',
+                    passed: topics.length > 0 && topicsWithWeights.length === topics.length,
+                    message: `${topicsWithWeights.length}/${topics.length} topics have valid weights`
+                });
+                
+                // Test: getWeightColor function
+                const testColor = getWeightColor(5);
+                tests.push({
+                    name: 'getWeightColor() works',
+                    passed: testColor && testColor.startsWith('#'),
+                    message: testColor ? `Returns: ${testColor}` : 'Function failed'
+                });
+                
+                // Test: Color interpolation
+                const color1 = getWeightColor(1);
+                const color5 = getWeightColor(5);
+                const color10 = getWeightColor(10);
+                tests.push({
+                    name: 'Color gradient progresses correctly',
+                    passed: color1 !== color5 && color5 !== color10,
+                    message: `1=${color1}, 5=${color5}, 10=${color10}`
+                });
+                
+                // Render results
+                let html = '<div style="margin-top: 15px;">';
+                tests.forEach(test => {
+                    const className = test.passed ? 'test-pass' : 'test-fail';
+                    const icon = test.passed ? '✓' : '✗';
+                    html += `
+                        <div class="test-result ${className}">
+                            <strong>${icon} ${test.name}</strong><br>
+                            ${test.message}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                const allPassed = tests.every(t => t.passed);
+                const summary = allPassed 
+                    ? '<div class="status success"><strong>All tests passed!</strong></div>'
+                    : '<div class="status" style="background: #fff3cd; border-color: #ffc107;"><strong>Some tests failed</strong> - check results above</div>';
+                
+                container.innerHTML = summary + html;
+                
+            } catch (error) {
+                container.innerHTML = `<div class="test-result test-fail"><strong>✗ Test failed:</strong><br>${error.message}</div>`;
+            }
+        }
+
+        // Test 4: Load Topics Table
+        async function loadTopicsTable() {
+            const container = document.getElementById('topics-table');
+            
+            try {
+                await waitForDatabase();
+                const topics = getTopics();
+                
+                if (topics.length === 0) {
+                    container.innerHTML = '<p>No topics found</p>';
+                    return;
+                }
+                
+                let html = '<table><tr><th>Name</th><th>Weight</th><th>Color</th><th>Badge Preview</th></tr>';
+                
+                topics.forEach(topic => {
+                    const weight = topic.weight || 5;
+                    const color = getWeightColor(weight);
+                    html += `
+                        <tr>
+                            <td><strong>${topic.name}</strong></td>
+                            <td>${weight}/10</td>
+                            <td><div style="width:50px;height:25px;background:${color};border:1px solid #000;"></div></td>
+                            <td><div class="weight-badge" style="width:32px;height:32px;font-size:14px;background:${color};">${weight}</div></td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</table>';
+                container.innerHTML = html;
+                
+                // Also populate the select dropdown
+                const select = document.getElementById('topic-select');
+                select.innerHTML = '<option value="">Select a topic...</option>' + 
+                    topics.map(t => `<option value="${t.id}">${t.name} (${t.weight || 5})</option>`).join('');
+                
+            } catch (error) {
+                container.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+            }
+        }
+
+        // Test 5: Update Topic Weight
+        async function updateTopicWeight() {
+            const topicId = document.getElementById('topic-select').value;
+            const weight = parseInt(document.getElementById('weight-slider').value);
+            
+            if (!topicId) {
+                alert('Please select a topic');
+                return;
+            }
+            
+            try {
+                await waitForDatabase();
+                updateTopic(topicId, { weight: weight });
+                alert(`Updated topic weight to ${weight}`);
+                loadTopicsTable();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Update weight display when slider changes
+        document.addEventListener('DOMContentLoaded', () => {
+            const slider = document.getElementById('weight-slider');
+            const display = document.getElementById('weight-display');
+            
+            slider.addEventListener('input', () => {
+                const weight = parseInt(slider.value);
+                display.textContent = weight;
+                display.style.color = getWeightColor(weight);
+            });
+        });
+
+        // Auto-run tests on load
+        waitForDatabaseThen(() => {
+            console.log('Database ready - running initial tests...');
+            testColorGradient();
+            testBadgeSizes();
+            loadTopicsTable();
+        });
+    </script>
+</body>
+</html>

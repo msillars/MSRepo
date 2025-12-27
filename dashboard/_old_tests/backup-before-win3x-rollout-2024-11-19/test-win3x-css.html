@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Windows 3.1 CSS Test</title>
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <style>
+        body {
+            padding: 20px;
+            background: var(--desktop-bg);
+        }
+        .window {
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .demo-section {
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="window active">
+        <div class="title-bar">
+            <div class="title-bar-text">Windows 3.1 CSS Demo</div>
+            <div class="title-bar-buttons">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
+                <button data-close aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <h2>Welcome to Windows 3.1 Style!</h2>
+            
+            <div class="demo-section">
+                <p>This is a demonstration of the authentic Windows 3.1 styling using the classic-stylesheets library.</p>
+            </div>
+
+            <div class="demo-section">
+                <h3>Buttons</h3>
+                <button>Standard Button</button>
+                <button class="primary">Primary Button</button>
+                <button disabled>Disabled Button</button>
+            </div>
+
+            <div class="demo-section">
+                <h3>Input Fields</h3>
+                <label>Name: <input type="text" value="Type here..."></label><br><br>
+                <label>Email: <input type="email" placeholder="[email protected]"></label>
+            </div>
+
+            <div class="demo-section">
+                <h3>Checkboxes and Radio Buttons</h3>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="check1" checked>
+                    <label for="check1">Enable feature</label>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="check2">
+                    <label for="check2">Show advanced options</label>
+                </div>
+                <br>
+                <div class="radio-row">
+                    <input type="radio" id="radio1" name="option" checked>
+                    <label for="radio1">Option 1</label>
+                </div>
+                <div class="radio-row">
+                    <input type="radio" id="radio2" name="option">
+                    <label for="radio2">Option 2</label>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h3>Dropdown</h3>
+                <select>
+                    <option>Select an option...</option>
+                    <option>Windows 3.1</option>
+                    <option>Windows 95</option>
+                    <option>Windows 98</option>
+                </select>
+            </div>
+
+            <div class="demo-section">
+                <h3>Text Area</h3>
+                <textarea rows="3" cols="50">This is a text area with that classic Windows 3.1 look!</textarea>
+            </div>
+
+            <div class="demo-section">
+                <h3>Fieldset</h3>
+                <fieldset>
+                    <legend>User Settings</legend>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="setting1">
+                        <label for="setting1">Auto-save</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="setting2" checked>
+                        <label for="setting2">Show notifications</label>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="demo-section flex-row gap">
+                <button class="primary">OK</button>
+                <button>Cancel</button>
+                <button>Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="window active">
+        <div class="title-bar">
+            <div class="title-bar-text">About This Demo</div>
+            <div class="title-bar-buttons">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
+                <button data-close aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <p><strong>CSS Files Loaded:</strong></p>
+            <ul>
+                <li>layout.css - Layout utilities</li>
+                <li>win3x-theme.css - Windows 3.x theme</li>
+                <li>win3x-skin-3.1.css - Windows 3.1 colors</li>
+            </ul>
+            <p><strong>SVG Icons Installed (14 files):</strong></p>
+            <ul>
+                <li>Window controls: close, minimize, maximize, restore</li>
+                <li>Scrollbar arrows: up, down, left, right</li>
+                <li>Form elements: checkmark, dropdown arrow</li>
+                <li>Menu/tree: menu-checkmark, arrow-right, expand, collapse</li>
+            </ul>
+            <p>These authentic Windows 3.1 styles include:</p>
+            <ul>
+                <li>Raised 3D button effects</li>
+                <li>Classic gray (#C0C0C0) background</li>
+                <li><strong>Blue (#0000C0) title bars</strong> when windows are active</li>
+                <li>Pixel-perfect borders and shadows</li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>

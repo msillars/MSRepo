@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating This Dashboard - Management System</title>
+    <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+    <link rel="stylesheet" href="edit-modal.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Futura', 'Century Gothic', 'Arial Narrow', sans-serif; background: #F5F5F7; color: #1D1D1F; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        header { background: white; border-bottom: 2px solid #000; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .topic-icon-large { width: 48px; height: 48px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
+        .topic-icon-large img { width: 40px; height: 40px; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
+        h1 { font-size: 24px; font-weight: 300; letter-spacing: -0.5px; }
+        .header-actions { display: flex; gap: 12px; }
+        .btn { padding: 8px 20px; background: white; border: 2px solid #000; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #000; display: inline-block; }
+        .btn:hover { background: #000; color: white; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 rgba(0,0,0,0.2); }
+        .btn-secondary { background: #4CAF50; border-color: #4CAF50; color: white; }
+        .btn-secondary:hover { background: #45a049; border-color: #45a049; }
+        .btn-danger { background: #EF5350; border-color: #EF5350; color: white; }
+        .btn-danger:hover { background: #E53935; border-color: #E53935; }
+        main { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 20px 40px 40px 40px; }
+        .lists-container { flex: 1; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .list-section { display: flex; flex-direction: column; overflow: hidden; }
+        .list-header { background: white; border: 2px solid #000; border-bottom: none; padding: 12px 20px; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+        .list-count { font-size: 11px; color: #666; font-weight: normal; }
+        .ideas-list { flex: 1; overflow-y: auto; padding: 20px; background: white; border: 2px solid #000; }
+        .idea-card { background: #FAFAFA; border: 1px solid #E0E0E0; padding: 16px; margin-bottom: 12px; position: relative; border-left: 4px solid #999; cursor: move; transition: all 0.2s; }
+        .idea-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .idea-card.dragging { opacity: 0.5; cursor: grabbing; }
+        .idea-card.drag-over { border-top: 3px solid #000; }
+        .idea-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+        .idea-rank { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+        .idea-text { flex: 1; font-size: 14px; line-height: 1.6; word-wrap: break-word; }
+        .idea-text-input { width: 100%; padding: 8px; border: 2px solid #000; font-family: inherit; font-size: 14px; resize: vertical; min-height: 60px; }
+        .idea-meta { display: flex; gap: 12px; align-items: center; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; flex-wrap: wrap; }
+        .idea-difficulty { padding: 4px 8px; border: 1px solid #000; font-weight: 600; color: white; }
+        .idea-timestamp { color: #999; }
+        .idea-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .idea-btn { padding: 6px 12px; background: white; border: 1px solid #000; font-family: inherit; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.1s; }
+        .idea-btn:hover { background: #000; color: white; }
+        .idea-btn.move-btn { border-color: #2196F3; color: #2196F3; }
+        .idea-btn.move-btn:hover { background: #2196F3; color: white; }
+        .idea-btn.done-btn { border-color: #4CAF50; color: #4CAF50; }
+        .idea-btn.done-btn:hover { background: #4CAF50; color: white; }
+        .idea-edit-controls { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .idea-edit-controls select { font-size: 10px; padding: 6px 8px; border: 1px solid #000; font-family: inherit; background: white; cursor: pointer; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+        .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div class="topic-icon-large" id="topic-icon">
+                <img src="../Icons/Ideas.ICO" alt="Creating This Dashboard">
+            </div>
+            <h1 id="topic-name">Creating This Dashboard</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-danger" onclick="deleteTopicHandler()">Remove Topic</button>
+            <a href="finished.html" class="btn btn-secondary">✓ View Finished</a>
+            <a href="ideas.html" class="btn">+ Add Idea</a>
+            <a href="index.html" class="btn">← Dashboard</a>
+        </div>
+    </header>
+    <main>
+        <div class="lists-container">
+            <div class="list-section">
+                <div class="list-header">
+                    <span>💡 Ideas</span>
+                    <span class="list-count" id="ideas-count">0</span>
+                </div>
+                <div class="ideas-list" id="ideas-list" data-status="new"></div>
+            </div>
+            <div class="list-section">
+                <div class="list-header">
+                    <span>📋 Backlog</span>
+                    <span class="list-count" id="backlog-count">0</span>
+                </div>
+                <div class="ideas-list" id="backlog-list" data-status="backlog"></div>
+            </div>
+        </div>
+    </main>
+    
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="database-init-helper.js"></script>
+    <script src="weight-utils.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="topic-config.js"></script>
+    <script src="shared-rendering.js"></script>
+    <script src="shared-drag-drop.js"></script>
+    <script src="shared-topic-page.js"></script>
+    <script src="edit-idea-modal.js"></script>
+    <script>
+        // Initialize the Creating This Dashboard topic page when database is ready
+        waitForDatabaseThen(() => {
+            initializeTopicPage('creating-this-dashboard');
+        });
+    </script>
+    
+    <!-- Edit Idea Modal (populated dynamically) -->
+    <div id="edit-idea-modal" class="modal-overlay"></div>
+</body>
+</html>

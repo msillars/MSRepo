@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Topic Weights - Migration Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #f5f5f5; padding: 40px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border: 2px solid #000; }
+        h1 { font-size: 24px; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        h2 { font-size: 18px; margin-top: 30px; margin-bottom: 15px; }
+        .status { padding: 10px; margin: 10px 0; border: 2px solid #000; }
+        .status.success { background: #d4edda; border-color: #28a745; }
+        .status.error { background: #f8d7da; border-color: #dc3545; }
+        .status.info { background: #d1ecf1; border-color: #17a2b8; }
+        .btn { padding: 10px 20px; background: #000; color: white; border: none; font-family: inherit; font-size: 14px; cursor: pointer; margin: 10px 10px 10px 0; }
+        .btn:hover { background: #333; }
+        .btn-secondary { background: #6c757d; }
+        .btn-danger { background: #dc3545; }
+        pre { background: #f8f9fa; padding: 15px; border: 1px solid #ddd; overflow-x: auto; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        th { background: #000; color: white; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .log { background: #000; color: #0f0; padding: 15px; font-family: 'Courier New', monospace; max-height: 400px; overflow-y: auto; margin: 10px 0; }
+        .log-entry { margin: 2px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Add Topic Weights Migration</h1>
+        
+        <div class="status info">
+            <strong>What this does:</strong><br>
+            • Adds a numeric <code>weight</code> column (1-10) to topics table<br>
+            • Maps existing categorical priorities to default weights<br>
+            • Higher weight = higher priority in sorting and calculations<br>
+            • Safe: Creates backup before migration
+        </div>
+
+        <h2>Step 1: Check Current State</h2>
+        <button class="btn" onclick="checkCurrentState()">Check Database</button>
+        <div id="current-state"></div>
+
+        <h2>Step 2: Run Migration</h2>
+        <button class="btn" onclick="runMigration()">Add Weight Column</button>
+        <div id="migration-result"></div>
+
+        <h2>Step 3: Verify Results</h2>
+        <button class="btn btn-secondary" onclick="verifyMigration()">Verify Migration</button>
+        <div id="verification-result"></div>
+
+        <h2>Console Log</h2>
+        <div class="log" id="console-log"></div>
+
+        <h2>Actions</h2>
+        <button class="btn btn-secondary" onclick="location.reload()">Refresh Page</button>
+        <button class="btn" onclick="window.location.href='index.html'">← Back to Dashboard</button>
+    </div>
+
+    <script src="https://sql.js.org/dist/sql-wasm.js"></script>
+    <script src="sql-database.js"></script>
+    <script src="database-init-helper.js"></script>
+    <script src="ideas-data.js"></script>
+    <script src="add-topic-weights.js"></script>
+    
+    <script>
+        // Capture console logs
+        const logContainer = document.getElementById('console-log');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addLogEntry(message, type = 'log') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '✓';
+            entry.textContent = `${prefix} ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLogEntry(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLogEntry(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addLogEntry(args.join(' '), 'warn');
+        };
+
+        async function checkCurrentState() {
+            const container = document.getElementById('current-state');
+            container.innerHTML = '<p>Checking database...</p>';
+            
+            try {
+                await waitForDatabase();
+                
+                const topics = getTopics();
+                const stats = getDatabaseStats();
+                
+                // Check if weight column exists
+                const tableInfo = queryAsObjects("PRAGMA table_info(topics)");
+                const hasWeight = tableInfo.some(col => col.name === 'weight');
+                
+                let html = '<div class="status info">';
+                html += `<strong>Database Status:</strong><br>`;
+                html += `Topics: ${stats.topics}<br>`;
+                html += `Ideas: ${stats.ideas}<br>`;
+                html += `Weight column exists: ${hasWeight ? 'YES ✓' : 'NO - needs migration'}<br>`;
+                html += '</div>';
+                
+                html += '<h3>Current Topics:</h3>';
+                html += '<table><tr><th>Name</th><th>Priority</th><th>Color</th>';
+                if (hasWeight) html += '<th>Weight</th>';
+                html += '</tr>';
+                
+                topics.forEach(topic => {
+                    html += '<tr>';
+                    html += `<td>${topic.name}</td>`;
+                    html += `<td>${topic.priority}</td>`;
+                    html += `<td><div style="width:30px;height:20px;background:${topic.color};border:1px solid #000"></div></td>`;
+                    if (hasWeight) html += `<td>${topic.weight || 'N/A'}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</table>';
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                container.innerHTML = `<div class="status error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function runMigration() {
+            const container = document.getElementById('migration-result');
+            container.innerHTML = '<p>Running migration...</p>';
+            
+            try {
+                await waitForDatabase();
+                
+                // Create backup first
+                console.log('Creating backup before migration...');
+                createBackup('pre-weight-migration');
+                
+                // Run migration
+                const result = await addWeightColumnToTopics();
+                
+                if (result.success) {
+                    if (result.alreadyExists) {
+                        container.innerHTML = '<div class="status info"><strong>✓ Weight column already exists!</strong><br>No migration needed.</div>';
+                    } else {
+                        container.innerHTML = `<div class="status success">
+                            <strong>✓ Migration successful!</strong><br>
+                            Weight column added to topics table<br>
+                            ${result.topicsUpdated} topics updated with default weights
+                        </div>`;
+                    }
+                } else {
+                    container.innerHTML = `<div class="status error"><strong>✗ Migration failed:</strong><br>${result.error}</div>`;
+                }
+                
+            } catch (error) {
+                container.innerHTML = `<div class="status error"><strong>✗ Error:</strong><br>${error.message}</div>`;
+            }
+        }
+
+        async function verifyMigration() {
+            const container = document.getElementById('verification-result');
+            container.innerHTML = '<p>Verifying migration...</p>';
+            
+            try {
+                await waitForDatabase();
+                
+                const isValid = verifyWeightMigration();
+                const topics = getTopics();
+                
+                let html = '<div class="status ' + (isValid ? 'success' : 'error') + '">';
+                html += `<strong>${isValid ? '✓' : '✗'} Verification ${isValid ? 'Passed' : 'Failed'}</strong>`;
+                html += '</div>';
+                
+                html += '<h3>Topics with Weights:</h3>';
+                html += '<table><tr><th>Name</th><th>Priority</th><th>Weight</th><th>Status</th></tr>';
+                
+                topics.forEach(topic => {
+                    const isValidWeight = topic.weight && topic.weight >= 1 && topic.weight <= 10;
+                    html += '<tr>';
+                    html += `<td>${topic.name}</td>`;
+                    html += `<td>${topic.priority}</td>`;
+                    html += `<td><strong>${topic.weight || 'N/A'}</strong></td>`;
+                    html += `<td>${isValidWeight ? '✓ Valid' : '✗ Invalid'}</td>`;
+                    html += '</tr>';
+                });
+                
+                html += '</table>';
+                
+                // Show mapping
+                html += '<h3>Priority → Weight Mapping:</h3>';
+                html += '<pre>';
+                html += 'always-on         → 10 (highest)\n';
+                html += 'priority          → 8\n';
+                html += 'getting-important → 6\n';
+                html += 'do-prep           → 4\n';
+                html += 'urgent            → 10 (special)\n';
+                html += '</pre>';
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                container.innerHTML = `<div class="status error"><strong>✗ Error:</strong><br>${error.message}</div>`;
+            }
+        }
+
+        // Auto-check state on load
+        waitForDatabaseThen(() => {
+            console.log('Database ready - auto-checking current state...');
+            checkCurrentState();
+        });
+    </script>
+</body>
+</html>
