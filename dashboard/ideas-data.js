@@ -289,13 +289,13 @@ function validateIdeasArray(ideas) {
 // ============================================================
 
 const DEFAULT_TOPICS = [
-    { id: 'photography', name: 'Photography', priority: 'always-on', color: '#FF6B35', icon: 'Photography.ICO' },
-    { id: 'work', name: 'Work', priority: 'priority', color: '#004E89', icon: 'Work.ICO' },
-    { id: 'life-admin', name: 'Life Admin', priority: 'do-prep', color: '#F77F00', icon: 'LifeAdmin.ICO' },
-    { id: 'relationships', name: 'Relationships', priority: 'always-on', color: '#06A77D', icon: 'Relationships.ICO' },
-    { id: 'living', name: 'Living', priority: 'getting-important', color: '#9D4EDD', icon: 'Living.ICO' },
-    { id: 'health', name: 'Health', priority: 'always-on', color: '#E63946', icon: 'hearts.ICO' },
-    { id: 'creating-this-dashboard', name: 'Creating This Dashboard', priority: 'do-prep', color: '#06A77D', icon: 'Ideas.ICO' }
+    { id: 'photography', name: 'Photography', priority: 'always-on', color: '#FF6B35', icon: 'Photography.ICO', weight: 5 },
+    { id: 'work', name: 'Work', priority: 'priority', color: '#004E89', icon: 'Work.ICO', weight: 7 },
+    { id: 'life-admin', name: 'Life Admin', priority: 'do-prep', color: '#F77F00', icon: 'LifeAdmin.ICO', weight: 5 },
+    { id: 'relationships', name: 'Relationships', priority: 'always-on', color: '#06A77D', icon: 'Relationships.ICO', weight: 6 },
+    { id: 'living', name: 'Living', priority: 'getting-important', color: '#9D4EDD', icon: 'Living.ICO', weight: 4 },
+    { id: 'health', name: 'Health', priority: 'always-on', color: '#E63946', icon: 'hearts.ICO', weight: 7 },
+    { id: 'creating-this-dashboard', name: 'Creating This Dashboard', priority: 'do-prep', color: '#06A77D', icon: 'Ideas.ICO', weight: 3 }
 ];
 
 const PRIORITY_LEVELS = {
@@ -305,6 +305,35 @@ const PRIORITY_LEVELS = {
     'priority': { label: 'Priority', weight: 4, color: '#FF8A65' },
     'urgent': { label: 'Urgent', weight: 5, color: '#EF5350' }
 };
+
+/**
+ * Seed default topics if the topics table is empty
+ * Called during initialization to ensure a fresh database has topics
+ */
+function seedDefaultTopics() {
+    try {
+        const existingTopics = queryAsObjects('SELECT COUNT(*) as count FROM topics');
+        if (existingTopics[0].count > 0) {
+            debugLog('TOPICS_EXIST', { count: existingTopics[0].count });
+            return false; // Already has topics
+        }
+
+        console.log('[DATA] Seeding default topics...');
+
+        DEFAULT_TOPICS.forEach(topic => {
+            executeWrite(
+                'INSERT INTO topics (id, name, priority, color, icon, weight) VALUES (?, ?, ?, ?, ?, ?)',
+                [topic.id, topic.name, topic.priority, topic.color, topic.icon, topic.weight]
+            );
+        });
+
+        console.log(`[DATA] ✅ Seeded ${DEFAULT_TOPICS.length} default topics`);
+        return true;
+    } catch (error) {
+        console.error('[DATA] ❌ Failed to seed default topics:', error);
+        return false;
+    }
+}
 
 function getTopics() {
     try {
@@ -819,31 +848,368 @@ function autoMigrateIdeaWeights() {
     try {
         const columns = queryAsObjects("PRAGMA table_info(ideas)");
         const hasWeight = columns.some(col => col.name === 'weight');
-        
+
         if (!hasWeight) {
             console.log('[MIGRATION] Adding weight column to ideas table...');
             createBackup('auto-migration-idea-weight');
-            
+
             // Add weight column with default value of 5
             executeWrite('ALTER TABLE ideas ADD COLUMN weight INTEGER DEFAULT 5');
-            
+
             // Get all ideas and update their weights based on ranking
             const ideas = queryAsObjects('SELECT id, ranking FROM ideas');
             const rankingToWeight = { 1: 2, 2: 4, 3: 5, 4: 7, 5: 9 };
-            
+
             ideas.forEach(idea => {
                 const weight = rankingToWeight[idea.ranking] || 5;
                 executeWrite('UPDATE ideas SET weight = ? WHERE id = ?', [weight, idea.id]);
             });
-            
+
             console.log(`[MIGRATION] ✅ Added weight column and updated ${ideas.length} ideas`);
             return true;
         }
-        
+
         return false; // Already has weight column
     } catch (error) {
         console.error('[MIGRATION] ❌ Failed to add weight column:', error);
         return false;
+    }
+}
+
+/**
+ * Automatically add weight column to topics table if it doesn't exist
+ */
+function autoMigrateTopicWeights() {
+    try {
+        const columns = queryAsObjects("PRAGMA table_info(topics)");
+        const hasWeight = columns.some(col => col.name === 'weight');
+
+        if (!hasWeight) {
+            console.log('[MIGRATION] Adding weight column to topics table...');
+            createBackup('auto-migration-topic-weight');
+
+            // Add weight column with default value of 5
+            executeWrite('ALTER TABLE topics ADD COLUMN weight INTEGER DEFAULT 5');
+
+            console.log('[MIGRATION] ✅ Added weight column to topics table');
+            return true;
+        }
+
+        return false; // Already has weight column
+    } catch (error) {
+        console.error('[MIGRATION] ❌ Failed to add weight column to topics:', error);
+        return false;
+    }
+}
+
+// ============================================================
+// UNIFIED ITEMS API (new architecture)
+// ============================================================
+// These functions work with the unified items table
+// They will eventually replace the legacy topic/idea functions
+
+const ITEM_TYPES = ['topic', 'idea', 'task', 'project', 'reminder'];
+
+/**
+ * Get all items of a specific type
+ */
+function getItemsByType(itemType) {
+    try {
+        return queryAsObjects(
+            'SELECT * FROM items WHERE item_type = ? ORDER BY "order", id',
+            [itemType]
+        );
+    } catch (error) {
+        console.error(`Error getting ${itemType} items:`, error);
+        return [];
+    }
+}
+
+/**
+ * Get all topics (from unified items table)
+ */
+function getTopicsFromItems() {
+    return getItemsByType('topic');
+}
+
+/**
+ * Get all items under a specific topic
+ */
+function getItemsByTopicId(topicId, includeTypes = null) {
+    try {
+        let sql = 'SELECT * FROM items WHERE topic_id = ?';
+        const params = [topicId];
+
+        if (includeTypes && includeTypes.length > 0) {
+            sql += ` AND item_type IN (${includeTypes.map(() => '?').join(',')})`;
+            params.push(...includeTypes);
+        }
+
+        sql += ' ORDER BY "order", id';
+        return queryAsObjects(sql, params);
+    } catch (error) {
+        console.error('Error getting items by topic:', error);
+        return [];
+    }
+}
+
+/**
+ * Get children of a specific item
+ */
+function getChildItems(parentId) {
+    try {
+        return queryAsObjects(
+            'SELECT * FROM items WHERE parent_id = ? ORDER BY "order", id',
+            [parentId]
+        );
+    } catch (error) {
+        console.error('Error getting child items:', error);
+        return [];
+    }
+}
+
+/**
+ * Get a single item by ID
+ */
+function getItem(itemId) {
+    try {
+        const items = queryAsObjects('SELECT * FROM items WHERE id = ?', [itemId]);
+        return items.length > 0 ? items[0] : null;
+    } catch (error) {
+        console.error('Error getting item:', error);
+        return null;
+    }
+}
+
+/**
+ * Create a new item
+ * @param {object} item - Item data
+ * @returns {object} - Created item with ID
+ */
+function createItem(item) {
+    try {
+        const now = new Date().toISOString();
+
+        // Validate required fields
+        if (!item.text || item.text.trim() === '') {
+            throw new Error('Item text is required');
+        }
+
+        // Validate item type
+        const itemType = item.item_type || 'task';
+        if (!ITEM_TYPES.includes(itemType)) {
+            throw new Error(`Invalid item_type: ${itemType}`);
+        }
+
+        // Topics must have purpose
+        if (itemType === 'topic' && !item.purpose) {
+            console.warn('Topic created without purpose - this should be added');
+        }
+
+        // Get max order for siblings
+        let maxOrder = 0;
+        if (item.parent_id) {
+            const siblings = queryAsObjects(
+                'SELECT MAX("order") as max_order FROM items WHERE parent_id = ?',
+                [item.parent_id]
+            );
+            maxOrder = siblings[0]?.max_order || 0;
+        } else if (itemType === 'topic') {
+            const siblings = queryAsObjects(
+                'SELECT MAX("order") as max_order FROM items WHERE item_type = "topic"'
+            );
+            maxOrder = siblings[0]?.max_order || 0;
+        }
+
+        executeWrite(`
+            INSERT INTO items (text, parent_id, topic_id, item_type, status, weight, purpose, due_date, icon, color, ranking, difficulty, "order", created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            item.text.trim(),
+            item.parent_id || null,
+            item.topic_id || item.parent_id || null,  // topic_id defaults to parent_id for direct children
+            itemType,
+            item.status || 'new',
+            item.weight || 5,
+            item.purpose || null,
+            item.due_date || null,
+            item.icon || null,
+            item.color || null,
+            item.ranking || 3,
+            item.difficulty || 'medium',
+            maxOrder + 1,
+            now
+        ]);
+
+        const newId = queryAsObjects('SELECT last_insert_rowid() as id')[0].id;
+        debugLog('ITEM_CREATED', { id: newId, type: itemType, text: item.text });
+
+        window.dispatchEvent(new Event('ideasUpdated'));
+        return getItem(newId);
+
+    } catch (error) {
+        console.error('Error creating item:', error);
+        return null;
+    }
+}
+
+/**
+ * Update an existing item
+ */
+function updateItem(itemId, updates) {
+    try {
+        const item = getItem(itemId);
+        if (!item) {
+            console.error('Item not found:', itemId);
+            return false;
+        }
+
+        const fields = [];
+        const params = [];
+
+        // Build dynamic UPDATE statement
+        const allowedFields = ['text', 'parent_id', 'topic_id', 'item_type', 'status', 'weight', 'purpose', 'due_date', 'icon', 'color', 'ranking', 'difficulty', 'order'];
+
+        allowedFields.forEach(field => {
+            if (updates.hasOwnProperty(field)) {
+                fields.push(`"${field}" = ?`);
+                params.push(updates[field]);
+            }
+        });
+
+        if (updates.status === 'done' && item.status !== 'done') {
+            fields.push('completed_at = ?');
+            params.push(new Date().toISOString());
+        }
+
+        if (fields.length === 0) {
+            return true; // Nothing to update
+        }
+
+        params.push(itemId);
+        executeWrite(`UPDATE items SET ${fields.join(', ')} WHERE id = ?`, params);
+
+        debugLog('ITEM_UPDATED', { id: itemId, updates });
+        window.dispatchEvent(new Event('ideasUpdated'));
+        return true;
+
+    } catch (error) {
+        console.error('Error updating item:', error);
+        return false;
+    }
+}
+
+/**
+ * Delete an item (and optionally its children)
+ */
+function deleteItem(itemId, deleteChildren = false) {
+    try {
+        if (deleteChildren) {
+            // Recursively delete children first
+            const children = getChildItems(itemId);
+            children.forEach(child => deleteItem(child.id, true));
+        } else {
+            // Orphan children by setting parent_id to null
+            executeWrite('UPDATE items SET parent_id = NULL WHERE parent_id = ?', [itemId]);
+        }
+
+        executeWrite('DELETE FROM items WHERE id = ?', [itemId]);
+        debugLog('ITEM_DELETED', { id: itemId, childrenDeleted: deleteChildren });
+
+        window.dispatchEvent(new Event('ideasUpdated'));
+        return true;
+
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        return false;
+    }
+}
+
+/**
+ * Change item type (e.g., task → project when children added)
+ */
+function changeItemType(itemId, newType) {
+    if (!ITEM_TYPES.includes(newType)) {
+        console.error('Invalid item type:', newType);
+        return false;
+    }
+    return updateItem(itemId, { item_type: newType });
+}
+
+/**
+ * Move item to a new parent
+ */
+function moveItem(itemId, newParentId) {
+    const item = getItem(itemId);
+    if (!item) return false;
+
+    // Determine new topic_id
+    let newTopicId = null;
+    if (newParentId) {
+        const parent = getItem(newParentId);
+        if (parent) {
+            newTopicId = parent.item_type === 'topic' ? parent.id : parent.topic_id;
+        }
+    }
+
+    return updateItem(itemId, {
+        parent_id: newParentId,
+        topic_id: newTopicId
+    });
+}
+
+/**
+ * Get items filtered by status within a topic
+ */
+function getItemsByStatus(topicId, status) {
+    try {
+        return queryAsObjects(
+            'SELECT * FROM items WHERE topic_id = ? AND status = ? AND item_type != "topic" ORDER BY "order", id',
+            [topicId, status]
+        );
+    } catch (error) {
+        console.error('Error getting items by status:', error);
+        return [];
+    }
+}
+
+/**
+ * Quick-add an idea (minimal friction capture)
+ */
+function quickAddIdea(text, topicId = null) {
+    return createItem({
+        text: text,
+        item_type: 'idea',
+        parent_id: topicId,
+        topic_id: topicId,
+        status: 'new',
+        weight: 3  // Ideas start low priority until promoted
+    });
+}
+
+/**
+ * Promote idea to task
+ */
+function promoteIdeaToTask(itemId) {
+    return changeItemType(itemId, 'task');
+}
+
+/**
+ * Check if item has children (making it effectively a project)
+ */
+function hasChildren(itemId) {
+    const children = getChildItems(itemId);
+    return children.length > 0;
+}
+
+/**
+ * Auto-promote to project if children are added
+ */
+function autoPromoteIfNeeded(itemId) {
+    const item = getItem(itemId);
+    if (item && item.item_type === 'task' && hasChildren(itemId)) {
+        changeItemType(itemId, 'project');
+        debugLog('AUTO_PROMOTED', { id: itemId, from: 'task', to: 'project' });
     }
 }
 
@@ -854,24 +1220,40 @@ const DB_READY_EVENT = 'databaseReady';
     try {
         console.log('[DATA] Initializing SQL database...');
         await ensureDatabase();
-        
-        // Run automatic migrations
+
+        // Run automatic migrations for legacy tables
         autoMigrateIdeaWeights();
-        
+        autoMigrateTopicWeights();
+
+        // Seed default topics if database is empty
+        seedDefaultTopics();
+
+        // Ensure unified items table exists
+        ensureItemsTable();
+
+        // Migrate legacy data to items table if needed
+        if (needsMigration()) {
+            console.log('[DATA] Legacy data detected, running migration...');
+            const migrationResult = migrateToUnifiedItems();
+            debugLog('MIGRATION_RESULT', migrationResult);
+        }
+
         if (DEBUG_MODE) {
             const stats = getDatabaseStats();
-            debugLog('DATA_LAYER_LOADED', { 
+            debugLog('DATA_LAYER_LOADED', {
                 sqlBacked: true,
                 ideasCount: stats.ideas,
                 topicsCount: stats.topics,
-                backupsCount: listBackups().length 
+                itemsCount: stats.items || 0,
+                migrated: stats.migrated,
+                backupsCount: listBackups().length
             });
         }
-        
+
         // Dispatch ready event so pages can wait for it
         window.dispatchEvent(new CustomEvent(DB_READY_EVENT));
         console.log('[DATA] ✅ Database ready - dispatched databaseReady event');
-        
+
     } catch (error) {
         console.error('[DATA] ❌ Failed to initialize database on load:', error);
     }
