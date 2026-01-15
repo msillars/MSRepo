@@ -1,0 +1,24 @@
+{
+  "name": "managementsystem",
+  "version": "1.0.0",
+  "description": "Personal management system for tracking and controlling workflows across life domains.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msillars/MSRepo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/msillars/MSRepo/issues"
+  },
+  "homepage": "https://github.com/msillars/MSRepo#readme",
+  "devDependencies": {
+    "sql.js": "^1.13.0"
+  }
+}

@@ -1,9 +1,6 @@
-# Local data (not committed)
-data/*
-!data/.gitkeep
+# Local data
 *.csv
-*.sqlite
-*.db
+# Note: data/database.sqlite IS committed - it's the shared database for the app
 
 # Logs
 *.log
@@ -36,3 +33,4 @@ Thumbs.db
 reports/*.csv
 reports/*.json
 !reports/.gitkeep
+node_modules/

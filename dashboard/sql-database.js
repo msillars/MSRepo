@@ -1,12 +1,13 @@
 /**
  * SQL Database Layer - SQLite in Browser via sql.js
- * 
+ *
  * This module initializes a SQLite database in the browser using sql.js.
  * Provides the foundation for TaskManager and ProjectManager classes.
- * 
+ *
  * Architecture:
  * - Uses sql.js (SQLite compiled to WebAssembly)
- * - Stores data in browser (localStorage for persistence)
+ * - Primary storage: GitHub (via github-storage.js)
+ * - Backup storage: localStorage
  * - Provides SQL query interface
  * - Schema matches existing data structure
  */
@@ -15,46 +16,67 @@
 let db = null;
 let SQL = null;
 
+// GitHub storage enabled flag
+let useGitHubStorage = false;
+
 /**
  * Initialize the SQL database
  * Creates tables with schema matching current data structure
+ * Tries GitHub first, falls back to localStorage
  */
 async function initializeDatabase() {
     console.log('[SQL-DB] Initializing database...');
-    
+
     try {
         // Load sql.js library from CDN
         if (typeof window.initSqlJs === 'undefined') {
             throw new Error('sql.js library not loaded. Make sure sql.js script is included in HTML.');
         }
-        
+
         // Initialize SQL.js
         SQL = await initSqlJs({
             locateFile: file => `https://sql.js.org/dist/${file}`
         });
-        
+
         console.log('[SQL-DB] sql.js loaded successfully');
-        
-        // Try to load existing database from localStorage
-        const savedDb = localStorage.getItem('management_system_sql_db');
-        
-        if (savedDb) {
-            // Load existing database
-            const uint8Array = new Uint8Array(JSON.parse(savedDb));
-            db = new SQL.Database(uint8Array);
-            console.log('[SQL-DB] Loaded existing database from localStorage');
-        } else {
-            // Create new database
-            db = new SQL.Database();
-            console.log('[SQL-DB] Created new database');
-            
-            // Create schema
-            await createSchema();
+
+        // Try to load from GitHub first (if configured)
+        let dbData = null;
+        if (typeof fetchDatabaseFromGitHub === 'function' && isGitHubConfigured()) {
+            console.log('[SQL-DB] Attempting to load from GitHub...');
+            dbData = await fetchDatabaseFromGitHub();
+            if (dbData) {
+                useGitHubStorage = true;
+                console.log('[SQL-DB] GitHub storage enabled');
+            }
         }
-        
+
+        if (dbData) {
+            // Load from GitHub
+            db = new SQL.Database(dbData);
+            console.log('[SQL-DB] Loaded database from GitHub');
+        } else {
+            // Fall back to localStorage
+            const savedDb = localStorage.getItem('management_system_sql_db');
+
+            if (savedDb) {
+                // Load existing database from localStorage
+                const uint8Array = new Uint8Array(JSON.parse(savedDb));
+                db = new SQL.Database(uint8Array);
+                console.log('[SQL-DB] Loaded existing database from localStorage');
+            } else {
+                // Create new database
+                db = new SQL.Database();
+                console.log('[SQL-DB] Created new database');
+
+                // Create schema
+                await createSchema();
+            }
+        }
+
         console.log('[SQL-DB] ✅ Database initialized successfully');
         return true;
-        
+
     } catch (error) {
         console.error('[SQL-DB] ❌ Failed to initialize database:', error);
         throw error;
@@ -167,7 +189,7 @@ async function createSchema() {
 }
 
 /**
- * Save database to localStorage for persistence
+ * Save database to localStorage and GitHub (if configured)
  * Called after any write operation
  */
 function saveDatabase() {
@@ -175,15 +197,42 @@ function saveDatabase() {
         console.warn('[SQL-DB] Cannot save - database not initialized');
         return;
     }
-    
+
     try {
         const data = db.export();
         const buffer = Array.from(data);
+
+        // Always save to localStorage (fast, synchronous)
         localStorage.setItem('management_system_sql_db', JSON.stringify(buffer));
         console.log('[SQL-DB] Database saved to localStorage');
+
+        // Also save to GitHub if configured (async, debounced)
+        if (useGitHubStorage && typeof saveDatabaseToGitHub === 'function') {
+            // Debounce GitHub saves to avoid rate limits and excessive commits
+            clearTimeout(window._githubSaveTimeout);
+            window._githubSaveTimeout = setTimeout(async () => {
+                try {
+                    await saveDatabaseToGitHub(data);
+                } catch (error) {
+                    console.error('[SQL-DB] GitHub save failed:', error);
+                }
+            }, 3000);  // Wait 3 seconds after last change before pushing
+        }
     } catch (error) {
         console.error('[SQL-DB] Failed to save database:', error);
     }
+}
+
+/**
+ * Force immediate save to GitHub (bypass debounce)
+ * Use before page unload or when user explicitly saves
+ */
+async function saveToGitHubNow() {
+    if (!db || !useGitHubStorage) return false;
+
+    clearTimeout(window._githubSaveTimeout);
+    const data = db.export();
+    return await saveDatabaseToGitHub(data);
 }
 
 /**
