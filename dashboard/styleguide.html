@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win3x Style Guide - Management System</title>
+    <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+
+    <!-- Windows 3.1 CSS -->
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+
+    <style>
+        body {
+            background: var(--desktop-bg);
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+            font-size: 11px;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .styleguide-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .component-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            align-items: flex-start;
+        }
+
+        .component-demo {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .component-code {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .code-block {
+            background: var(--window-bg);
+            border: 1px solid var(--border);
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .component-label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--button-dark);
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .spacer {
+            height: 16px;
+        }
+
+        /* Demo spacing for inline elements */
+        .button-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .input-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="styleguide-container">
+
+        <!-- Header -->
+        <div class="window active" style="margin-bottom: 24px;">
+            <div class="title-bar">
+                <div class="title-bar-text">Win3x Style Guide</div>
+                <div class="title-bar-buttons">
+                    <button data-minimize></button>
+                    <button data-maximize></button>
+                    <button data-close></button>
+                </div>
+            </div>
+            <div class="window-body padding">
+                <p><strong>Component library for the Management System.</strong></p>
+                <p>Use these components consistently across all pages. Copy the HTML structure exactly.</p>
+                <div class="spacer"></div>
+                <a href="index.html"><button>← Back to Dashboard</button></a>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- WINDOWS -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Windows</div>
+
+            <!-- Active Window -->
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Active Window</div>
+                    <div class="window active">
+                        <div class="title-bar">
+                            <div class="title-bar-text">Window Title</div>
+                            <div class="title-bar-buttons">
+                                <button data-minimize></button>
+                                <button data-maximize></button>
+                                <button data-close></button>
+                            </div>
+                        </div>
+                        <div class="window-body padding">
+                            Window content goes here.
+                        </div>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="window active"&gt;
+  &lt;div class="title-bar"&gt;
+    &lt;div class="title-bar-text"&gt;Window Title&lt;/div&gt;
+    &lt;div class="title-bar-buttons"&gt;
+      &lt;button data-minimize&gt;&lt;/button&gt;
+      &lt;button data-maximize&gt;&lt;/button&gt;
+      &lt;button data-close&gt;&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="window-body padding"&gt;
+    Window content goes here.
+  &lt;/div&gt;
+&lt;/div&gt;</div>
+                </div>
+            </div>
+
+            <!-- Inactive Window -->
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Inactive Window (no .active class)</div>
+                    <div class="window">
+                        <div class="title-bar">
+                            <div class="title-bar-text">Inactive Window</div>
+                            <div class="title-bar-buttons">
+                                <button data-minimize></button>
+                                <button data-maximize></button>
+                                <button data-close></button>
+                            </div>
+                        </div>
+                        <div class="window-body padding">
+                            This window is inactive (white title bar).
+                        </div>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="window"&gt;
+  &lt;!-- Same structure, no .active class --&gt;
+&lt;/div&gt;</div>
+                </div>
+            </div>
+
+            <!-- Window without buttons -->
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Window (no title bar buttons)</div>
+                    <div class="window active">
+                        <div class="title-bar">
+                            <div class="title-bar-text">Simple Window</div>
+                        </div>
+                        <div class="window-body padding">
+                            No minimize/maximize/close buttons.
+                        </div>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="window active"&gt;
+  &lt;div class="title-bar"&gt;
+    &lt;div class="title-bar-text"&gt;Simple Window&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="window-body padding"&gt;
+    Content here.
+  &lt;/div&gt;
+&lt;/div&gt;</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- BUTTONS -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Buttons</div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Button States</div>
+                    <div class="button-row">
+                        <button>Default</button>
+                        <button class="primary">Primary</button>
+                        <button disabled>Disabled</button>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;button&gt;Default&lt;/button&gt;
+&lt;button class="primary"&gt;Primary&lt;/button&gt;
+&lt;button disabled&gt;Disabled&lt;/button&gt;</div>
+                </div>
+            </div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Button Sizes</div>
+                    <div class="button-row">
+                        <button>Standard Button</button>
+                        <button style="min-width: auto; padding: 2px 8px;">Small</button>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">Notes</div>
+                    <div class="code-block">Default min-width: 70px
+For smaller buttons, override with:
+  style="min-width: auto; padding: 2px 8px;"</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- FORM INPUTS -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Form Inputs</div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Text Inputs</div>
+                    <div class="input-demo">
+                        <input type="text" placeholder="Text input">
+                        <textarea rows="3" placeholder="Textarea"></textarea>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;input type="text" placeholder="Text input"&gt;
+&lt;textarea rows="3"&gt;&lt;/textarea&gt;</div>
+                </div>
+            </div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Select / Dropdown</div>
+                    <select>
+                        <option>Option 1</option>
+                        <option>Option 2</option>
+                        <option>Option 3</option>
+                    </select>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;select&gt;
+  &lt;option&gt;Option 1&lt;/option&gt;
+  &lt;option&gt;Option 2&lt;/option&gt;
+&lt;/select&gt;</div>
+                </div>
+            </div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Checkboxes & Radios</div>
+                    <div class="input-demo">
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="check1" checked>
+                            <label for="check1">Checkbox checked</label>
+                        </div>
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="check2">
+                            <label for="check2">Checkbox unchecked</label>
+                        </div>
+                        <div class="radio-row">
+                            <input type="radio" name="radio" id="radio1" checked>
+                            <label for="radio1">Radio option 1</label>
+                        </div>
+                        <div class="radio-row">
+                            <input type="radio" name="radio" id="radio2">
+                            <label for="radio2">Radio option 2</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="checkbox-row"&gt;
+  &lt;input type="checkbox" id="check1"&gt;
+  &lt;label for="check1"&gt;Label&lt;/label&gt;
+&lt;/div&gt;
+
+&lt;div class="radio-row"&gt;
+  &lt;input type="radio" name="group" id="r1"&gt;
+  &lt;label for="r1"&gt;Label&lt;/label&gt;
+&lt;/div&gt;</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- PANELS -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Panels & Containers</div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Raised Panel</div>
+                    <div class="raised padding">
+                        Raised panel with 3D effect
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="raised padding"&gt;
+  Content
+&lt;/div&gt;</div>
+                </div>
+            </div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Lowered Panel (inset)</div>
+                    <div class="lowered padding">
+                        Lowered/inset panel
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="lowered padding"&gt;
+  Content
+&lt;/div&gt;</div>
+                </div>
+            </div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Fieldset with Legend</div>
+                    <fieldset class="padding">
+                        <legend>Group Label</legend>
+                        Content inside fieldset
+                    </fieldset>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;fieldset class="padding"&gt;
+  &lt;legend&gt;Group Label&lt;/legend&gt;
+  Content
+&lt;/fieldset&gt;</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- LAYOUT UTILITIES -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Layout Utilities</div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Flex Row with Gap</div>
+                    <div class="flex-row gap" style="background: var(--button-bg); padding: 8px;">
+                        <button>Item 1</button>
+                        <button>Item 2</button>
+                        <button>Item 3</button>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="flex-row gap"&gt;
+  &lt;button&gt;Item 1&lt;/button&gt;
+  &lt;button&gt;Item 2&lt;/button&gt;
+&lt;/div&gt;</div>
+                </div>
+            </div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Flex with Alignment</div>
+                    <div class="flex-row gap justify-end" style="background: var(--button-bg); padding: 8px;">
+                        <button>Cancel</button>
+                        <button class="primary">OK</button>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="flex-row gap justify-end"&gt;
+  &lt;button&gt;Cancel&lt;/button&gt;
+  &lt;button class="primary"&gt;OK&lt;/button&gt;
+&lt;/div&gt;
+
+Available:
+  .justify-start | .justify-center | .justify-end
+  .align-start | .align-center | .align-end</div>
+                </div>
+            </div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Spacing Classes</div>
+                    <div class="raised">
+                        <div class="padding" style="background: var(--selection-bg); color: white;">
+                            .padding (8px all sides)
+                        </div>
+                    </div>
+                    <div class="spacer"></div>
+                    <div class="raised">
+                        <div class="margin" style="background: var(--selection-bg); color: white;">
+                            .margin (8px all sides)
+                        </div>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">Available Classes</div>
+                    <div class="code-block">.padding          8px all sides
+.padding-top      8px top
+.padding-right    8px right
+.padding-bottom   8px bottom
+.padding-left     8px left
+.padding-horizontal  left + right
+.padding-vertical    top + bottom
+
+.margin (same pattern as padding)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MODAL DIALOG -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Modal Dialog Pattern</div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">Modal (shown inline for demo)</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 20px;">
+                        <div class="window active" style="max-width: 300px; margin: 0 auto;">
+                            <div class="title-bar">
+                                <div class="title-bar-text">Dialog Title</div>
+                                <div class="title-bar-buttons">
+                                    <button data-close></button>
+                                </div>
+                            </div>
+                            <div class="window-body padding">
+                                <p>Dialog content here.</p>
+                                <div class="flex-row gap justify-end" style="margin-top: 16px;">
+                                    <button>Cancel</button>
+                                    <button class="primary">OK</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">HTML</div>
+                    <div class="code-block">&lt;div class="modal"&gt;
+  &lt;div class="window active"&gt;
+    &lt;div class="title-bar"&gt;
+      &lt;div class="title-bar-text"&gt;Title&lt;/div&gt;
+      &lt;div class="title-bar-buttons"&gt;
+        &lt;button data-close&gt;&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="window-body padding"&gt;
+      Content
+      &lt;div class="flex-row gap justify-end"&gt;
+        &lt;button&gt;Cancel&lt;/button&gt;
+        &lt;button class="primary"&gt;OK&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- COLOR REFERENCE -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Color Variables</div>
+
+            <div class="component-row">
+                <div class="component-demo">
+                    <div class="component-label">CSS Variables</div>
+                    <div class="demo-grid">
+                        <div class="raised padding" style="background: var(--desktop-bg);">--desktop-bg<br>#C0C0C0</div>
+                        <div class="raised padding" style="background: var(--window-bg);">--window-bg<br>#FFFFFF</div>
+                        <div class="raised padding" style="background: var(--button-bg);">--button-bg<br>#C0C0C0</div>
+                        <div class="raised padding" style="background: var(--title-bar-active-bg); color: white;">--title-bar-active-bg<br>#0000C0</div>
+                        <div class="raised padding" style="background: var(--selection-bg); color: white;">--selection-bg<br>#0000C0</div>
+                        <div class="raised padding" style="background: var(--button-dark); color: white;">--button-dark<br>#808080</div>
+                    </div>
+                </div>
+                <div class="component-code">
+                    <div class="component-label">Usage</div>
+                    <div class="code-block">background: var(--desktop-bg);
+color: var(--window-fg);
+border-color: var(--border);
+
+See win3x-theme.css and
+win3x-skin-3.1.css for full list.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- PAGE STRUCTURE -->
+        <!-- ============================================ -->
+        <div class="section">
+            <div class="section-title">Recommended Page Structure</div>
+
+            <div class="component-row">
+                <div class="component-code" style="flex: 2;">
+                    <div class="component-label">Full Page Template</div>
+                    <div class="code-block">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Page Title - Management System&lt;/title&gt;
+    &lt;link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO"&gt;
+
+    &lt;!-- Windows 3.1 CSS (in this order) --&gt;
+    &lt;link rel="stylesheet" href="layout.css"&gt;
+    &lt;link rel="stylesheet" href="win3x-theme.css"&gt;
+    &lt;link rel="stylesheet" href="win3x-skin-3.1.css"&gt;
+
+    &lt;style&gt;
+        body {
+            background: var(--desktop-bg);
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+            font-size: 11px;
+            padding: 20px;
+            margin: 0;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- Header Window --&gt;
+    &lt;div class="window active"&gt;
+        &lt;div class="title-bar"&gt;
+            &lt;div class="title-bar-text"&gt;Page Title&lt;/div&gt;
+            &lt;div class="title-bar-buttons"&gt;
+                &lt;button data-minimize&gt;&lt;/button&gt;
+                &lt;button data-maximize&gt;&lt;/button&gt;
+                &lt;button data-close&gt;&lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="window-body padding"&gt;
+            Header content, navigation buttons
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Main Content Windows --&gt;
+    &lt;div class="window active"&gt;
+        &lt;div class="title-bar"&gt;
+            &lt;div class="title-bar-text"&gt;Content Section&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="window-body padding"&gt;
+            Main content here
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
