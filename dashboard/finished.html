@@ -5,154 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finished Items - Management System</title>
     <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
-    
+
     <!-- Windows 3.1 CSS -->
     <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="win3x-theme.css">
     <link rel="stylesheet" href="win3x-skin-3.1.css">
-    
+    <link rel="stylesheet" href="topic-page.css">
+
     <style>
         body {
             background: var(--desktop-bg);
             font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
             font-size: 11px;
-            padding: 20px;
+            padding: 8px;
             margin: 0;
             height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            gap: 8px;
         }
-        
-        .page-header {
-            margin-bottom: 16px;
-        }
-        
-        .header-content {
-            padding: 12px 16px;
+
+        .header-window { flex-shrink: 0; }
+        .header-window .window-body {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--window-bg);
+            padding: 8px 12px;
         }
-        
-        .header-content h1 {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0;
-        }
-        
-        .filters-window {
-            margin-bottom: 16px;
-        }
-        
-        .filters-content {
-            padding: 12px 16px;
+        .header-title { font-size: 14px; font-weight: bold; margin: 0; }
+        .header-actions { display: flex; gap: 8px; }
+        .header-actions a { text-decoration: none; }
+
+        .filters-window { flex-shrink: 0; }
+        .filters-window .window-body {
             display: flex;
             gap: 16px;
             align-items: center;
-            background: var(--window-bg);
+            padding: 8px 12px;
         }
-        
         .filter-group {
             display: flex;
             gap: 8px;
             align-items: center;
         }
-        
         .filter-group label {
             font-weight: bold;
-            font-size: 10px;
         }
-        
         .stats {
             display: flex;
             gap: 12px;
-            font-size: 10px;
             margin-left: auto;
         }
-        
         .stat-item {
             padding: 4px 8px;
             border: 1px solid var(--border);
             background: var(--button-bg);
         }
-        
-        .main-content {
+
+        .main-window {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
-        
-        .finished-content {
+        .main-window .window-body {
             flex: 1;
-            padding: 12px;
             overflow-y: auto;
-            background: var(--window-bg);
+            padding: 8px;
         }
-        
-        .idea-card {
-            border: 1px solid var(--border);
-            padding: 12px;
-            margin-bottom: 12px;
-            background: white;
-            border-left: 4px solid #4CAF50;
-        }
-        
-        .idea-card.archived {
-            opacity: 0.6;
-        }
-        
-        .idea-header {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-        
-        .idea-rank {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-        
-        .idea-text {
-            flex: 1;
-            font-size: 11px;
-            line-height: 1.4;
-        }
-        
-        .idea-meta {
-            display: flex;
-            gap: 8px;
-            font-size: 10px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-        
-        .idea-project {
-            font-weight: bold;
-            padding: 2px 6px;
-            border: 1px solid var(--border);
-        }
-        
-        .idea-difficulty {
-            padding: 2px 6px;
-            border: 1px solid var(--border);
-            font-weight: bold;
-            color: white;
-        }
-        
-        .idea-timestamp {
-            color: var(--button-dark);
-        }
-        
+
         .completed-badge {
             padding: 2px 6px;
             background: #4CAF50;
@@ -160,25 +82,12 @@
             font-weight: bold;
             border: 1px solid #4CAF50;
         }
-        
-        .idea-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .idea-btn {
-            padding: 4px 8px;
-            font-size: 10px;
-        }
-        
+
         .empty-state {
             text-align: center;
             padding: 40px;
             color: var(--button-dark);
         }
-        
         .empty-icon {
             font-size: 48px;
             margin-bottom: 12px;
@@ -186,35 +95,31 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="window page-header active">
+    <!-- Header Window -->
+    <div class="window header-window active">
         <div class="title-bar">
             <div class="title-bar-text">Finished Items</div>
             <div class="title-bar-buttons">
                 <button data-minimize></button>
                 <button data-maximize></button>
-                <button data-close></button>
+                <button data-close onclick="window.location.href='index.html'"></button>
             </div>
         </div>
-        <div class="header-content">
-            <h1>Finished Items</h1>
-            <div>
+        <div class="window-body">
+            <h1 class="header-title">Finished Items</h1>
+            <div class="header-actions">
                 <a href="ideas.html"><button>+ Add Idea</button></a>
-                <a href="index.html"><button>← Dashboard</button></a>
+                <a href="index.html"><button class="primary">Dashboard</button></a>
             </div>
         </div>
     </div>
-    
-    <!-- Filters -->
+
+    <!-- Filters Window -->
     <div class="window filters-window active">
         <div class="title-bar">
             <div class="title-bar-text">Filters</div>
-            <div class="title-bar-buttons">
-                <button data-minimize></button>
-                <button data-maximize></button>
-            </div>
         </div>
-        <div class="filters-content">
+        <div class="window-body">
             <div class="filter-group">
                 <label>Topic:</label>
                 <select id="project-filter" onchange="loadFinishedItems()">
@@ -231,19 +136,15 @@
             </div>
         </div>
     </div>
-    
-    <!-- Finished List -->
-    <div class="window main-content active">
+
+    <!-- Main Content -->
+    <div class="window main-window active">
         <div class="title-bar">
-            <div class="title-bar-text">✓ Completed</div>
-            <div class="title-bar-buttons">
-                <button data-minimize></button>
-                <button data-maximize></button>
-            </div>
+            <div class="title-bar-text">Completed</div>
         </div>
-        <div class="finished-content" id="finished-list"></div>
+        <div class="window-body" id="finished-list"></div>
     </div>
-    
+
     <script src="https://sql.js.org/dist/sql-wasm.js"></script>
     <script src="github-storage.js"></script>
     <script src="sql-database.js"></script>
@@ -266,25 +167,25 @@
         function loadFinishedItems() {
             const projectFilter = document.getElementById('project-filter').value;
             const showArchived = document.getElementById('show-archived').checked;
-            
+
             let items = getIdeasByStatus('done');
-            
+
             if (projectFilter !== 'all') {
                 items = items.filter(idea => idea.project === projectFilter);
             }
-            
+
             if (!showArchived) {
                 items = items.filter(idea => !idea.archived);
             }
-            
+
             const archivedCount = items.filter(idea => idea.archived).length;
             document.getElementById('total-count').textContent = items.length;
             document.getElementById('archived-count').textContent = archivedCount;
-            
+
             items.sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt));
-            
+
             const container = document.getElementById('finished-list');
-            
+
             if (items.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -294,26 +195,26 @@
                 `;
                 return;
             }
-            
+
             const topics = getTopics();
             const topicMap = {};
             topics.forEach(t => topicMap[t.id] = t);
-            
+
             container.innerHTML = items.map(idea => {
                 const topic = topicMap[idea.project];
                 const topicName = topic ? topic.name : 'Untagged';
                 const topicColor = topic ? topic.color : '#666';
-                
+
                 const completedDate = idea.completedAt ? new Date(idea.completedAt).toLocaleDateString() : 'Unknown';
-                
+
                 const difficultyColors = {
                     'easy': '#4CAF50',
                     'medium': '#FF9800',
                     'hard': '#F44336'
                 };
-                
+
                 return `
-                    <div class="idea-card ${idea.archived ? 'archived' : ''}">
+                    <div class="idea-card ${idea.archived ? 'archived' : ''}" style="border-left: 4px solid #4CAF50; ${idea.archived ? 'opacity: 0.6;' : ''}">
                         <div class="idea-header">
                             <div class="idea-rank" style="background: ${getRankingColor(idea.ranking)}; color: white; border-color: ${getRankingColor(idea.ranking)};">
                                 ${idea.ranking}
@@ -331,10 +232,10 @@
                             ${idea.archived ? '<div class="completed-badge" style="background: #666;">ARCHIVED</div>' : ''}
                         </div>
                         <div class="idea-actions">
-                            ${!idea.archived ? `<button class="idea-btn" onclick="restoreToBacklog(${idea.id})">↩ Restore to Backlog</button>` : ''}
-                            ${!idea.archived ? `<button class="idea-btn" onclick="archiveIdea(${idea.id})">📦 Archive</button>` : ''}
-                            ${idea.archived ? `<button class="idea-btn" onclick="unarchiveIdea(${idea.id})">📂 Unarchive</button>` : ''}
-                            <button class="idea-btn" onclick="deleteIdeaConfirm(${idea.id})">🗑 Delete</button>
+                            ${!idea.archived ? `<button class="idea-btn" onclick="restoreToBacklog(${idea.id})">Restore to Backlog</button>` : ''}
+                            ${!idea.archived ? `<button class="idea-btn" onclick="archiveIdea(${idea.id})">Archive</button>` : ''}
+                            ${idea.archived ? `<button class="idea-btn" onclick="unarchiveIdea(${idea.id})">Unarchive</button>` : ''}
+                            <button class="idea-btn" onclick="deleteIdeaConfirm(${idea.id})">Delete</button>
                         </div>
                     </div>
                 `;
@@ -370,7 +271,7 @@
         waitForDatabaseThen(() => {
             initializePage();
         });
-        
+
         window.addEventListener('ideasUpdated', () => {
             loadFinishedItems();
         });

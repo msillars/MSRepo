@@ -3,86 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ideas List - Management System</title>
+    <title>Ideas - Management System</title>
     <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
-    
+
     <!-- Windows 3.1 CSS -->
     <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="win3x-theme.css">
     <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <link rel="stylesheet" href="topic-page.css">
     <link rel="stylesheet" href="edit-modal.css">
+
+    <style>
+        body {
+            background: var(--desktop-bg);
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+            font-size: 11px;
+            padding: 8px;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .header-window { flex-shrink: 0; }
+        .header-window .window-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+        }
+        .header-title { font-size: 14px; font-weight: bold; margin: 0; }
+        .header-actions { display: flex; gap: 8px; }
+        .header-actions a { text-decoration: none; }
+
+        .capture-window { flex-shrink: 0; }
+        .capture-window .window-body { padding: 12px; }
+        .capture-form { display: flex; gap: 8px; align-items: flex-start; }
+        .capture-form textarea {
+            flex: 1;
+            min-height: 40px;
+            resize: vertical;
+        }
+        .capture-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .capture-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .ranking-selector {
+            display: flex;
+            gap: 4px;
+        }
+        .rank-btn {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            padding: 0;
+            font-weight: bold;
+        }
+        .rank-btn.active {
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .list-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .list-window .title-bar { flex-shrink: 0; }
+        .list-window .title-bar-text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-right: 8px;
+        }
+        .list-count { font-weight: normal; font-size: 10px; }
+        .list-window .window-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .ideas-list { padding: 0; background: transparent; }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="window page-header active">
+    <!-- Header Window -->
+    <div class="window header-window active">
         <div class="title-bar">
             <div class="title-bar-text">Ideas</div>
             <div class="title-bar-buttons">
                 <button data-minimize></button>
                 <button data-maximize></button>
-                <button data-close></button>
+                <button data-close onclick="window.location.href='index.html'"></button>
             </div>
         </div>
-        <div class="header-content">
-            <h1>Ideas</h1>
+        <div class="window-body">
+            <h1 class="header-title">Ideas</h1>
             <div class="header-actions">
-                <a href="finished.html"><button class="primary">✓ Finished Items</button></a>
-                <a href="index.html"><button>← Dashboard</button></a>
+                <a href="finished.html"><button>View Finished</button></a>
+                <a href="index.html"><button class="primary">Dashboard</button></a>
             </div>
         </div>
     </div>
-    
-    <!-- Capture Section -->
+
+    <!-- Capture Window -->
     <div class="window capture-window active">
         <div class="title-bar">
             <div class="title-bar-text">New Idea</div>
-            <div class="title-bar-buttons">
-                <button data-minimize></button>
-                <button data-maximize></button>
-            </div>
         </div>
-        <div class="capture-content">
+        <div class="window-body">
             <div class="capture-form">
                 <textarea id="idea-input" placeholder="What's on your mind?"></textarea>
                 <div class="capture-controls">
-                    <select id="project-select"><option value="untagged">Untagged</option></select>
-                    <select id="difficulty-select">
-                        <option value="easy">Easy</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
-                    <div class="ranking-selector" id="ranking-selector"></div>
-                    <button class="primary" onclick="captureIdea()">Add</button>
+                    <div class="capture-row">
+                        <select id="project-select"><option value="untagged">Untagged</option></select>
+                        <select id="difficulty-select">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="capture-row">
+                        <div class="ranking-selector" id="ranking-selector"></div>
+                        <button class="primary" onclick="captureIdea()">Add</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Lists -->
-    <div class="main-layout">
-        <div class="window list-column active">
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="window list-window active">
             <div class="title-bar">
-                <div class="title-bar-text">💡 Ideas (<span class="list-count" id="ideas-count">0</span>)</div>
-                <div class="title-bar-buttons">
-                    <button data-minimize></button>
-                    <button data-maximize></button>
+                <div class="title-bar-text">
+                    <span>Ideas</span>
+                    <span class="list-count" id="ideas-count">0</span>
                 </div>
             </div>
-            <div class="list-content" id="ideas-list" data-status="new"></div>
+            <div class="window-body">
+                <div class="ideas-list" id="ideas-list" data-status="new"></div>
+            </div>
         </div>
-        
-        <div class="window list-column active">
+
+        <div class="window list-window active">
             <div class="title-bar">
-                <div class="title-bar-text">📋 Tomorrow's Backlog (<span class="list-count" id="backlog-count">0</span>)</div>
-                <div class="title-bar-buttons">
-                    <button data-minimize></button>
-                    <button data-maximize></button>
+                <div class="title-bar-text">
+                    <span>Backlog</span>
+                    <span class="list-count" id="backlog-count">0</span>
                 </div>
             </div>
-            <div class="list-content" id="backlog-list" data-status="backlog"></div>
+            <div class="window-body">
+                <div class="ideas-list" id="backlog-list" data-status="backlog"></div>
+            </div>
         </div>
     </div>
-    
+
     <script src="https://sql.js.org/dist/sql-wasm.js"></script>
     <script src="github-storage.js"></script>
     <script src="sql-database.js"></script>
@@ -100,7 +193,7 @@
             loadProjectOptions();
             createRankingSelector();
             loadAllLists();
-            
+
             dragDropManager = setupDragAndDrop({
                 onDrop: loadAllLists,
                 getFilteredIdeas: (status) => getIdeasByStatus(status),
@@ -142,12 +235,12 @@
             const text = document.getElementById('idea-input').value.trim();
             const project = document.getElementById('project-select').value;
             const difficulty = document.getElementById('difficulty-select').value;
-            
+
             if (!text) {
                 alert('Please enter an idea');
                 return;
             }
-            
+
             addIdea(text, project, selectedRanking, difficulty, 'new');
             document.getElementById('idea-input').value = '';
             document.getElementById('project-select').value = 'untagged';
@@ -163,7 +256,7 @@
                 showEdit: true,
                 editingIdeaId: editingIdeaId
             });
-            
+
             loadListWithRender('backlog', 'backlog-list', 'backlog-count', {
                 projectId: null,
                 showProject: true,
@@ -182,12 +275,12 @@
             const project = document.getElementById(`edit-project-${ideaId}`).value;
             const difficulty = document.getElementById(`edit-difficulty-${ideaId}`).value;
             const ranking = parseInt(document.getElementById(`edit-ranking-${ideaId}`).value);
-            
+
             if (!text) {
                 alert('Idea text cannot be empty');
                 return;
             }
-            
+
             updateIdea(ideaId, { text, project, difficulty, ranking });
             editingIdeaId = null;
             loadAllLists();
@@ -235,7 +328,7 @@
         waitForDatabaseThen(() => {
             initializePage();
         });
-        
+
         window.addEventListener('ideasUpdated', () => {
             loadAllLists();
         });

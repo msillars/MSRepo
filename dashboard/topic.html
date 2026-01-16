@@ -5,89 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Topic - Management System</title>
     <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+
+    <!-- Windows 3.1 CSS -->
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <link rel="stylesheet" href="topic-page.css">
     <link rel="stylesheet" href="edit-modal.css">
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Futura', 'Century Gothic', 'Arial Narrow', sans-serif; background: #F5F5F7; color: #1D1D1F; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        header { background: white; border-bottom: 2px solid #000; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .header-left { display: flex; align-items: center; gap: 16px; }
-        .topic-icon-large { width: 48px; height: 48px; border: 2px solid #000; display: flex; align-items: center; justify-content: center; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
-        .topic-icon-large img { width: 40px; height: 40px; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
-        h1 { font-size: 24px; font-weight: 300; letter-spacing: -0.5px; }
-        .header-actions { display: flex; gap: 12px; }
-        .btn { padding: 8px 20px; background: white; border: 2px solid #000; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #000; display: inline-block; }
-        .btn:hover { background: #000; color: white; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 rgba(0,0,0,0.2); }
-        .btn-secondary { background: #4CAF50; border-color: #4CAF50; color: white; }
-        .btn-secondary:hover { background: #45a049; border-color: #45a049; }
-        .btn-danger { background: #EF5350; border-color: #EF5350; color: white; }
-        .btn-danger:hover { background: #E53935; border-color: #E53935; }
-        main { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 20px 40px 40px 40px; }
-        .lists-container { flex: 1; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .list-section { display: flex; flex-direction: column; overflow: hidden; }
-        .list-header { background: white; border: 2px solid #000; border-bottom: none; padding: 12px 20px; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
-        .list-count { font-size: 11px; color: #666; font-weight: normal; }
-        .ideas-list { flex: 1; overflow-y: auto; padding: 20px; background: white; border: 2px solid #000; }
-        .idea-card { background: #FAFAFA; border: 1px solid #E0E0E0; padding: 16px; margin-bottom: 12px; position: relative; border-left: 4px solid #999; cursor: move; transition: all 0.2s; }
-        .idea-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .idea-card.dragging { opacity: 0.5; cursor: grabbing; }
-        .idea-card.drag-over { border-top: 3px solid #000; }
-        .idea-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-        .idea-rank { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
-        .idea-text { flex: 1; font-size: 14px; line-height: 1.6; word-wrap: break-word; }
-        .idea-text-input { width: 100%; padding: 8px; border: 2px solid #000; font-family: inherit; font-size: 14px; resize: vertical; min-height: 60px; }
-        .idea-meta { display: flex; gap: 12px; align-items: center; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; flex-wrap: wrap; }
-        .idea-difficulty { padding: 4px 8px; border: 1px solid #000; font-weight: 600; color: white; }
-        .idea-timestamp { color: #999; }
-        .idea-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-        .idea-btn { padding: 6px 12px; background: white; border: 1px solid #000; font-family: inherit; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.1s; }
-        .idea-btn:hover { background: #000; color: white; }
-        .idea-btn.move-btn { border-color: #2196F3; color: #2196F3; }
-        .idea-btn.move-btn:hover { background: #2196F3; color: white; }
-        .idea-btn.done-btn { border-color: #4CAF50; color: #4CAF50; }
-        .idea-btn.done-btn:hover { background: #4CAF50; color: white; }
-        .idea-edit-controls { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-        .idea-edit-controls select { font-size: 10px; padding: 6px 8px; border: 1px solid #000; font-family: inherit; background: white; cursor: pointer; }
-        .empty-state { text-align: center; padding: 40px 20px; color: #999; }
-        .empty-icon { font-size: 48px; margin-bottom: 12px; }
-        .error-state { text-align: center; padding: 60px 40px; }
-        .error-state h2 { font-size: 48px; margin-bottom: 20px; }
-        .error-state p { font-size: 16px; color: #666; margin-bottom: 30px; }
+        body {
+            background: var(--desktop-bg);
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+            font-size: 11px;
+            padding: 8px;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .header-window { flex-shrink: 0; }
+        .header-window .window-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .topic-icon { width: 32px; height: 32px; image-rendering: pixelated; }
+        .topic-title { font-size: 14px; font-weight: bold; margin: 0; }
+        .header-actions { display: flex; gap: 8px; }
+        .header-actions a { text-decoration: none; }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .list-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .list-window .title-bar { flex-shrink: 0; }
+        .list-window .title-bar-text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-right: 8px;
+        }
+        .list-count { font-weight: normal; font-size: 10px; }
+        .list-window .window-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .ideas-list { padding: 0; background: transparent; }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 40px;
+        }
+        .error-state h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .error-state p {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-left">
-            <div class="topic-icon-large" id="topic-icon">
-                <img src="../Icons/Door.ICO" alt="Topic" id="topic-icon-img">
+    <!-- Header Window -->
+    <div class="window header-window active">
+        <div class="title-bar">
+            <div class="title-bar-text" id="title-bar-topic-name">Loading...</div>
+            <div class="title-bar-buttons">
+                <button data-minimize></button>
+                <button data-maximize></button>
+                <button data-close onclick="window.location.href='index.html'"></button>
             </div>
-            <h1 id="topic-name">Loading...</h1>
         </div>
-        <div class="header-actions">
-            <button class="btn btn-danger" onclick="deleteTopicHandler()">Remove Topic</button>
-            <a href="finished.html" class="btn btn-secondary">✓ View Finished</a>
-            <a href="ideas.html" class="btn">+ Add Idea</a>
-            <a href="index.html" class="btn">← Dashboard</a>
+        <div class="window-body">
+            <div class="header-left">
+                <img src="../Icons/Door.ICO" alt="Topic" class="topic-icon" id="topic-icon">
+                <h1 class="topic-title" id="topic-name">Loading...</h1>
+            </div>
+            <div class="header-actions">
+                <button onclick="deleteTopicHandler()">Remove Topic</button>
+                <a href="finished.html"><button>View Finished</button></a>
+                <a href="ideas.html"><button>+ Add Idea</button></a>
+                <a href="index.html"><button class="primary">Dashboard</button></a>
+            </div>
         </div>
-    </header>
-    <main id="main-content">
-        <div class="lists-container">
-            <div class="list-section">
-                <div class="list-header">
-                    <span>💡 Ideas</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+        <div class="window list-window active">
+            <div class="title-bar">
+                <div class="title-bar-text">
+                    <span>Ideas</span>
                     <span class="list-count" id="ideas-count">0</span>
                 </div>
+            </div>
+            <div class="window-body">
                 <div class="ideas-list" id="ideas-list" data-status="new"></div>
             </div>
-            <div class="list-section">
-                <div class="list-header">
-                    <span>📋 Backlog</span>
+        </div>
+
+        <div class="window list-window active">
+            <div class="title-bar">
+                <div class="title-bar-text">
+                    <span>Backlog</span>
                     <span class="list-count" id="backlog-count">0</span>
                 </div>
+            </div>
+            <div class="window-body">
                 <div class="ideas-list" id="backlog-list" data-status="backlog"></div>
             </div>
         </div>
-    </main>
-    
+    </div>
+
+    <div id="edit-idea-modal" class="modal-overlay"></div>
+
     <script src="https://sql.js.org/dist/sql-wasm.js"></script>
     <script src="github-storage.js"></script>
     <script src="sql-database.js"></script>
@@ -100,54 +151,61 @@
     <script src="shared-topic-page.js"></script>
     <script src="edit-idea-modal.js"></script>
     <script>
-        // Get topic ID from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const topicId = urlParams.get('id');
-        
+
         if (!topicId) {
-            // No topic ID provided
             document.getElementById('main-content').innerHTML = `
-                <div class="error-state">
-                    <h2>⚠️</h2>
-                    <p>No topic specified</p>
-                    <a href="index.html" class="btn">← Back to Dashboard</a>
+                <div class="window active" style="flex: 1;">
+                    <div class="title-bar">
+                        <div class="title-bar-text">Error</div>
+                    </div>
+                    <div class="window-body">
+                        <div class="error-state">
+                            <h2>?</h2>
+                            <p>No topic specified</p>
+                            <a href="index.html"><button class="primary">Dashboard</button></a>
+                        </div>
+                    </div>
                 </div>
             `;
+            document.getElementById('topic-name').textContent = 'Error';
+            document.getElementById('title-bar-topic-name').textContent = 'Error';
         } else {
-            // Wait for database to be ready before checking topic
             waitForDatabaseThen(() => {
-                // Check if topic exists
                 const topics = getTopics();
                 const topic = topics.find(t => t.id === topicId);
-                
+
                 if (!topic) {
-                    // Topic doesn't exist
                     document.getElementById('main-content').innerHTML = `
-                        <div class="error-state">
-                            <h2>❌</h2>
-                            <p>Topic "<strong>${topicId}</strong>" not found</p>
-                            <a href="index.html" class="btn">← Back to Dashboard</a>
+                        <div class="window active" style="flex: 1;">
+                            <div class="title-bar">
+                                <div class="title-bar-text">Not Found</div>
+                            </div>
+                            <div class="window-body">
+                                <div class="error-state">
+                                    <h2>X</h2>
+                                    <p>Topic "${topicId}" not found</p>
+                                    <a href="index.html"><button class="primary">Dashboard</button></a>
+                                </div>
+                            </div>
                         </div>
                     `;
-                    document.getElementById('topic-name').textContent = 'Topic Not Found';
+                    document.getElementById('topic-name').textContent = 'Not Found';
+                    document.getElementById('title-bar-topic-name').textContent = 'Not Found';
                 } else {
-                    // Topic exists - initialize the page
                     document.title = `${topic.name} - Management System`;
-                    
-                    // Set icon if topic has one
+                    document.getElementById('title-bar-topic-name').textContent = topic.name;
+
                     if (topic.icon) {
-                        document.getElementById('topic-icon-img').src = `../Icons/${topic.icon}`;
-                        document.getElementById('topic-icon-img').alt = topic.name;
+                        document.getElementById('topic-icon').src = `../Icons/${topic.icon}`;
+                        document.getElementById('topic-icon').alt = topic.name;
                     }
-                    
-                    // Initialize using the shared controller
+
                     initializeTopicPage(topicId);
                 }
             });
         }
     </script>
-    
-    <!-- Edit Idea Modal (populated dynamically) -->
-    <div id="edit-idea-modal" class="modal-overlay"></div>
 </body>
 </html>
