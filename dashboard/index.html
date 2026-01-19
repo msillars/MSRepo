@@ -3,88 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Management System - Windows 3.1</title>
+    <title>Management System</title>
     <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
-    
-    <!-- Windows 3.1 CSS -->
-    <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="win3x-theme.css">
     <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <link rel="stylesheet" href="layout.css">
     <link rel="stylesheet" href="desktop-icons.css">
-    
     <style>
-        body {
-            background: var(--desktop-bg);
+        /* Desktop fills entire viewport */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
             font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
             font-size: 11px;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-            height: 100vh;
         }
-        
-        /* Desktop-style layout */
-        .desktop-container {
+
+        .desktop {
+            width: 100%;
+            height: 100%;
+            background: var(--desktop-bg, #008080);
+            position: relative;
+        }
+
+        /* Desktop icons positioned in top-left */
+        .desktop-icons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 80px);
+            grid-auto-rows: 90px;
+            gap: 8px 16px;
             padding: 20px;
-            min-height: 100vh;
+            align-content: start;
         }
-        
-        /* Header Window */
-        .header-window {
-            margin-bottom: 20px;
+
+        /* Universe window - opens on double-click */
+        .universe-window {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            right: 40px;
+            bottom: 40px;
+            display: none;
+            flex-direction: column;
+            z-index: 100;
         }
-        
-        .header-window .title-bar {
-            min-height: 22px;
-            padding: 4px;
+
+        .universe-window.open {
+            display: flex;
         }
-        
-        .header-window .title-bar-text {
-            line-height: 20px;
+
+        .universe-window .window-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            background: white;
         }
-        
-        .header-content {
-            padding: 16px;
+
+
+        /* ===== Universe Content Styles ===== */
+        .universe-content {
+            padding: 20px;
+            background: white;
+            min-height: 100%;
+        }
+
+        /* Header area */
+        .universe-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--window-bg);
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border, #808080);
         }
-        
-        .header-content h1 {
+
+        .universe-header h1 {
             font-size: 20px;
             font-weight: bold;
             margin: 0;
         }
-        
-        /* Main Content Layout */
+
+        /* Main Layout */
         .main-layout {
             display: flex;
             gap: 20px;
         }
-        
+
         /* Priorities Window */
         .priorities-window {
             width: 380px;
             flex-shrink: 0;
         }
-        
+
         .priorities-window .title-bar {
-            min-height: 22px;
             padding: 4px;
         }
-        
-        .priorities-window .title-bar-text {
-            line-height: 20px;
-        }
-        
+
         .priorities-content {
             padding: 12px;
-            max-height: calc(100vh - 200px);
+            max-height: calc(100vh - 280px);
             overflow-y: auto;
             background: var(--window-bg);
         }
-        
+
         .priority-item {
             border: 1px solid var(--border);
             padding: 12px;
@@ -93,7 +115,7 @@
             display: flex;
             gap: 12px;
         }
-        
+
         .priority-rank {
             width: 28px;
             height: 28px;
@@ -106,25 +128,25 @@
             font-weight: bold;
             flex-shrink: 0;
         }
-        
+
         .priority-content {
             flex: 1;
             min-width: 0;
         }
-        
+
         .priority-text {
             font-size: 11px;
             line-height: 1.4;
             margin-bottom: 8px;
         }
-        
+
         .priority-meta {
             display: flex;
             gap: 8px;
             font-size: 10px;
             flex-wrap: wrap;
         }
-        
+
         .priority-topic {
             font-weight: bold;
         }
@@ -152,11 +174,10 @@
             min-height: 180px;
             display: flex;
             flex-direction: column;
+            cursor: pointer;
         }
 
-        /* Fix title bar height to match buttons properly */
         .topic-card .title-bar {
-            min-height: 22px;
             padding: 4px;
             display: flex;
             align-items: center;
@@ -284,7 +305,7 @@
             font-size: 48px;
             margin-bottom: 8px;
         }
-        
+
         /* Modal */
         .modal {
             display: none;
@@ -298,56 +319,56 @@
             justify-content: center;
             z-index: 1000;
         }
-        
+
         .modal.active {
             display: flex;
         }
-        
+
         .modal-content {
             width: 90%;
             max-width: 500px;
             max-height: 90vh;
         }
-        
+
         .modal-body {
             padding: 16px;
             max-height: calc(90vh - 100px);
             overflow-y: auto;
             background: var(--window-bg);
         }
-        
+
         .form-group {
             margin-bottom: 16px;
         }
-        
+
         .form-group label {
             display: block;
             font-weight: bold;
             margin-bottom: 4px;
         }
-        
+
         .modal-actions {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
             margin-top: 16px;
         }
-        
+
         /* Icon Picker */
         .icon-picker-container {
             border: 1px solid var(--border);
             background: var(--window-bg);
         }
-        
+
         .icon-search {
             padding: 8px;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .icon-search input {
             width: 100%;
         }
-        
+
         .icon-picker {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -356,7 +377,7 @@
             overflow-y: auto;
             padding: 8px;
         }
-        
+
         .icon-option {
             aspect-ratio: 1;
             border: 1px solid var(--button-bg);
@@ -367,23 +388,23 @@
             justify-content: center;
             position: relative;
         }
-        
+
         .icon-option:hover {
             border-color: var(--border);
         }
-        
+
         .icon-option.selected {
             border-color: var(--selection-bg);
             border-width: 2px;
             background: var(--selection-bg);
         }
-        
+
         .icon-option img {
             width: 24px;
             height: 24px;
             image-rendering: pixelated;
         }
-        
+
         .icon-label {
             position: absolute;
             bottom: -20px;
@@ -398,11 +419,11 @@
             z-index: 10;
             pointer-events: none;
         }
-        
+
         .icon-option:hover .icon-label {
             opacity: 1;
         }
-        
+
         .icon-count {
             padding: 8px;
             background: var(--button-bg);
@@ -413,68 +434,73 @@
     </style>
 </head>
 <body>
-    <div class="desktop-container">
-        <!-- Header -->
-        <div class="window header-window active">
-            <div class="title-bar">
-                <div class="title-bar-controls">
-                    <button class="system-menu" aria-label="System menu"></button>
+    <!-- The Desktop (blank computer) -->
+    <div class="desktop" id="desktop">
+        <!-- Desktop Icons -->
+        <div class="desktop-icons" id="desktop-icons">
+            <div class="desktop-icon" tabindex="0" ondblclick="openUniverse()">
+                <div class="desktop-icon-image">
+                    <img src="../Icons/PROGM001.ICO" alt="Universe">
                 </div>
-                <div class="title-bar-text">Management System</div>
-                <div class="title-bar-controls">
-                    <button data-minimize aria-label="Minimize"></button>
-                    <button data-maximize aria-label="Maximize"></button>
-                </div>
-            </div>
-            <div class="header-content">
-                <h1>Management System</h1>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <div class="view-toggle">
-                        <button id="view-cards-btn" class="active" onclick="setView('cards')" title="Card View">
-                            <img src="../Icons/CardFile.ICO" alt="Cards" style="width: 16px; height: 16px; image-rendering: pixelated;">
-                        </button>
-                        <button id="view-icons-btn" onclick="setView('icons')" title="Desktop Icons">
-                            <img src="../Icons/PROGM001.ICO" alt="Icons" style="width: 16px; height: 16px; image-rendering: pixelated;">
-                        </button>
-                    </div>
-                    <a href="ideas.html">
-                        <button class="primary">Ideas (<span id="total-ideas">0</span>)</button>
-                    </a>
-                </div>
+                <div class="desktop-icon-label">Management System</div>
             </div>
         </div>
-        
-        <!-- Main Layout -->
-        <div class="main-layout">
-            <!-- Top Priorities -->
-            <div class="window priorities-window active">
-                <div class="title-bar">
-                    <div class="title-bar-controls">
-                        <button class="system-menu" aria-label="System menu"></button>
-                    </div>
-                    <div class="title-bar-text">🏆 Top 5 Priorities (All Topics)</div>
-                    <div class="title-bar-controls">
-                        <button data-minimize aria-label="Minimize"></button>
-                        <button data-maximize aria-label="Maximize"></button>
-                    </div>
-                </div>
-                <div class="priorities-content" id="priorities-list">
-                    <!-- Priorities load here -->
-                </div>
+    </div>
+
+    <!-- Universe Window (contains dashboard content) -->
+    <div class="window universe-window" id="universe-window">
+        <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu" ondblclick="closeUniverse()"></button>
             </div>
-            
-            <!-- Topics Grid -->
-            <div class="topics-section">
-                <div class="topics-grid" id="topics-grid">
-                    <!-- Topic cards load here -->
+            <div class="title-bar-text">Universe</div>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize" onclick="minimizeUniverse()"></button>
+                <button data-maximize aria-label="Maximize" onclick="toggleMaximize()"></button>
+            </div>
+        </div>
+        <div class="window-body">
+            <div class="universe-content">
+                <!-- Header -->
+                <div class="universe-header">
+                    <h1>Universe</h1>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <a href="ideas.html">
+                            <button class="primary">Ideas (<span id="total-ideas">0</span>)</button>
+                        </a>
+                    </div>
                 </div>
-                <div class="desktop-icons" id="desktop-icons">
-                    <!-- Desktop icons load here -->
+
+                <!-- Main Layout -->
+                <div class="main-layout">
+                    <!-- Top Priorities -->
+                    <div class="window priorities-window active">
+                        <div class="title-bar">
+                            <div class="title-bar-controls">
+                                <button class="system-menu" aria-label="System menu"></button>
+                            </div>
+                            <div class="title-bar-text">Top 5 Priorities (All Topics)</div>
+                            <div class="title-bar-controls">
+                                <button data-minimize aria-label="Minimize"></button>
+                                <button data-maximize aria-label="Maximize"></button>
+                            </div>
+                        </div>
+                        <div class="priorities-content" id="priorities-list">
+                            <!-- Priorities load here -->
+                        </div>
+                    </div>
+
+                    <!-- Topics Grid -->
+                    <div class="topics-section">
+                        <div class="topics-grid" id="topics-grid">
+                            <!-- Topic cards load here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Add Topic Modal -->
     <div class="modal" id="add-topic-modal">
         <div class="window modal-content active">
@@ -513,7 +539,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Edit Topic Modal -->
     <div class="modal" id="edit-topic-modal">
         <div class="window modal-content active">
@@ -542,7 +568,7 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://sql.js.org/dist/sql-wasm.js"></script>
     <script src="github-storage.js"></script>
     <script src="sql-database.js"></script>
@@ -553,154 +579,128 @@
     <script src="shared-rendering.js"></script>
     <script src="shared-top-priorities.js"></script>
     <script>
-        // View state (cards or icons)
-        let currentView = localStorage.getItem('dashboardView') || 'cards';
-
-        // Selected icon (default to Door)
-        let selectedIcon = 'Door.ICO';
-        let allIcons = ALL_AVAILABLE_ICONS;
-        let filteredIcons = allIcons;
+        // Track window state
+        let universeOpen = false;
+        let universeMaximized = false;
 
         /**
-         * Set the dashboard view mode
-         * @param {string} view - 'cards' or 'icons'
+         * Open the Universe window
          */
-        function setView(view) {
-            currentView = view;
-            localStorage.setItem('dashboardView', view);
+        function openUniverse() {
+            const universeWindow = document.getElementById('universe-window');
+            universeWindow.classList.add('open');
+            universeOpen = true;
+        }
 
-            // Update toggle buttons
-            document.getElementById('view-cards-btn').classList.toggle('active', view === 'cards');
-            document.getElementById('view-icons-btn').classList.toggle('active', view === 'icons');
+        /**
+         * Close the Universe window
+         */
+        function closeUniverse() {
+            const universeWindow = document.getElementById('universe-window');
+            universeWindow.classList.remove('open');
+            universeOpen = false;
+        }
 
-            // Update container class
-            const container = document.querySelector('.desktop-container');
-            container.classList.remove('view-cards', 'view-icons');
-            container.classList.add(`view-${view}`);
+        /**
+         * Minimize the Universe window (close for now)
+         */
+        function minimizeUniverse() {
+            closeUniverse();
+        }
 
-            // Load appropriate view
-            if (view === 'icons') {
-                loadDesktopIcons();
+        /**
+         * Toggle maximize state
+         */
+        function toggleMaximize() {
+            const universeWindow = document.getElementById('universe-window');
+
+            if (universeMaximized) {
+                // Restore to windowed
+                universeWindow.style.top = '40px';
+                universeWindow.style.left = '40px';
+                universeWindow.style.right = '40px';
+                universeWindow.style.bottom = '40px';
+                universeMaximized = false;
+            } else {
+                // Maximize
+                universeWindow.style.top = '0';
+                universeWindow.style.left = '0';
+                universeWindow.style.right = '0';
+                universeWindow.style.bottom = '0';
+                universeMaximized = true;
             }
         }
 
-        /**
-         * Render topics as desktop icons
-         */
-        function loadDesktopIcons() {
-            const container = document.getElementById('desktop-icons');
-            const topics = getTopics();
-            topics.sort((a, b) => (b.weight || 5) - (a.weight || 5));
-
-            const counts = getIdeaCounts();
-
-            // Create special icons first (Ideas, Finished)
-            const specialIcons = `
-                <div class="desktop-icon special" ondblclick="window.location.href='ideas.html'" onclick="selectDesktopIcon(this)" tabindex="0">
-                    <div class="desktop-icon-image">
-                        <img src="../Icons/Ideas.ICO" alt="Ideas">
-                    </div>
-                    <div class="desktop-icon-label">Ideas</div>
-                    <div class="desktop-icon-badge">(${document.getElementById('total-ideas').textContent})</div>
-                </div>
-                <div class="desktop-icon special" ondblclick="window.location.href='finished.html'" onclick="selectDesktopIcon(this)" tabindex="0">
-                    <div class="desktop-icon-image">
-                        <img src="../Icons/CLIPB001.ICO" alt="Finished">
-                    </div>
-                    <div class="desktop-icon-label">Finished</div>
-                </div>
-            `;
-
-            // Create topic icons
-            const topicIcons = topics.map(topic => {
-                const count = counts.byTopic[topic.id] || 0;
-                const iconFile = topic.icon || window.TOPIC_ICON_FILES[topic.id] || 'Door.ICO';
-                const weightColor = getWeightColor(topic.weight || 5);
-
-                return `
-                    <div class="desktop-icon"
-                         ondblclick="openTopic('${topic.id}')"
-                         onclick="selectDesktopIcon(this)"
-                         oncontextmenu="showIconContextMenu(event, '${topic.id}')"
-                         tabindex="0"
-                         data-topic-id="${topic.id}">
-                        <div class="desktop-icon-weight" style="background: ${weightColor};" title="Weight: ${topic.weight || 5}"></div>
-                        <div class="desktop-icon-image">
-                            <img src="../Icons/${iconFile}" alt="${topic.name}">
-                        </div>
-                        <div class="desktop-icon-label">${topic.name}</div>
-                        <div class="desktop-icon-badge">(${count})</div>
-                    </div>
-                `;
-            }).join('');
-
-            // Add "New Topic" icon
-            const addIcon = `
-                <div class="desktop-icon" ondblclick="openAddTopicModal()" onclick="selectDesktopIcon(this)" tabindex="0">
-                    <div class="desktop-icon-image">
-                        <img src="../Icons/Door.ICO" alt="Add Topic">
-                    </div>
-                    <div class="desktop-icon-label">New Topic</div>
-                </div>
-            `;
-
-            container.innerHTML = specialIcons + topicIcons + addIcon;
-        }
-
-        /**
-         * Handle icon selection (single click)
-         */
-        function selectDesktopIcon(iconEl) {
-            // Remove selection from all icons
-            document.querySelectorAll('.desktop-icon').forEach(icon => {
-                icon.classList.remove('selected');
+        // Desktop icon selection
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            icon.addEventListener('click', function(e) {
+                // Deselect all
+                document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+                // Select clicked
+                this.classList.add('selected');
             });
-            // Select clicked icon
-            iconEl.classList.add('selected');
-        }
+        });
 
-        /**
-         * Show context menu for icon (placeholder for future)
-         */
-        function showIconContextMenu(event, topicId) {
-            event.preventDefault();
-            // Future: implement right-click context menu
-            console.log('Context menu for topic:', topicId);
-        }
-        
+        // Click on desktop to deselect icons
+        document.getElementById('desktop').addEventListener('click', function(e) {
+            if (e.target === this || e.target.classList.contains('desktop-icons')) {
+                document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
+            }
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const selected = document.querySelector('.desktop-icon.selected');
+                if (selected) {
+                    openUniverse();
+                }
+            }
+            if (e.key === 'Escape' && universeOpen) {
+                closeUniverse();
+            }
+        });
+
+        // ===== Dashboard functionality =====
+
+        // Selected icon (default to Door)
+        let selectedIcon = 'Door.ICO';
+        let allIcons = [];
+        let filteredIcons = [];
+
         function filterIcons() {
             const searchTerm = document.getElementById('icon-search-input').value.toLowerCase();
-            filteredIcons = searchTerm ? 
-                allIcons.filter(icon => 
+            filteredIcons = searchTerm ?
+                allIcons.filter(icon =>
                     icon.name.toLowerCase().includes(searchTerm) ||
                     icon.file.toLowerCase().includes(searchTerm)
                 ) : allIcons;
             loadIconPicker();
         }
-        
+
         function loadIconPicker() {
             const container = document.getElementById('icon-picker');
             const countEl = document.getElementById('icon-count');
-            
+
             if (filteredIcons.length === 0) {
                 container.innerHTML = '<div style="padding: 40px; text-align: center;">No icons found</div>';
                 countEl.textContent = '0 icons';
                 return;
             }
-            
+
             container.innerHTML = filteredIcons.map(icon => `
-                <div class="icon-option ${icon.file === selectedIcon ? 'selected' : ''}" 
-                     onclick="selectIcon('${icon.file}')" 
+                <div class="icon-option ${icon.file === selectedIcon ? 'selected' : ''}"
+                     onclick="selectIcon('${icon.file}')"
                      data-icon="${icon.file}"
                      title="${icon.name}">
                     <img src="../Icons/${icon.file}" alt="${icon.name}">
                     <div class="icon-label">${icon.name}</div>
                 </div>
             `).join('');
-            
+
             countEl.textContent = `${filteredIcons.length} of ${allIcons.length} icons`;
         }
-        
+
         function selectIcon(iconFile) {
             selectedIcon = iconFile;
             document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
@@ -710,7 +710,7 @@
                 selectedEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }
-        
+
         window.TOPIC_ICON_FILES = {
             'photography': 'Photography.ICO',
             'work': 'Work.ICO',
@@ -727,11 +727,6 @@
             }
             loadTopicCards();
             updateTotalIdeasCount();
-
-            // Also update desktop icons if in icon view
-            if (currentView === 'icons') {
-                loadDesktopIcons();
-            }
         }
 
         function loadTopicCards() {
@@ -775,7 +770,7 @@
                                     EDIT
                                 </button>
                                 <button class="topic-btn" onclick="event.stopPropagation(); openTopic('${topic.id}')">
-                                    VIEW →
+                                    VIEW
                                 </button>
                             </div>
                         </div>
@@ -794,20 +789,20 @@
 
             container.innerHTML = topicCards + addCard;
         }
-        
+
         function openTopic(topicId) {
             const staticTopics = ['photography', 'work', 'life-admin', 'relationships', 'living', 'health', 'creating-this-dashboard'];
-            window.location.href = staticTopics.includes(topicId) ? 
+            window.location.href = staticTopics.includes(topicId) ?
                 `${topicId}.html` : `topic.html?id=${topicId}`;
         }
-        
+
         let currentEditingTopicId = null;
-        
+
         function editTopic(topicId) {
             const topics = getTopics();
             const topic = topics.find(t => t.id === topicId);
             if (!topic) return;
-            
+
             currentEditingTopicId = topicId;
             document.getElementById('edit-topic-title').textContent = `Edit: ${topic.name}`;
             document.getElementById('edit-topic-name').value = topic.name;
@@ -820,12 +815,12 @@
             document.getElementById('edit-topic-modal').classList.add('active');
             document.getElementById('edit-topic-name').focus();
         }
-        
+
         function closeEditTopicModal() {
             document.getElementById('edit-topic-modal').classList.remove('active');
             currentEditingTopicId = null;
         }
-        
+
         function saveTopicEdit() {
             if (!currentEditingTopicId) return;
             const name = document.getElementById('edit-topic-name').value.trim();
@@ -838,7 +833,7 @@
             closeEditTopicModal();
             loadDashboard();
         }
-        
+
         function openAddTopicModal() {
             selectedIcon = 'Door.ICO';
             document.getElementById('icon-search-input').value = '';
@@ -853,12 +848,12 @@
             document.getElementById('add-topic-modal').classList.add('active');
             document.getElementById('new-topic-name').focus();
         }
-        
+
         function closeAddTopicModal() {
             document.getElementById('add-topic-modal').classList.remove('active');
             document.getElementById('new-topic-name').value = '';
         }
-        
+
         function createNewTopic() {
             const name = document.getElementById('new-topic-name').value.trim();
             const weight = getWeightValue('new-topic-weight');
@@ -870,15 +865,21 @@
             closeAddTopicModal();
             loadDashboard();
         }
-        
+
         function updateTotalIdeasCount() {
             const ideas = getIdeas().filter(idea => idea.status !== 'done');
             document.getElementById('total-ideas').textContent = ideas.length;
         }
-        
+
         window.addEventListener('ideasUpdated', loadDashboard);
-        
+
         function initializePage() {
+            // Initialize icons list
+            if (typeof ALL_AVAILABLE_ICONS !== 'undefined') {
+                allIcons = ALL_AVAILABLE_ICONS;
+                filteredIcons = allIcons;
+            }
+
             if (window.isDatabaseReady && isDatabaseReady()) {
                 loadPageData();
                 return;
@@ -886,15 +887,12 @@
             window.addEventListener('databaseReady', loadPageData, { once: true });
             setTimeout(loadPageData, 3000);
         }
-        
+
         function loadPageData() {
             initializeTopPriorities();
             loadDashboard();
-
-            // Apply saved view preference
-            setView(currentView);
         }
-        
+
         initializePage();
     </script>
 </body>
