@@ -726,6 +726,82 @@ progress:not([value])::-webkit-progress-value {
   background-image: url(restore.svg);
 }
 
+/* System Menu Button (left side of title bar) */
+.title-bar-controls {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.title-bar-controls:first-child {
+  /* Left side controls (system menu) */
+}
+
+.title-bar-controls:last-child {
+  /* Right side controls (minimize, maximize) */
+}
+
+.title-bar-controls button {
+  flex-shrink: 0;
+  width: 24px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: var(--button-bg);
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.title-bar-controls button::after {
+  display: none;
+}
+
+.title-bar-controls:first-child button {
+  border-right: 1px solid var(--border);
+}
+
+.title-bar-controls:last-child button {
+  border-left: 1px solid var(--border);
+}
+
+.title-bar-controls button:active {
+  outline: none;
+  box-shadow: inset 1px 1px 0 var(--button-dark);
+}
+
+/* System menu icon - horizontal line like Win 3.1 space bar */
+.title-bar-controls button.system-menu {
+  background-image: none;
+  position: relative;
+}
+
+.title-bar-controls button.system-menu::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 2px;
+  background-color: var(--window-fg);
+}
+
+.title-bar-controls button[data-minimize] {
+  background-image: url(minimize.svg);
+  background-position: 7px 8px;
+}
+
+.title-bar-controls button[data-maximize] {
+  background-image: url(maximize.svg);
+  background-position: 7px 8px;
+}
+
+.maximized .title-bar-controls button[data-maximize] {
+  background-image: url(restore.svg);
+}
+
 .window-body,
 .dialog-body {
   background: var(--window-bg);

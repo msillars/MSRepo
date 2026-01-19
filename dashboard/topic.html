@@ -89,11 +89,13 @@
     <!-- Header Window -->
     <div class="window header-window active">
         <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu" ondblclick="window.location.href='index.html'"></button>
+            </div>
             <div class="title-bar-text" id="title-bar-topic-name">Loading...</div>
-            <div class="title-bar-buttons">
-                <button data-minimize></button>
-                <button data-maximize></button>
-                <button data-close onclick="window.location.href='index.html'"></button>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
             </div>
         </div>
         <div class="window-body">
@@ -114,9 +116,16 @@
     <div class="main-content" id="main-content">
         <div class="window list-window active">
             <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
                 <div class="title-bar-text">
                     <span>Ideas</span>
                     <span class="list-count" id="ideas-count">0</span>
+                </div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
             <div class="window-body">
@@ -126,9 +135,16 @@
 
         <div class="window list-window active">
             <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
                 <div class="title-bar-text">
                     <span>Backlog</span>
                     <span class="list-count" id="backlog-count">0</span>
+                </div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
             <div class="window-body">
@@ -158,7 +174,14 @@
             document.getElementById('main-content').innerHTML = `
                 <div class="window active" style="flex: 1;">
                     <div class="title-bar">
+                        <div class="title-bar-controls">
+                            <button class="system-menu" aria-label="System menu"></button>
+                        </div>
                         <div class="title-bar-text">Error</div>
+                        <div class="title-bar-controls">
+                            <button data-minimize aria-label="Minimize"></button>
+                            <button data-maximize aria-label="Maximize"></button>
+                        </div>
                     </div>
                     <div class="window-body">
                         <div class="error-state">
@@ -180,7 +203,14 @@
                     document.getElementById('main-content').innerHTML = `
                         <div class="window active" style="flex: 1;">
                             <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
                                 <div class="title-bar-text">Not Found</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
                             </div>
                             <div class="window-body">
                                 <div class="error-state">

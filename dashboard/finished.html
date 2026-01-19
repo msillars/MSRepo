@@ -98,11 +98,13 @@
     <!-- Header Window -->
     <div class="window header-window active">
         <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu" ondblclick="window.location.href='index.html'"></button>
+            </div>
             <div class="title-bar-text">Finished Items</div>
-            <div class="title-bar-buttons">
-                <button data-minimize></button>
-                <button data-maximize></button>
-                <button data-close onclick="window.location.href='index.html'"></button>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
             </div>
         </div>
         <div class="window-body">
@@ -117,12 +119,19 @@
     <!-- Filters Window -->
     <div class="window filters-window active">
         <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu"></button>
+            </div>
             <div class="title-bar-text">Filters</div>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
+            </div>
         </div>
         <div class="window-body">
             <div class="filter-group">
                 <label>Topic:</label>
-                <select id="project-filter" onchange="loadFinishedItems()">
+                <select id="topic-filter" onchange="loadFinishedItems()">
                     <option value="all">All Topics</option>
                 </select>
             </div>
@@ -140,7 +149,14 @@
     <!-- Main Content -->
     <div class="window main-window active">
         <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu"></button>
+            </div>
             <div class="title-bar-text">Completed</div>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
+            </div>
         </div>
         <div class="window-body" id="finished-list"></div>
     </div>
@@ -153,25 +169,25 @@
     <script src="shared-rendering.js"></script>
     <script>
         function initializePage() {
-            loadProjectFilter();
+            loadTopicFilter();
             loadFinishedItems();
         }
 
-        function loadProjectFilter() {
-            const select = document.getElementById('project-filter');
+        function loadTopicFilter() {
+            const select = document.getElementById('topic-filter');
             const topics = getTopics();
             const options = topics.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             select.innerHTML = '<option value="all">All Topics</option>' + options;
         }
 
         function loadFinishedItems() {
-            const projectFilter = document.getElementById('project-filter').value;
+            const topicFilter = document.getElementById('topic-filter').value;
             const showArchived = document.getElementById('show-archived').checked;
 
             let items = getIdeasByStatus('done');
 
-            if (projectFilter !== 'all') {
-                items = items.filter(idea => idea.project === projectFilter);
+            if (topicFilter !== 'all') {
+                items = items.filter(idea => idea.topic === topicFilter);
             }
 
             if (!showArchived) {
@@ -201,7 +217,7 @@
             topics.forEach(t => topicMap[t.id] = t);
 
             container.innerHTML = items.map(idea => {
-                const topic = topicMap[idea.project];
+                const topic = topicMap[idea.topic];
                 const topicName = topic ? topic.name : 'Untagged';
                 const topicColor = topic ? topic.color : '#666';
 
@@ -222,7 +238,7 @@
                             <div class="idea-text">${idea.text}</div>
                         </div>
                         <div class="idea-meta">
-                            <div class="idea-project" style="background: ${topicColor}20; border-color: ${topicColor}; color: ${topicColor}">
+                            <div class="idea-topic" style="background: ${topicColor}20; border-color: ${topicColor}; color: ${topicColor}">
                                 ${topicName}
                             </div>
                             <div class="idea-difficulty" style="background: ${difficultyColors[idea.difficulty]}">

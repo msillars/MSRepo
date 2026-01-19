@@ -13,20 +13,20 @@
  * @param {Object} idea - The idea object
  * @param {String} status - Current status (new/backlog/done)
  * @param {Object} options - Rendering options
- * @param {Boolean} options.showProject - Whether to show project badge (default: false)
+ * @param {Boolean} options.showTopic - Whether to show topic badge (default: false)
  * @param {Boolean} options.showEdit - Whether to show edit button (default: false)
  * @param {Boolean} options.isEditing - Whether this card is being edited (default: false)
- * @param {String} options.projectName - Override project name display
- * @param {Array} options.projects - Projects list for edit dropdown
+ * @param {String} options.topicName - Override topic name display
+ * @param {Array} options.topics - Topics list for edit dropdown
  * @returns {String} HTML string for the card
  */
 function renderIdeaCard(idea, status, options = {}) {
     const {
-        showProject = false,
+        showTopic = false,
         showEdit = false,
         isEditing = false,
-        projectName = null,
-        projects = []
+        topicName = null,
+        topics = []
     } = options;
     
     // Use weight if available, otherwise fall back to ranking
@@ -63,13 +63,13 @@ function renderIdeaCard(idea, status, options = {}) {
         }
     }
     
-    // Build project badge if needed
-    let projectBadge = '';
-    if (showProject) {
-        const proj = projects.find(p => p.id === idea.topic);
-        const displayName = projectName || (proj ? proj.name : 'Untagged');
-        const projectColor = proj ? proj.color : '#999';
-        projectBadge = `<span class="idea-project" style="background: ${projectColor}20; border-color: ${projectColor}">${displayName}</span>`;
+    // Build topic badge if needed
+    let topicBadge = '';
+    if (showTopic) {
+        const topic = topics.find(t => t.id === idea.topic);
+        const displayName = topicName || (topic ? topic.name : 'Untagged');
+        const topicColor = topic ? topic.color : '#999';
+        topicBadge = `<span class="idea-topic" style="background: ${topicColor}20; border-color: ${topicColor}">${displayName}</span>`;
     }
     
     // Render weight badge or ranking circle
@@ -86,7 +86,7 @@ function renderIdeaCard(idea, status, options = {}) {
                 <div class="idea-text">${idea.text}</div>
             </div>
             <div class="idea-meta">
-                ${projectBadge}
+                ${topicBadge}
                 <span class="idea-difficulty" style="background: ${diffColor}; border-color: ${diffColor}">${idea.difficulty.toUpperCase()}</span>
                 <span class="idea-timestamp">${formatTimestamp(idea.timestamp)}</span>
             </div>
@@ -138,7 +138,7 @@ function renderEmptyState(listType) {
  * @param {String} containerId - ID of container element
  * @param {String} countId - ID of count element
  * @param {Object} options - Rendering options (passed to renderIdeaCard)
- * @param {String} options.projectId - Optional project ID for filtering
+ * @param {String} options.topicId - Optional topic ID for filtering
  * @param {Number} options.editingIdeaId - ID of idea being edited
  */
 function loadListWithRender(status, containerId, countId, options = {}) {
@@ -151,8 +151,8 @@ function loadListWithRender(status, containerId, countId, options = {}) {
     }
     
     // Get ideas
-    const ideas = options.projectId 
-        ? getIdeasByStatus(status, options.projectId)
+    const ideas = options.topicId
+        ? getIdeasByStatus(status, options.topicId)
         : getIdeasByStatus(status);
     
     // Update count
@@ -175,15 +175,15 @@ function loadListWithRender(status, containerId, countId, options = {}) {
     ideas.sort((a, b) => (a.order || 0) - (b.order || 0));
     
     // Get topics for rendering
-    const projects = getTopics();
-    
+    const topics = getTopics();
+
     // Render cards
     container.innerHTML = ideas.map(idea => {
         const isEditing = options.editingIdeaId === idea.id;
         return renderIdeaCard(idea, status, {
             ...options,
             isEditing,
-            projects
+            topics
         });
     }).join('');
 }

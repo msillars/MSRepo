@@ -1,17 +1,17 @@
 /**
  * Shared Drag-and-Drop System for All List Pages
- * 
+ *
  * This module provides unified drag-and-drop functionality across:
  * - Ideas page (ideas.html)
- * - Project pages (work.html, photography.html, etc.)
+ * - Topic pages (work.html, photography.html, etc.)
  * - Finished page (finished.html)
- * 
+ *
  * Usage:
  * 1. Include this script after ideas-data.js
  * 2. Call setupDragAndDrop(callbacks) where callbacks contains:
  *    - onDrop: function to call after successful drop
  *    - getFilteredIdeas: function(status) to get ideas for a specific list
- *    - projectId: (optional) project ID for filtering
+ *    - topicId: (optional) topic ID for filtering
  */
 
 class DragDropManager {
@@ -20,9 +20,9 @@ class DragDropManager {
         this.draggedIdeaId = null;
         this.onDrop = config.onDrop || (() => {});
         this.getFilteredIdeas = config.getFilteredIdeas || ((status) => getIdeasByStatus(status));
-        this.projectId = config.projectId || null;
+        this.topicId = config.topicId || null;
         this.enabled = true;
-        
+
         this.setupEventListeners();
     }
     
@@ -251,12 +251,12 @@ class DragDropManager {
     }
     
     /**
-     * Reorder a specific list (status + optional project)
+     * Reorder a specific list (status + optional topic)
      * This is a wrapper around the global reorderIdeas function
      */
     reorderList(ideaIds, status) {
         console.log('[REORDER] Reordering', status, 'list with', ideaIds.length, 'items');
-        const success = reorderIdeas(ideaIds, status, this.projectId);
+        const success = reorderIdeas(ideaIds, status, this.topicId);
         if (!success) {
             console.error('[REORDER] Failed to reorder ideas');
         } else {
@@ -278,7 +278,7 @@ class DragDropManager {
  * @param {Object} config - Configuration object
  * @param {Function} config.onDrop - Callback to refresh UI after drop
  * @param {Function} config.getFilteredIdeas - Function to get ideas for a status
- * @param {String} config.projectId - Optional project ID for filtering
+ * @param {String} config.topicId - Optional topic ID for filtering
  */
 function setupDragAndDrop(config = {}) {
     console.log('[DRAG-DROP] Initializing drag and drop system');

@@ -60,7 +60,7 @@ class TopicPageController {
         this.dragDropManager = setupDragAndDrop({
             onDrop: () => this.loadAllLists(),
             getFilteredIdeas: (status) => getIdeasByStatus(status, this.topicId),
-            projectId: this.topicId  // Note: keeping 'projectId' for drag-drop compatibility
+            topicId: this.topicId
         });
         
         // Setup cross-tab synchronization
@@ -74,8 +74,8 @@ class TopicPageController {
      */
     loadAllLists() {
         const renderOptions = {
-            projectId: this.topicId,  // Note: keeping 'projectId' for rendering compatibility
-            showProject: false,
+            topicId: this.topicId,
+            showTopic: false,
             showEdit: true,
             editingIdeaId: this.editingIdeaId
         };

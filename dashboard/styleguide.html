@@ -101,11 +101,13 @@
         <!-- Header -->
         <div class="window active" style="margin-bottom: 24px;">
             <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
                 <div class="title-bar-text">Win3x Style Guide</div>
-                <div class="title-bar-buttons">
-                    <button data-minimize></button>
-                    <button data-maximize></button>
-                    <button data-close></button>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
             <div class="window-body padding">
@@ -128,11 +130,13 @@
                     <div class="component-label">Active Window</div>
                     <div class="window active">
                         <div class="title-bar">
+                            <div class="title-bar-controls">
+                                <button class="system-menu" aria-label="System menu"></button>
+                            </div>
                             <div class="title-bar-text">Window Title</div>
-                            <div class="title-bar-buttons">
-                                <button data-minimize></button>
-                                <button data-maximize></button>
-                                <button data-close></button>
+                            <div class="title-bar-controls">
+                                <button data-minimize aria-label="Minimize"></button>
+                                <button data-maximize aria-label="Maximize"></button>
                             </div>
                         </div>
                         <div class="window-body padding">
@@ -144,11 +148,13 @@
                     <div class="component-label">HTML</div>
                     <div class="code-block">&lt;div class="window active"&gt;
   &lt;div class="title-bar"&gt;
+    &lt;div class="title-bar-controls"&gt;
+      &lt;button class="system-menu" aria-label="System menu"&gt;&lt;/button&gt;
+    &lt;/div&gt;
     &lt;div class="title-bar-text"&gt;Window Title&lt;/div&gt;
-    &lt;div class="title-bar-buttons"&gt;
-      &lt;button data-minimize&gt;&lt;/button&gt;
-      &lt;button data-maximize&gt;&lt;/button&gt;
-      &lt;button data-close&gt;&lt;/button&gt;
+    &lt;div class="title-bar-controls"&gt;
+      &lt;button data-minimize aria-label="Minimize"&gt;&lt;/button&gt;
+      &lt;button data-maximize aria-label="Maximize"&gt;&lt;/button&gt;
     &lt;/div&gt;
   &lt;/div&gt;
   &lt;div class="window-body padding"&gt;
@@ -164,11 +170,13 @@
                     <div class="component-label">Inactive Window (no .active class)</div>
                     <div class="window">
                         <div class="title-bar">
+                            <div class="title-bar-controls">
+                                <button class="system-menu" aria-label="System menu"></button>
+                            </div>
                             <div class="title-bar-text">Inactive Window</div>
-                            <div class="title-bar-buttons">
-                                <button data-minimize></button>
-                                <button data-maximize></button>
-                                <button data-close></button>
+                            <div class="title-bar-controls">
+                                <button data-minimize aria-label="Minimize"></button>
+                                <button data-maximize aria-label="Maximize"></button>
                             </div>
                         </div>
                         <div class="window-body padding">
@@ -187,13 +195,13 @@
             <!-- Window without buttons -->
             <div class="component-row">
                 <div class="component-demo">
-                    <div class="component-label">Window (no title bar buttons)</div>
+                    <div class="component-label">Window (title only - no buttons)</div>
                     <div class="window active">
                         <div class="title-bar">
                             <div class="title-bar-text">Simple Window</div>
                         </div>
                         <div class="window-body padding">
-                            No minimize/maximize/close buttons.
+                            No system menu or min/max buttons.
                         </div>
                     </div>
                 </div>
@@ -468,13 +476,18 @@ Available:
                     <div style="background: rgba(0,0,0,0.3); padding: 20px;">
                         <div class="window active" style="max-width: 300px; margin: 0 auto;">
                             <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
                                 <div class="title-bar-text">Dialog Title</div>
-                                <div class="title-bar-buttons">
-                                    <button data-close></button>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
                                 </div>
                             </div>
                             <div class="window-body padding">
                                 <p>Dialog content here.</p>
+                                <p><em>Double-click system menu to close.</em></p>
                                 <div class="flex-row gap justify-end" style="margin-top: 16px;">
                                     <button>Cancel</button>
                                     <button class="primary">OK</button>
@@ -488,9 +501,13 @@ Available:
                     <div class="code-block">&lt;div class="modal"&gt;
   &lt;div class="window active"&gt;
     &lt;div class="title-bar"&gt;
+      &lt;div class="title-bar-controls"&gt;
+        &lt;button class="system-menu" ondblclick="close()"&gt;&lt;/button&gt;
+      &lt;/div&gt;
       &lt;div class="title-bar-text"&gt;Title&lt;/div&gt;
-      &lt;div class="title-bar-buttons"&gt;
-        &lt;button data-close&gt;&lt;/button&gt;
+      &lt;div class="title-bar-controls"&gt;
+        &lt;button data-minimize&gt;&lt;/button&gt;
+        &lt;button data-maximize&gt;&lt;/button&gt;
       &lt;/div&gt;
     &lt;/div&gt;
     &lt;div class="window-body padding"&gt;
@@ -572,11 +589,13 @@ win3x-skin-3.1.css for full list.</div>
     &lt;!-- Header Window --&gt;
     &lt;div class="window active"&gt;
         &lt;div class="title-bar"&gt;
+            &lt;div class="title-bar-controls"&gt;
+                &lt;button class="system-menu" ondblclick="goHome()"&gt;&lt;/button&gt;
+            &lt;/div&gt;
             &lt;div class="title-bar-text"&gt;Page Title&lt;/div&gt;
-            &lt;div class="title-bar-buttons"&gt;
+            &lt;div class="title-bar-controls"&gt;
                 &lt;button data-minimize&gt;&lt;/button&gt;
                 &lt;button data-maximize&gt;&lt;/button&gt;
-                &lt;button data-close&gt;&lt;/button&gt;
             &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="window-body padding"&gt;
@@ -587,7 +606,14 @@ win3x-skin-3.1.css for full list.</div>
     &lt;!-- Main Content Windows --&gt;
     &lt;div class="window active"&gt;
         &lt;div class="title-bar"&gt;
+            &lt;div class="title-bar-controls"&gt;
+                &lt;button class="system-menu"&gt;&lt;/button&gt;
+            &lt;/div&gt;
             &lt;div class="title-bar-text"&gt;Content Section&lt;/div&gt;
+            &lt;div class="title-bar-controls"&gt;
+                &lt;button data-minimize&gt;&lt;/button&gt;
+                &lt;button data-maximize&gt;&lt;/button&gt;
+            &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="window-body padding"&gt;
             Main content here

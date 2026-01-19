@@ -1,0 +1,274 @@
+/**
+ * Desktop Icons CSS
+ * Windows 3.1 style desktop icon layout
+ *
+ * This provides an alternative view to topic cards,
+ * presenting topics as classic desktop icons.
+ */
+
+/* Desktop background - the workspace */
+.desktop {
+    background: var(--desktop-bg, #008080);
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+}
+
+/* Desktop icon grid container */
+.desktop-icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 80px);
+    grid-auto-rows: 90px;
+    gap: 8px 16px;
+    align-content: start;
+    padding: 10px;
+}
+
+/* Individual desktop icon */
+.desktop-icon {
+    width: 72px;
+    text-align: center;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid transparent;
+    background: transparent;
+}
+
+.desktop-icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.desktop-icon:focus {
+    outline: 1px dotted white;
+    outline-offset: 2px;
+}
+
+/* Selected state (single click) */
+.desktop-icon.selected {
+    background: var(--selection-bg, #000080);
+}
+
+.desktop-icon.selected .desktop-icon-label {
+    background: var(--selection-bg, #000080);
+    color: white;
+}
+
+/* Active/pressed state */
+.desktop-icon:active {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Icon image container */
+.desktop-icon-image {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.desktop-icon-image img {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    /* Drop shadow for visibility on desktop */
+    filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.5));
+}
+
+/* Icon label */
+.desktop-icon-label {
+    font-size: 11px;
+    font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+    color: white;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+    word-wrap: break-word;
+    max-width: 70px;
+    line-height: 1.2;
+    padding: 1px 3px;
+}
+
+/* Badge for item counts */
+.desktop-icon-badge {
+    font-size: 9px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+    margin-top: 2px;
+}
+
+/* Weight indicator (small colored dot) */
+.desktop-icon-weight {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+/* Desktop icon with weight indicator needs relative positioning */
+.desktop-icon {
+    position: relative;
+}
+
+/* Special icons styling */
+.desktop-icon.special {
+    /* Ideas inbox, Finished, etc */
+}
+
+.desktop-icon.special .desktop-icon-image img {
+    /* Could add glow or different styling */
+}
+
+/* ===== View Toggle ===== */
+
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--button-bg, #c0c0c0);
+    border: 1px solid var(--border, #808080);
+    padding: 2px;
+}
+
+.view-toggle button {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 4px;
+    font-size: 10px;
+}
+
+.view-toggle button.active {
+    background: var(--selection-bg, #000080);
+    color: white;
+}
+
+/* ===== Desktop Layout Variant ===== */
+
+/* When in desktop-icons mode, hide card grid and show icons */
+.desktop-container.view-icons .topics-grid {
+    display: none;
+}
+
+.desktop-container.view-icons .desktop-icons {
+    display: grid;
+}
+
+/* When in cards mode (default), hide icons and show cards */
+.desktop-container.view-cards .desktop-icons {
+    display: none;
+}
+
+.desktop-container.view-cards .topics-grid {
+    display: grid;
+}
+
+/* By default, hide desktop-icons until view is toggled */
+.desktop-icons {
+    display: none;
+}
+
+/* ===== Desktop Widget (for priorities) ===== */
+
+.desktop-widget {
+    position: fixed;
+    right: 20px;
+    top: 80px;
+    width: 300px;
+    z-index: 100;
+}
+
+/* Make widget draggable visually */
+.desktop-widget .title-bar {
+    cursor: move;
+}
+
+/* ===== Responsive adjustments ===== */
+
+@media (max-width: 768px) {
+    .desktop-icons {
+        grid-template-columns: repeat(auto-fill, 70px);
+        grid-auto-rows: 80px;
+        gap: 4px 8px;
+    }
+
+    .desktop-icon {
+        width: 64px;
+    }
+
+    .desktop-icon-image {
+        width: 28px;
+        height: 28px;
+    }
+
+    .desktop-icon-image img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .desktop-icon-label {
+        font-size: 10px;
+        max-width: 60px;
+    }
+}
+
+/* ===== Double-click visual feedback ===== */
+
+@keyframes icon-open {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.desktop-icon.opening {
+    animation: icon-open 0.2s ease-in-out;
+}
+
+/* ===== Drag and drop for icons ===== */
+
+.desktop-icon.dragging {
+    opacity: 0.5;
+}
+
+.desktop-icon.drag-over {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px dashed white;
+}
+
+/* ===== Context menu (future) ===== */
+
+.desktop-context-menu {
+    position: fixed;
+    background: var(--window-bg, #c0c0c0);
+    border: 2px solid;
+    border-color: var(--button-light, #ffffff) var(--button-dark, #808080) var(--button-dark, #808080) var(--button-light, #ffffff);
+    padding: 2px;
+    min-width: 150px;
+    z-index: 1000;
+    display: none;
+}
+
+.desktop-context-menu.visible {
+    display: block;
+}
+
+.desktop-context-menu-item {
+    padding: 4px 20px 4px 8px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.desktop-context-menu-item:hover {
+    background: var(--selection-bg, #000080);
+    color: white;
+}
+
+.desktop-context-menu-separator {
+    height: 1px;
+    background: var(--border, #808080);
+    margin: 2px 0;
+}

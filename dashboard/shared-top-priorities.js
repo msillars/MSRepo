@@ -1,19 +1,19 @@
 /**
  * Top Priorities Controller
- * 
+ *
  * This module provides unified logic for the Top Priorities section on the dashboard.
- * It shows the highest-priority tasks across ALL projects and supports full interactivity.
- * 
+ * It shows the highest-priority tasks across ALL topics and supports full interactivity.
+ *
  * Architecture:
  * - UI Controller layer for the Top Priorities widget
  * - Depends on: ideas-data.js (data layer), shared-rendering.js (view layer)
  * - Handles: loading priorities, inline editing, status changes, cross-tab sync
- * 
+ *
  * Features:
  * - Auto-calculated top 5 priorities using scoring algorithm
  * - Inline editing of all properties
  * - Move between statuses (Ideas ↔ Backlog, Mark Done)
- * - Visual project badges
+ * - Visual topic badges
  * - Real-time cross-tab synchronization
  */
 
@@ -84,10 +84,10 @@ class TopPrioritiesController {
         const topicName = topic ? topic.name : 'Unknown';
         
         // Use three-tier fallback for icons: topic.icon → hardcoded mapping → default
-        // PROJECT_ICON_FILES is defined globally in index.html
-        const PROJECT_ICON_FILES = window.PROJECT_ICON_FILES || {};
-        const iconFile = topic 
-            ? (topic.icon || PROJECT_ICON_FILES[topic.id] || 'Door.ICO') 
+        // TOPIC_ICON_FILES is defined globally in index.html
+        const TOPIC_ICON_FILES = window.TOPIC_ICON_FILES || {};
+        const iconFile = topic
+            ? (topic.icon || TOPIC_ICON_FILES[topic.id] || 'Door.ICO')
             : 'Door.ICO';
         
         // Format ID for onclick handlers
@@ -149,13 +149,13 @@ class TopPrioritiesController {
         return `
             <div class="priority-item" style="border-left-color: ${rankColor}; border-left-width: 4px;">
                 <div class="priority-rank" style="background: ${rankColor}; color: white; border-color: ${rankColor};">${idea.ranking}</div>
-                <div class="win31-icon priority-project-icon" style="background: ${topicColor}20; border-color: ${topicColor};">
+                <div class="win31-icon priority-topic-icon" style="background: ${topicColor}20; border-color: ${topicColor};">
                     <img src="../Icons/${iconFile}" alt="${topicName}">
                 </div>
                 <div class="priority-content">
                     <div class="priority-text">${ideaText}</div>
                     <div class="priority-meta">
-                        <span class="priority-project" style="color: ${topicColor};">${topicName}</span>
+                        <span class="priority-topic" style="color: ${topicColor};">${topicName}</span>
                         <span class="badge" style="background: ${diffColor}; border-color: ${diffColor}; color: white;">${idea.difficulty.toUpperCase()}</span>
                         <span class="badge" style="background: gold; color: #000;">#${position} Priority</span>
                         <span class="badge" style="background: #E0E0E0;">${statusLabel}</span>

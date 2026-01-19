@@ -107,11 +107,13 @@
     <!-- Header Window -->
     <div class="window header-window active">
         <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu" ondblclick="window.location.href='index.html'"></button>
+            </div>
             <div class="title-bar-text">Ideas</div>
-            <div class="title-bar-buttons">
-                <button data-minimize></button>
-                <button data-maximize></button>
-                <button data-close onclick="window.location.href='index.html'"></button>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
             </div>
         </div>
         <div class="window-body">
@@ -126,14 +128,21 @@
     <!-- Capture Window -->
     <div class="window capture-window active">
         <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu"></button>
+            </div>
             <div class="title-bar-text">New Idea</div>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
+            </div>
         </div>
         <div class="window-body">
             <div class="capture-form">
                 <textarea id="idea-input" placeholder="What's on your mind?"></textarea>
                 <div class="capture-controls">
                     <div class="capture-row">
-                        <select id="project-select"><option value="untagged">Untagged</option></select>
+                        <select id="topic-select"><option value="untagged">Untagged</option></select>
                         <select id="difficulty-select">
                             <option value="easy">Easy</option>
                             <option value="medium" selected>Medium</option>
@@ -153,9 +162,16 @@
     <div class="main-content">
         <div class="window list-window active">
             <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
                 <div class="title-bar-text">
                     <span>Ideas</span>
                     <span class="list-count" id="ideas-count">0</span>
+                </div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
             <div class="window-body">
@@ -165,9 +181,16 @@
 
         <div class="window list-window active">
             <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
                 <div class="title-bar-text">
                     <span>Backlog</span>
                     <span class="list-count" id="backlog-count">0</span>
+                </div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
             <div class="window-body">
@@ -190,19 +213,19 @@
         let dragDropManager = null;
 
         function initializePage() {
-            loadProjectOptions();
+            loadTopicOptions();
             createRankingSelector();
             loadAllLists();
 
             dragDropManager = setupDragAndDrop({
                 onDrop: loadAllLists,
                 getFilteredIdeas: (status) => getIdeasByStatus(status),
-                projectId: null
+                topicId: null
             });
         }
 
-        function loadProjectOptions() {
-            const select = document.getElementById('project-select');
+        function loadTopicOptions() {
+            const select = document.getElementById('topic-select');
             const topics = getTopics();
             const options = topics.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
             select.innerHTML = '<option value="untagged">Untagged</option>' + options;
@@ -233,7 +256,7 @@
 
         function captureIdea() {
             const text = document.getElementById('idea-input').value.trim();
-            const project = document.getElementById('project-select').value;
+            const topic = document.getElementById('topic-select').value;
             const difficulty = document.getElementById('difficulty-select').value;
 
             if (!text) {
@@ -241,9 +264,9 @@
                 return;
             }
 
-            addIdea(text, project, selectedRanking, difficulty, 'new');
+            addIdea(text, topic, selectedRanking, difficulty, 'new');
             document.getElementById('idea-input').value = '';
-            document.getElementById('project-select').value = 'untagged';
+            document.getElementById('topic-select').value = 'untagged';
             document.getElementById('difficulty-select').value = 'medium';
             selectRanking(3);
             loadAllLists();
@@ -251,15 +274,15 @@
 
         function loadAllLists() {
             loadListWithRender('new', 'ideas-list', 'ideas-count', {
-                projectId: null,
-                showProject: true,
+                topicId: null,
+                showTopic: true,
                 showEdit: true,
                 editingIdeaId: editingIdeaId
             });
 
             loadListWithRender('backlog', 'backlog-list', 'backlog-count', {
-                projectId: null,
-                showProject: true,
+                topicId: null,
+                showTopic: true,
                 showEdit: true,
                 editingIdeaId: editingIdeaId
             });

@@ -396,6 +396,21 @@ function updateTopic(topicId, updates) {
             );
         }
         
+        // DUAL-WRITE: Also update in unified items table
+        try {
+            // Find the corresponding item by matching topic name
+            const topicItem = queryAsObjects('SELECT id FROM items WHERE item_type = "topic" AND text = ?', [topic.name])[0];
+            if (topicItem) {
+                executeWrite(`
+                    UPDATE items SET text = ?, weight = ?, icon = ?, color = ?
+                    WHERE id = ?
+                `, [updated.name, updated.weight || 5, updated.icon, updated.color, topicItem.id]);
+                debugLog('DUAL_WRITE_TOPIC_UPDATE', { topicId, itemId: topicItem.id });
+            }
+        } catch (syncError) {
+            console.warn('[DUAL-WRITE] Failed to sync topic update to items table:', syncError);
+        }
+
         debugLog('TOPIC_UPDATED', { topicId, updates });
         window.dispatchEvent(new Event('ideasUpdated'));
         return true;
@@ -427,6 +442,18 @@ function addTopic(name, priority = 'always-on', icon = null, weight = 5) {
             );
         }
         
+        // DUAL-WRITE: Also insert into unified items table as topic type
+        try {
+            const newItemId = Date.now(); // Generate unique ID
+            executeWrite(`
+                INSERT INTO items (id, text, item_type, status, weight, icon, color, created_at)
+                VALUES (?, ?, 'topic', 'new', ?, ?, ?, ?)
+            `, [newItemId, name, weight, icon, color, new Date().toISOString()]);
+            debugLog('DUAL_WRITE_TOPIC', { id, itemId: newItemId });
+        } catch (syncError) {
+            console.warn('[DUAL-WRITE] Failed to sync topic to items table:', syncError);
+        }
+
         debugLog('TOPIC_ADDED', { id, name, icon, weight });
         window.dispatchEvent(new Event('ideasUpdated'));
         return id;
@@ -562,6 +589,22 @@ function addIdea(text, topic = 'untagged', ranking = 3, difficulty = 'medium', s
             );
         }
         
+        // DUAL-WRITE: Also insert into unified items table
+        try {
+            const topicItem = topic !== 'untagged'
+                ? queryAsObjects('SELECT id FROM items WHERE item_type = "topic" AND text = (SELECT name FROM topics WHERE id = ?)', [topic])[0]
+                : null;
+            const topicItemId = topicItem ? topicItem.id : null;
+
+            executeWrite(`
+                INSERT INTO items (id, text, parent_id, topic_id, item_type, status, weight, ranking, difficulty, "order", created_at)
+                VALUES (?, ?, ?, ?, 'task', ?, ?, ?, ?, ?, ?)
+            `, [newId, newIdea.text, topicItemId, topicItemId, status, weight, ranking, difficulty, maxOrder + 1, timestamp]);
+            debugLog('DUAL_WRITE_ITEMS', { id: newId });
+        } catch (syncError) {
+            console.warn('[DUAL-WRITE] Failed to sync to items table:', syncError);
+        }
+
         debugLog('IDEA_ADDED', { id: newId, topic, status, weight });
         window.dispatchEvent(new Event('ideasUpdated'));
         return newIdea;
@@ -598,6 +641,26 @@ function updateIdea(ideaId, updates) {
             );
         }
         
+        // DUAL-WRITE: Also update in unified items table
+        try {
+            const itemExists = queryAsObjects('SELECT id FROM items WHERE id = ?', [ideaId])[0];
+            if (itemExists) {
+                executeWrite(`
+                    UPDATE items SET text = ?, status = ?, weight = ?, ranking = ?, difficulty = ?, "order" = ?
+                    WHERE id = ?
+                `, [updated.text, updated.status, updated.weight || 5, updated.ranking, updated.difficulty, updated.order, ideaId]);
+
+                // Update completed_at if status changed to done
+                if (updated.status === 'done') {
+                    executeWrite('UPDATE items SET completed_at = ? WHERE id = ? AND completed_at IS NULL',
+                        [new Date().toISOString(), ideaId]);
+                }
+                debugLog('DUAL_WRITE_UPDATE', { ideaId });
+            }
+        } catch (syncError) {
+            console.warn('[DUAL-WRITE] Failed to sync update to items table:', syncError);
+        }
+
         debugLog('IDEA_UPDATED', { ideaId, updates });
         window.dispatchEvent(new Event('ideasUpdated'));
         return true;
@@ -610,6 +673,15 @@ function updateIdea(ideaId, updates) {
 function deleteIdea(ideaId) {
     try {
         executeWrite('DELETE FROM ideas WHERE id = ?', [ideaId]);
+
+        // DUAL-WRITE: Also delete from unified items table
+        try {
+            executeWrite('DELETE FROM items WHERE id = ?', [ideaId]);
+            debugLog('DUAL_WRITE_DELETE', { ideaId });
+        } catch (syncError) {
+            console.warn('[DUAL-WRITE] Failed to sync delete to items table:', syncError);
+        }
+
         debugLog('IDEA_DELETED', { ideaId });
         window.dispatchEvent(new Event('ideasUpdated'));
         return true;
@@ -751,6 +823,21 @@ function getIdeasByTopic(topicId) {
     } catch (error) {
         console.error('Error getting ideas by topic:', error);
         return [];
+    }
+}
+
+/**
+ * Get a single idea by its ID
+ * @param {Number|String} ideaId - The ID of the idea to retrieve
+ * @returns {Object|null} The idea object or null if not found
+ */
+function getIdeaById(ideaId) {
+    try {
+        const results = queryAsObjects('SELECT * FROM ideas WHERE id = ?', [ideaId]);
+        return results.length > 0 ? results[0] : null;
+    } catch (error) {
+        console.error('Error getting idea by ID:', error);
+        return null;
     }
 }
 
@@ -1258,3 +1345,46 @@ const DB_READY_EVENT = 'databaseReady';
         console.error('[DATA] ❌ Failed to initialize database on load:', error);
     }
 })();
+
+// ============================================================
+// DIAGNOSTIC FUNCTIONS (for debugging sync status)
+// ============================================================
+
+/**
+ * Check sync status between legacy tables and items table
+ * Run in browser console: checkSyncStatus()
+ */
+function checkSyncStatus() {
+    const legacyIdeas = queryAsObjects('SELECT COUNT(*) as count FROM ideas')[0].count;
+    const legacyTopics = queryAsObjects('SELECT COUNT(*) as count FROM topics')[0].count;
+    const itemsTotal = queryAsObjects('SELECT COUNT(*) as count FROM items')[0].count;
+    const itemsTopics = queryAsObjects('SELECT COUNT(*) as count FROM items WHERE item_type = "topic"')[0].count;
+    const itemsTasks = queryAsObjects('SELECT COUNT(*) as count FROM items WHERE item_type = "task"')[0].count;
+
+    console.log('=== SYNC STATUS ===');
+    console.log(`Legacy ideas table: ${legacyIdeas} rows`);
+    console.log(`Legacy topics table: ${legacyTopics} rows`);
+    console.log(`Items table total: ${itemsTotal} rows`);
+    console.log(`  - Topics: ${itemsTopics}`);
+    console.log(`  - Tasks: ${itemsTasks}`);
+    console.log('');
+    console.log(`Topics sync: ${legacyTopics === itemsTopics ? '✅ OK' : '⚠️ MISMATCH'}`);
+    console.log(`Ideas/Tasks sync: ${legacyIdeas === itemsTasks ? '✅ OK' : '⚠️ MISMATCH'}`);
+
+    return {
+        legacy: { ideas: legacyIdeas, topics: legacyTopics },
+        items: { total: itemsTotal, topics: itemsTopics, tasks: itemsTasks },
+        synced: legacyTopics === itemsTopics && legacyIdeas === itemsTasks
+    };
+}
+
+/**
+ * Force re-sync from legacy to items table
+ * Run in browser console: forceSyncToItems()
+ */
+function forceSyncToItems() {
+    console.log('[SYNC] Starting forced sync from legacy tables to items...');
+    const result = migrateToUnifiedItems();
+    console.log('[SYNC] Migration result:', result);
+    return result;
+}
