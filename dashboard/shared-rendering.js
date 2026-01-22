@@ -172,9 +172,8 @@ function loadListWithRender(status, containerId, countId, options = {}) {
     // Sort by order
     ideas.sort((a, b) => (a.order || 0) - (b.order || 0));
     
-    // Get topics for rendering using Items API
-    const topicItems = getTopicsFromItems();
-    const topics = topicItems.map(adaptItemToTopic);
+    // Get topics for rendering (getTopics reads from items table)
+    const topics = getTopics();
 
     // Render cards
     container.innerHTML = ideas.map(idea => {

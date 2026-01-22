@@ -49,10 +49,9 @@ class TopPrioritiesController {
             return;
         }
 
-        // Use Items API for priorities and topics
+        // Use Items API for priorities, getTopics reads from items table
         const top5 = getTopPrioritiesFromItems(5);
-        const topicItems = getTopicsFromItems();
-        const topics = topicItems.map(adaptItemToTopic);
+        const topics = getTopics();
         
         if (top5.length === 0) {
             container.innerHTML = `

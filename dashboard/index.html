@@ -723,9 +723,8 @@
 
         function loadTopicCards() {
             const container = document.getElementById('topics-grid');
-            // Use Items API: get topics and adapt to legacy format
-            const topicItems = getTopicsFromItems();
-            const topics = topicItems.map(adaptItemToTopic);
+            // Use getTopics() which reads from items table and adapts to legacy format
+            const topics = getTopics();
             topics.sort((a, b) => (b.weight || 5) - (a.weight || 5));
 
             const counts = getItemCountsFromItems();
@@ -793,9 +792,8 @@
         let currentEditingTopicId = null;
 
         function editTopic(topicId) {
-            // Use Items API: get topics and adapt to legacy format
-            const topicItems = getTopicsFromItems();
-            const topics = topicItems.map(adaptItemToTopic);
+            // Use getTopics() which reads from items table and adapts to legacy format
+            const topics = getTopics();
             const topic = topics.find(t => t.id === topicId);
             if (!topic) return;
 

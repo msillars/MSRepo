@@ -336,9 +336,11 @@ function seedDefaultTopics() {
 }
 
 function getTopics() {
+    // MIGRATED: Now reads from items table
     try {
-        const topics = queryAsObjects('SELECT * FROM topics ORDER BY id');
-        debugLog('TOPICS_LOADED', { count: topics.length });
+        const topicItems = getTopicsFromItems();
+        const topics = topicItems.map(adaptItemToTopic);
+        debugLog('TOPICS_LOADED', { count: topics.length, source: 'items' });
         return topics;
     } catch (error) {
         console.error('Error loading topics:', error);
@@ -371,49 +373,11 @@ function saveTopics(topics) {
 }
 
 function updateTopic(topicId, updates) {
+    // MIGRATED: Now writes to items table only
     try {
-        const topics = getTopics();
-        const topic = topics.find(t => t.id === topicId);
-        if (!topic) {
-            console.error('Topic not found:', topicId);
-            return false;
-        }
-        
-        const updated = { ...topic, ...updates };
-        
-        // Check if weight column exists in database
-        const hasWeight = queryAsObjects("PRAGMA table_info(topics)").some(col => col.name === 'weight');
-        
-        if (hasWeight) {
-            executeWrite(
-                'UPDATE topics SET name = ?, priority = ?, color = ?, icon = ?, weight = ? WHERE id = ?',
-                [updated.name, updated.priority, updated.color, updated.icon || null, updated.weight || 5, topicId]
-            );
-        } else {
-            executeWrite(
-                'UPDATE topics SET name = ?, priority = ?, color = ?, icon = ? WHERE id = ?',
-                [updated.name, updated.priority, updated.color, updated.icon || null, topicId]
-            );
-        }
-        
-        // DUAL-WRITE: Also update in unified items table
-        try {
-            // Find the corresponding item by matching topic name
-            const topicItem = queryAsObjects('SELECT id FROM items WHERE item_type = "topic" AND text = ?', [topic.name])[0];
-            if (topicItem) {
-                executeWrite(`
-                    UPDATE items SET text = ?, weight = ?, icon = ?, color = ?
-                    WHERE id = ?
-                `, [updated.name, updated.weight || 5, updated.icon, updated.color, topicItem.id]);
-                debugLog('DUAL_WRITE_TOPIC_UPDATE', { topicId, itemId: topicItem.id });
-            }
-        } catch (syncError) {
-            console.warn('[DUAL-WRITE] Failed to sync topic update to items table:', syncError);
-        }
-
-        debugLog('TOPIC_UPDATED', { topicId, updates });
-        window.dispatchEvent(new Event('ideasUpdated'));
-        return true;
+        const result = updateTopicInItems(topicId, updates);
+        debugLog('TOPIC_UPDATED', { topicId, updates, source: 'items' });
+        return result;
     } catch (error) {
         console.error('Error updating topic:', error);
         return false;
@@ -421,42 +385,14 @@ function updateTopic(topicId, updates) {
 }
 
 function addTopic(name, priority = 'always-on', icon = null, weight = 5) {
+    // MIGRATED: Now writes to items table only
     try {
-        const topics = getTopics();
-        const id = name.toLowerCase().replace(/\s+/g, '-');
-        const colors = ['#FF6B35', '#004E89', '#F77F00', '#06A77D', '#9D4EDD', '#D62828', '#2A9D8F'];
-        const color = colors[topics.length % colors.length];
-        
-        // Check if weight column exists in database
-        const hasWeight = queryAsObjects("PRAGMA table_info(topics)").some(col => col.name === 'weight');
-        
-        if (hasWeight) {
-            executeWrite(
-                'INSERT INTO topics (id, name, priority, color, icon, weight) VALUES (?, ?, ?, ?, ?, ?)',
-                [id, name, priority, color, icon, weight]
-            );
-        } else {
-            executeWrite(
-                'INSERT INTO topics (id, name, priority, color, icon) VALUES (?, ?, ?, ?, ?)',
-                [id, name, priority, color, icon]
-            );
+        const result = addTopicToItems(name, priority, icon, weight);
+        if (result) {
+            debugLog('TOPIC_ADDED', { name, icon, weight, source: 'items' });
+            return result.id;  // Return the new topic ID for compatibility
         }
-        
-        // DUAL-WRITE: Also insert into unified items table as topic type
-        try {
-            const newItemId = Date.now(); // Generate unique ID
-            executeWrite(`
-                INSERT INTO items (id, text, item_type, status, weight, icon, color, created_at)
-                VALUES (?, ?, 'topic', 'new', ?, ?, ?, ?)
-            `, [newItemId, name, weight, icon, color, new Date().toISOString()]);
-            debugLog('DUAL_WRITE_TOPIC', { id, itemId: newItemId });
-        } catch (syncError) {
-            console.warn('[DUAL-WRITE] Failed to sync topic to items table:', syncError);
-        }
-
-        debugLog('TOPIC_ADDED', { id, name, icon, weight });
-        window.dispatchEvent(new Event('ideasUpdated'));
-        return id;
+        return null;
     } catch (error) {
         console.error('Error adding topic:', error);
         return null;
@@ -464,26 +400,11 @@ function addTopic(name, priority = 'always-on', icon = null, weight = 5) {
 }
 
 function deleteTopic(topicId) {
+    // MIGRATED: Now writes to items table only
     try {
-        createBackup('topic-delete');
-        
-        // First, update all ideas with this topic to be untagged
-        const ideasWithTopic = getIdeasByTopic(topicId);
-        ideasWithTopic.forEach(idea => {
-            executeWrite(
-                'UPDATE ideas SET topic = ? WHERE id = ?',
-                ['untagged', idea.id]
-            );
-        });
-        
-        debugLog('IDEAS_UNTAGGED', { topicId, count: ideasWithTopic.length });
-        
-        // Then delete the topic
-        executeWrite('DELETE FROM topics WHERE id = ?', [topicId]);
-        
-        debugLog('TOPIC_DELETED', { topicId });
-        window.dispatchEvent(new Event('ideasUpdated'));
-        return true;
+        const result = deleteTopicFromItems(topicId);
+        debugLog('TOPIC_DELETED', { topicId, source: 'items' });
+        return result;
     } catch (error) {
         console.error('Error deleting topic:', error);
         return false;
@@ -495,9 +416,27 @@ function deleteTopic(topicId) {
 // ============================================================
 
 function getIdeas() {
+    // MIGRATED: Now reads from items table
     try {
-        const ideas = queryAsObjects('SELECT * FROM ideas ORDER BY id');
-        debugLog('IDEAS_LOADED', { count: ideas.length });
+        const items = queryAsObjects(`
+            SELECT * FROM items
+            WHERE item_type IN ('task', 'idea')
+            ORDER BY id
+        `);
+        // Adapt to legacy format
+        const ideas = items.map(item => ({
+            id: item.id,
+            text: item.text,
+            topic: item.topic_id || 'untagged',
+            ranking: item.ranking || 3,
+            difficulty: item.difficulty || 'medium',
+            status: item.status || 'new',
+            order: item.order || 0,
+            timestamp: item.created_at,
+            status_changed_at: item.completed_at,
+            weight: item.weight || 5
+        }));
+        debugLog('IDEAS_LOADED', { count: ideas.length, source: 'items' });
         return ideas;
     } catch (error) {
         console.error('Error loading ideas:', error);
@@ -539,75 +478,19 @@ function saveIdeas(ideas) {
 }
 
 function addIdea(text, topic = 'untagged', ranking = 3, difficulty = 'medium', status = 'new', weight = null) {
+    // MIGRATED: Now writes to items table only
     try {
-        // Get max order for this status to place new idea at end
-        const existingInStatus = getIdeasByStatus(status);
-        const maxOrder = existingInStatus.length > 0 
-            ? Math.max(...existingInStatus.map(i => i.order || 0))
-            : -1;
-        
-        const newId = Date.now();
-        const timestamp = new Date().toISOString();
-        
         // If weight not provided, derive from ranking (1→2, 2→4, 3→5, 4→7, 5→9)
         if (weight === null) {
             const rankingToWeight = { 1: 2, 2: 4, 3: 5, 4: 7, 5: 9 };
             weight = rankingToWeight[ranking] || 5;
         }
-        
-        const newIdea = {
-            id: newId,
-            text: text.trim(),
-            topic: topic,
-            ranking: ranking,
-            difficulty: difficulty,
-            timestamp: timestamp,
-            status: status,
-            order: maxOrder + 1,
-            weight: weight
-        };
-        
-        // Validate before adding
-        const validation = validateIdea(newIdea);
-        if (!validation.valid) {
-            console.error('Cannot add invalid idea:', validation.errors);
-            return null;
-        }
-        
-        // Check if weight column exists in database
-        const hasWeight = queryAsObjects("PRAGMA table_info(ideas)").some(col => col.name === 'weight');
-        
-        if (hasWeight) {
-            executeWrite(
-                'INSERT INTO ideas (id, text, topic, ranking, difficulty, status, "order", timestamp, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [newId, newIdea.text, topic, ranking, difficulty, status, maxOrder + 1, timestamp, weight]
-            );
-        } else {
-            executeWrite(
-                'INSERT INTO ideas (id, text, topic, ranking, difficulty, status, "order", timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [newId, newIdea.text, topic, ranking, difficulty, status, maxOrder + 1, timestamp]
-            );
-        }
-        
-        // DUAL-WRITE: Also insert into unified items table
-        try {
-            const topicItem = topic !== 'untagged'
-                ? queryAsObjects('SELECT id FROM items WHERE item_type = "topic" AND text = (SELECT name FROM topics WHERE id = ?)', [topic])[0]
-                : null;
-            const topicItemId = topicItem ? topicItem.id : null;
 
-            executeWrite(`
-                INSERT INTO items (id, text, parent_id, topic_id, item_type, status, weight, ranking, difficulty, "order", created_at)
-                VALUES (?, ?, ?, ?, 'task', ?, ?, ?, ?, ?, ?)
-            `, [newId, newIdea.text, topicItemId, topicItemId, status, weight, ranking, difficulty, maxOrder + 1, timestamp]);
-            debugLog('DUAL_WRITE_ITEMS', { id: newId });
-        } catch (syncError) {
-            console.warn('[DUAL-WRITE] Failed to sync to items table:', syncError);
+        const result = addIdeaToItems(text, topic, ranking, difficulty, status, weight);
+        if (result) {
+            debugLog('IDEA_ADDED', { id: result.id, topic, status, weight, source: 'items' });
         }
-
-        debugLog('IDEA_ADDED', { id: newId, topic, status, weight });
-        window.dispatchEvent(new Event('ideasUpdated'));
-        return newIdea;
+        return result;
     } catch (error) {
         console.error('Error adding idea:', error);
         return null;
@@ -615,55 +498,11 @@ function addIdea(text, topic = 'untagged', ranking = 3, difficulty = 'medium', s
 }
 
 function updateIdea(ideaId, updates) {
+    // MIGRATED: Now writes to items table only
     try {
-        const ideas = getIdeas();
-        const idea = ideas.find(i => i.id == ideaId); // Use == to handle both string and number IDs
-        
-        if (!idea) {
-            console.error('Idea not found:', ideaId);
-            return false;
-        }
-        
-        const updated = { ...idea, ...updates };
-        
-        // Check if weight column exists in database
-        const hasWeight = queryAsObjects("PRAGMA table_info(ideas)").some(col => col.name === 'weight');
-        
-        if (hasWeight) {
-            executeWrite(
-                'UPDATE ideas SET text = ?, topic = ?, ranking = ?, difficulty = ?, status = ?, "order" = ?, status_changed_at = ?, weight = ? WHERE id = ?',
-                [updated.text, updated.topic, updated.ranking, updated.difficulty, updated.status, updated.order, updated.status_changed_at || null, updated.weight || 5, ideaId]
-            );
-        } else {
-            executeWrite(
-                'UPDATE ideas SET text = ?, topic = ?, ranking = ?, difficulty = ?, status = ?, "order" = ?, status_changed_at = ? WHERE id = ?',
-                [updated.text, updated.topic, updated.ranking, updated.difficulty, updated.status, updated.order, updated.status_changed_at || null, ideaId]
-            );
-        }
-        
-        // DUAL-WRITE: Also update in unified items table
-        try {
-            const itemExists = queryAsObjects('SELECT id FROM items WHERE id = ?', [ideaId])[0];
-            if (itemExists) {
-                executeWrite(`
-                    UPDATE items SET text = ?, status = ?, weight = ?, ranking = ?, difficulty = ?, "order" = ?
-                    WHERE id = ?
-                `, [updated.text, updated.status, updated.weight || 5, updated.ranking, updated.difficulty, updated.order, ideaId]);
-
-                // Update completed_at if status changed to done
-                if (updated.status === 'done') {
-                    executeWrite('UPDATE items SET completed_at = ? WHERE id = ? AND completed_at IS NULL',
-                        [new Date().toISOString(), ideaId]);
-                }
-                debugLog('DUAL_WRITE_UPDATE', { ideaId });
-            }
-        } catch (syncError) {
-            console.warn('[DUAL-WRITE] Failed to sync update to items table:', syncError);
-        }
-
-        debugLog('IDEA_UPDATED', { ideaId, updates });
-        window.dispatchEvent(new Event('ideasUpdated'));
-        return true;
+        const result = updateIdeaInItems(ideaId, updates);
+        debugLog('IDEA_UPDATED', { ideaId, updates, source: 'items' });
+        return result;
     } catch (error) {
         console.error('Error updating idea:', error);
         return false;
@@ -671,20 +510,11 @@ function updateIdea(ideaId, updates) {
 }
 
 function deleteIdea(ideaId) {
+    // MIGRATED: Now writes to items table only
     try {
-        executeWrite('DELETE FROM ideas WHERE id = ?', [ideaId]);
-
-        // DUAL-WRITE: Also delete from unified items table
-        try {
-            executeWrite('DELETE FROM items WHERE id = ?', [ideaId]);
-            debugLog('DUAL_WRITE_DELETE', { ideaId });
-        } catch (syncError) {
-            console.warn('[DUAL-WRITE] Failed to sync delete to items table:', syncError);
-        }
-
-        debugLog('IDEA_DELETED', { ideaId });
-        window.dispatchEvent(new Event('ideasUpdated'));
-        return true;
+        const result = deleteIdeaFromItems(ideaId);
+        debugLog('IDEA_DELETED', { ideaId, source: 'items' });
+        return result;
     } catch (error) {
         console.error('Error deleting idea:', error);
         return false;
@@ -731,18 +561,22 @@ function moveToNew(ideaId) {
 
 // Get ideas filtered by status
 function getIdeasByStatus(status, topicId = null) {
+    // MIGRATED: Now reads from items table
     try {
-        let sql = 'SELECT * FROM ideas WHERE status = ?';
-        let params = [status];
-        
-        if (topicId) {
-            sql += ' AND topic = ?';
-            params.push(topicId);
-        }
-        
-        sql += ' ORDER BY "order", id';
-        
-        const ideas = queryAsObjects(sql, params);
+        const items = getItemsByStatusGlobal(status, topicId);
+        // Adapt to legacy format
+        const ideas = items.map(item => ({
+            id: item.id,
+            text: item.text,
+            topic: item.topic_id || 'untagged',
+            ranking: item.ranking || 3,
+            difficulty: item.difficulty || 'medium',
+            status: item.status || 'new',
+            order: item.order || 0,
+            timestamp: item.created_at,
+            status_changed_at: item.completed_at,
+            weight: item.weight || 5
+        }));
         return ideas;
     } catch (error) {
         console.error('Error getting ideas by status:', error);
@@ -755,29 +589,16 @@ function getIdeasByStatus(status, topicId = null) {
 // ============================================================
 
 function reorderIdeas(ideaIds, status = null, topicId = null) {
+    // MIGRATED: Now writes to items table only
     try {
-        const ideas = getIdeas();
-        
-        // For each ID in the new order, update its order value
-        ideaIds.forEach((id, index) => {
-            const idea = ideas.find(i => i.id == id); // Use == to handle both types
-            if (idea) {
-                executeWrite('UPDATE ideas SET "order" = ? WHERE id = ?', [index, id]);
-                debugLog('ORDER_UPDATED', { id, newOrder: index, status, topicId });
-            } else {
-                console.error('Idea not found for reordering:', id);
-            }
-        });
-        
-        debugLog('IDEAS_REORDERED', { 
-            count: ideaIds.length, 
-            status, 
+        const result = reorderItemsInItems(ideaIds, status, topicId);
+        debugLog('IDEAS_REORDERED', {
+            count: ideaIds.length,
+            status,
             topicId,
-            orders: ideaIds.map((id, idx) => ({ id, order: idx }))
+            source: 'items'
         });
-        
-        window.dispatchEvent(new Event('ideasUpdated'));
-        return true;
+        return result;
     } catch (error) {
         console.error('Failed to reorder ideas:', error);
         return false;
@@ -1477,6 +1298,160 @@ function getActiveItemsFromItems() {
     } catch (error) {
         console.error('Error getting active items:', error);
         return [];
+    }
+}
+
+// ============================================================
+// ITEMS API - WRITE WRAPPERS
+// ============================================================
+// These functions provide the same interface as legacy functions
+// but write to the unified items table only (no dual-write)
+
+/**
+ * Add a new idea/task using Items API
+ * Replaces legacy addIdea() - same signature for compatibility
+ */
+function addIdeaToItems(text, topicId = null, ranking = 3, difficulty = 'medium', status = 'new', weight = null) {
+    // Find topic item to get proper topic_id
+    let resolvedTopicId = null;
+    if (topicId && topicId !== 'untagged') {
+        // topicId might be a string like 'photography' - need to find the item
+        const topics = getTopicsFromItems();
+        const topic = topics.find(t => t.id === topicId || t.text.toLowerCase().replace(/\s+/g, '-') === topicId);
+        if (topic) {
+            resolvedTopicId = topic.id;
+        }
+    }
+
+    const item = createItem({
+        text: text,
+        item_type: 'task',  // Default to task (can be idea if raw capture)
+        topic_id: resolvedTopicId,
+        parent_id: resolvedTopicId,  // Direct child of topic
+        status: status,
+        ranking: ranking,
+        difficulty: difficulty,
+        weight: weight || 5
+    });
+
+    // Return in legacy format for compatibility
+    if (item) {
+        return adaptItemToIdea(item);
+    }
+    return null;
+}
+
+/**
+ * Update an idea/task using Items API
+ * Replaces legacy updateIdea() - same signature for compatibility
+ */
+function updateIdeaInItems(ideaId, updates) {
+    // Map legacy field names to items table fields
+    const itemUpdates = {};
+
+    if (updates.text !== undefined) itemUpdates.text = updates.text;
+    if (updates.status !== undefined) itemUpdates.status = updates.status;
+    if (updates.ranking !== undefined) itemUpdates.ranking = updates.ranking;
+    if (updates.difficulty !== undefined) itemUpdates.difficulty = updates.difficulty;
+    if (updates.weight !== undefined) itemUpdates.weight = updates.weight;
+    if (updates.order !== undefined) itemUpdates.order = updates.order;
+
+    // Handle topic change
+    if (updates.topic !== undefined) {
+        const topics = getTopicsFromItems();
+        const topic = topics.find(t => t.id === updates.topic || t.text.toLowerCase().replace(/\s+/g, '-') === updates.topic);
+        if (topic) {
+            itemUpdates.topic_id = topic.id;
+            itemUpdates.parent_id = topic.id;
+        }
+    }
+
+    return updateItem(ideaId, itemUpdates);
+}
+
+/**
+ * Delete an idea/task using Items API
+ * Replaces legacy deleteIdea()
+ */
+function deleteIdeaFromItems(ideaId) {
+    return deleteItem(ideaId, false);  // Don't delete children
+}
+
+/**
+ * Add a new topic using Items API
+ * Replaces legacy addTopic()
+ */
+function addTopicToItems(name, priority = 'always-on', icon = null, weight = 5) {
+    const item = createItem({
+        text: name,
+        item_type: 'topic',
+        status: 'new',  // Topics are ongoing
+        icon: icon,
+        weight: weight,
+        color: getDefaultTopicColor(name)  // Generate a default color
+    });
+
+    if (item) {
+        return adaptItemToTopic(item);
+    }
+    return null;
+}
+
+/**
+ * Update a topic using Items API
+ * Replaces legacy updateTopic()
+ */
+function updateTopicInItems(topicId, updates) {
+    const itemUpdates = {};
+
+    if (updates.name !== undefined) itemUpdates.text = updates.name;
+    if (updates.weight !== undefined) itemUpdates.weight = updates.weight;
+    if (updates.icon !== undefined) itemUpdates.icon = updates.icon;
+    if (updates.color !== undefined) itemUpdates.color = updates.color;
+
+    return updateItem(topicId, itemUpdates);
+}
+
+/**
+ * Delete a topic using Items API
+ * Replaces legacy deleteTopic()
+ */
+function deleteTopicFromItems(topicId) {
+    // Orphan children (don't delete them)
+    return deleteItem(topicId, false);
+}
+
+/**
+ * Get a default color for a topic based on its name
+ */
+function getDefaultTopicColor(name) {
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+}
+
+/**
+ * Move idea to a new status using Items API
+ * Replaces legacy moveIdeaToStatus()
+ */
+function moveIdeaToStatusInItems(ideaId, newStatus) {
+    return updateItem(ideaId, { status: newStatus });
+}
+
+/**
+ * Reorder items within a status/topic
+ * Replaces legacy reorderIdeas()
+ */
+function reorderItemsInItems(itemIds, status, topicId) {
+    try {
+        itemIds.forEach((id, index) => {
+            executeWrite('UPDATE items SET "order" = ? WHERE id = ?', [index, id]);
+        });
+        window.dispatchEvent(new Event('ideasUpdated'));
+        return true;
+    } catch (error) {
+        console.error('Error reordering items:', error);
+        return false;
     }
 }
 
