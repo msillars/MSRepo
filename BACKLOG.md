@@ -38,9 +38,15 @@ Implement authentic Win3.1 window behavior:
 
 ## Priority 2: Purpose Field & Legacy Cleanup
 
+**Purpose UI:** (do alongside new functionality, may diverge from Win3.1)
 - [ ] Add "purpose" field to topic creation/edit UI
 - [ ] Display purpose on topic cards and pages
-- [ ] Remove legacy `topics` and `ideas` tables
+
+**Legacy Cleanup:** (~28 call sites across 11 files)
+- [ ] Migrate remaining HTML pages: `finished.html`, `ideas.html`, `desktop.html`, `topic.html`
+- [ ] Migrate remaining JS modules: `shared-modal.js`, `edit-idea-modal.js`, `topic-config.js`, `shared-drag-drop.js`
+- [ ] Update write operations: `addIdea()`, `updateIdea()`, `deleteIdea()`, `addTopic()`, `updateTopic()`, `deleteTopic()`
+- [ ] Remove legacy `topics` and `ideas` tables from schema
 - [ ] Remove dual-write code from ideas-data.js
 
 ---
@@ -67,16 +73,6 @@ Implement authentic Win3.1 window behavior:
 
 - [ ] Due dates on tasks/projects
 - [ ] Search and filter
-- [ ] Keyboard shortcuts (j/k navigation)
-- [ ] Better mobile UI
-- [ ] Undo/redo functionality
-- [ ] Bulk select and update
-- [ ] Export to CSV/Markdown
-
----
-
-## Priority 3: Quality of Life
-
 - [ ] Keyboard shortcuts (j/k navigation)
 - [ ] Better mobile UI
 - [ ] Undo/redo functionality
