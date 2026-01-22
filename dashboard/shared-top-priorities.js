@@ -48,9 +48,11 @@ class TopPrioritiesController {
             console.error('[TOP-PRIORITIES] Container element not found');
             return;
         }
-        
-        const top5 = getTopPriorities(5);
-        const topics = getTopics();
+
+        // Use Items API for priorities and topics
+        const top5 = getTopPrioritiesFromItems(5);
+        const topicItems = getTopicsFromItems();
+        const topics = topicItems.map(adaptItemToTopic);
         
         if (top5.length === 0) {
             container.innerHTML = `

@@ -723,10 +723,12 @@
 
         function loadTopicCards() {
             const container = document.getElementById('topics-grid');
-            const topics = getTopics();
+            // Use Items API: get topics and adapt to legacy format
+            const topicItems = getTopicsFromItems();
+            const topics = topicItems.map(adaptItemToTopic);
             topics.sort((a, b) => (b.weight || 5) - (a.weight || 5));
 
-            const counts = getIdeaCounts();
+            const counts = getItemCountsFromItems();
 
             const topicCards = topics.map(topic => {
                 const count = counts.byTopic[topic.id] || 0;
@@ -791,7 +793,9 @@
         let currentEditingTopicId = null;
 
         function editTopic(topicId) {
-            const topics = getTopics();
+            // Use Items API: get topics and adapt to legacy format
+            const topicItems = getTopicsFromItems();
+            const topics = topicItems.map(adaptItemToTopic);
             const topic = topics.find(t => t.id === topicId);
             if (!topic) return;
 
@@ -859,8 +863,9 @@
         }
 
         function updateTotalIdeasCount() {
-            const ideas = getIdeas().filter(idea => idea.status !== 'done');
-            document.getElementById('total-ideas').textContent = ideas.length;
+            // Use Items API: get active (non-done) items
+            const items = getActiveItemsFromItems();
+            document.getElementById('total-ideas').textContent = items.length;
         }
 
         window.addEventListener('ideasUpdated', loadDashboard);

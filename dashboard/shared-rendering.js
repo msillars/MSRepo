@@ -150,10 +150,8 @@ function loadListWithRender(status, containerId, countId, options = {}) {
         return;
     }
     
-    // Get ideas
-    const ideas = options.topicId
-        ? getIdeasByStatus(status, options.topicId)
-        : getIdeasByStatus(status);
+    // Get items using Items API
+    const ideas = getItemsByStatusGlobal(status, options.topicId || null);
     
     // Update count
     if (countElement) {
@@ -174,8 +172,9 @@ function loadListWithRender(status, containerId, countId, options = {}) {
     // Sort by order
     ideas.sort((a, b) => (a.order || 0) - (b.order || 0));
     
-    // Get topics for rendering
-    const topics = getTopics();
+    // Get topics for rendering using Items API
+    const topicItems = getTopicsFromItems();
+    const topics = topicItems.map(adaptItemToTopic);
 
     // Render cards
     container.innerHTML = ideas.map(idea => {

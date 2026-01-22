@@ -56,10 +56,10 @@ class TopicPageController {
         // Load initial data
         this.loadAllLists();
         
-        // Setup drag and drop
+        // Setup drag and drop - use Items API
         this.dragDropManager = setupDragAndDrop({
             onDrop: () => this.loadAllLists(),
-            getFilteredIdeas: (status) => getIdeasByStatus(status, this.topicId),
+            getFilteredIdeas: (status) => getItemsByStatusGlobal(status, this.topicId),
             topicId: this.topicId
         });
         

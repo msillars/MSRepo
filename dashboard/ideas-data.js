@@ -1300,6 +1300,186 @@ function autoPromoteIfNeeded(itemId) {
     }
 }
 
+// ============================================================
+// ITEMS API - UI BRIDGE FUNCTIONS
+// ============================================================
+// These functions bridge the Items API to the UI layer,
+// providing the same interface as legacy functions
+
+/**
+ * Get items by status, optionally filtered by topic
+ * Works globally (no topicId) or scoped to a topic
+ */
+function getItemsByStatusGlobal(status, topicId = null) {
+    try {
+        if (topicId) {
+            return queryAsObjects(
+                'SELECT * FROM items WHERE topic_id = ? AND status = ? AND item_type != "topic" ORDER BY "order", id',
+                [topicId, status]
+            );
+        } else {
+            return queryAsObjects(
+                'SELECT * FROM items WHERE status = ? AND item_type != "topic" ORDER BY "order", id',
+                [status]
+            );
+        }
+    } catch (error) {
+        console.error('Error getting items by status:', error);
+        return [];
+    }
+}
+
+/**
+ * Get top priorities from items table with scoring
+ * Replicates legacy getTopPriorities() behavior
+ */
+function getTopPrioritiesFromItems(limit = 5) {
+    try {
+        // Get all non-done items (tasks and ideas)
+        const items = queryAsObjects(`
+            SELECT * FROM items
+            WHERE item_type IN ('task', 'idea')
+            AND status != 'done'
+            ORDER BY weight DESC, ranking DESC, created_at DESC
+        `);
+
+        // Get all topics for weight lookup
+        const topics = getTopicsFromItems();
+        const topicMap = {};
+        topics.forEach(t => {
+            topicMap[t.id] = t;
+        });
+
+        // Score and enrich each item
+        const scored = items.map(item => {
+            const topic = topicMap[item.topic_id];
+            const topicWeight = topic ? (topic.weight || 5) : 5;
+            const itemWeight = item.weight || 5;
+            const ranking = item.ranking || 3;
+
+            // Score formula: item weight * 2 + topic weight + ranking
+            const score = (itemWeight * 2) + topicWeight + ranking;
+
+            return {
+                ...item,
+                score,
+                topicName: topic ? topic.text : 'Untagged',
+                topicColor: topic ? topic.color : '#999',
+                topicIcon: topic ? topic.icon : null,
+                // Map to legacy field names for compatibility
+                topic: item.topic_id,
+                timestamp: item.created_at
+            };
+        });
+
+        // Sort by score descending, then by created_at
+        scored.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
+
+        return scored.slice(0, limit);
+    } catch (error) {
+        console.error('Error getting top priorities from items:', error);
+        return [];
+    }
+}
+
+/**
+ * Get item counts by topic and status from items table
+ * Replicates legacy getIdeaCounts() behavior
+ */
+function getItemCountsFromItems() {
+    try {
+        const counts = {
+            byTopic: {},
+            byStatus: { new: 0, backlog: 0, done: 0 },
+            total: 0
+        };
+
+        // Count non-topic items grouped by topic_id
+        const topicCounts = queryAsObjects(`
+            SELECT topic_id, COUNT(*) as count
+            FROM items
+            WHERE item_type != 'topic'
+            GROUP BY topic_id
+        `);
+
+        topicCounts.forEach(row => {
+            if (row.topic_id) {
+                counts.byTopic[row.topic_id] = row.count;
+            }
+        });
+
+        // Count by status
+        const statusCounts = queryAsObjects(`
+            SELECT status, COUNT(*) as count
+            FROM items
+            WHERE item_type != 'topic'
+            GROUP BY status
+        `);
+
+        statusCounts.forEach(row => {
+            counts.byStatus[row.status] = row.count;
+            counts.total += row.count;
+        });
+
+        return counts;
+    } catch (error) {
+        console.error('Error getting item counts:', error);
+        return { byTopic: {}, byStatus: { new: 0, backlog: 0, done: 0 }, total: 0 };
+    }
+}
+
+/**
+ * Adapt an item to legacy idea format for rendering compatibility
+ */
+function adaptItemToIdea(item) {
+    return {
+        id: item.id,
+        text: item.text,
+        topic: item.topic_id || 'untagged',
+        ranking: item.ranking || 3,
+        difficulty: item.difficulty || 'medium',
+        status: item.status || 'new',
+        weight: item.weight || 5,
+        timestamp: item.created_at,
+        order: item.order || 0,
+        status_changed_at: item.completed_at || null
+    };
+}
+
+/**
+ * Adapt an item to legacy topic format for rendering compatibility
+ */
+function adaptItemToTopic(item) {
+    return {
+        id: item.id,
+        name: item.text,
+        priority: 'priority',  // Not used in new model
+        color: item.color || '#999',
+        icon: item.icon || 'Door.ICO',
+        weight: item.weight || 5
+    };
+}
+
+/**
+ * Get all active (non-done) items from items table
+ */
+function getActiveItemsFromItems() {
+    try {
+        return queryAsObjects(`
+            SELECT * FROM items
+            WHERE status != 'done'
+            AND item_type IN ('task', 'idea')
+            ORDER BY "order", id
+        `);
+    } catch (error) {
+        console.error('Error getting active items:', error);
+        return [];
+    }
+}
+
 // Initialize database immediately when module loads
 const DB_READY_EVENT = 'databaseReady';
 
