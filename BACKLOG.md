@@ -42,10 +42,10 @@ Implement authentic Win3.1 window behavior:
 - [ ] Add "purpose" field to topic creation/edit UI
 - [ ] Display purpose on topic cards and pages
 
-**Legacy Cleanup:** ✅ Core CRUD migrated (Jan 22)
+**Legacy Cleanup:** ✅ Complete (Jan 22)
 - [x] Update write operations: `addIdea()`, `updateIdea()`, `deleteIdea()`, `addTopic()`, `updateTopic()`, `deleteTopic()`
-- [ ] Remove legacy `topics` and `ideas` tables from schema (once stable)
-- [ ] Remove dual-write code from ideas-data.js (once stable)
+- [x] Remove legacy `topics` and `ideas` tables from schema
+- [x] Remove dual-write code from ideas-data.js
 
 ---
 
