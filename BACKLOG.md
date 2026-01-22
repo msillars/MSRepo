@@ -42,12 +42,10 @@ Implement authentic Win3.1 window behavior:
 - [ ] Add "purpose" field to topic creation/edit UI
 - [ ] Display purpose on topic cards and pages
 
-**Legacy Cleanup:** (~28 call sites across 11 files)
-- [ ] Migrate remaining HTML pages: `finished.html`, `ideas.html`, `desktop.html`, `topic.html`
-- [ ] Migrate remaining JS modules: `shared-modal.js`, `edit-idea-modal.js`, `topic-config.js`, `shared-drag-drop.js`
-- [ ] Update write operations: `addIdea()`, `updateIdea()`, `deleteIdea()`, `addTopic()`, `updateTopic()`, `deleteTopic()`
-- [ ] Remove legacy `topics` and `ideas` tables from schema
-- [ ] Remove dual-write code from ideas-data.js
+**Legacy Cleanup:** ✅ Core CRUD migrated (Jan 22)
+- [x] Update write operations: `addIdea()`, `updateIdea()`, `deleteIdea()`, `addTopic()`, `updateTopic()`, `deleteTopic()`
+- [ ] Remove legacy `topics` and `ideas` tables from schema (once stable)
+- [ ] Remove dual-write code from ideas-data.js (once stable)
 
 ---
 
