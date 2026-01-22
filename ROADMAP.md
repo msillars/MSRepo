@@ -1,6 +1,6 @@
 # Management System Roadmap
 
-**Last Updated:** January 22, 2026
+**Last Updated:** January 22, 2026 (evening)
 
 ---
 
@@ -38,39 +38,53 @@ Universe
 - Unified `items` table schema (new architecture)
 - **Title bar component** - 22px height, 20x20 square buttons, flush to edges (Jan 20)
 - **Window/Title Bar hierarchy documented** - Window is parent, Title Bar is child (Jan 22)
+- **UI uses Items API** - Dashboard and topic pages read from unified items table (Jan 22)
 
 ### ⚠️ Partially Working
-- GitHub write (needs token configuration)
-- Migration from legacy tables to unified items
+- GitHub write (needs token configuration - SSH works for git push)
 - **Window Frame** - basic implementation exists, border style needs verification
+- Legacy tables still exist (can remove once purpose field is added)
 
 ### ❌ Not Yet Built
+- **Window functionality** - minimize, maximize, resize, move
+- Purpose field for topics
 - Projects layer (finite groups of tasks)
 - Subtasks / nested items
-- Purpose field for topics
-- UI using new Items API
 
 ---
 
 ## Roadmap
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation ✅
 **Goal:** Solid data persistence and core philosophy implemented
 
 - [x] Design unified `items` table schema
 - [x] Create GitHub storage backend
 - [x] Seed database with sample data
-- [ ] Configure GitHub token for write access
-- [ ] Test full read/write cycle to GitHub
+- [x] SSH configured for git operations
+- [ ] Configure GitHub token for browser-based writes (optional)
 
-### Phase 2: Data Model Completion
+### Phase 1.5: Window Component (Current)
+**Goal:** Authentic Win3.1 window behavior
+
+- [ ] **Minimize** - collapse to icon within parent container
+- [ ] **Maximize** - fill parent container (not full screen)
+- [ ] **Resize** - drag window borders
+- [ ] **Move** - drag title bar
+- [ ] Icon tray area for minimized windows
+- [ ] Window state management (JS)
+
+*Note: May diverge from strict Win3.1 for usability in later phases.*
+
+### Phase 2: Data Model Completion ✅ (Partial)
 **Goal:** UI fully uses new Items API, legacy tables deprecated
 
+- [x] Transition dashboard to use Items API
+- [x] Transition topic pages to use Items API
+- [x] Add Items API bridge functions (adapters, counts, priorities)
 - [ ] Add "purpose" field to topic creation UI
-- [ ] Transition dashboard to use Items API
-- [ ] Transition topic pages to use Items API
-- [ ] Remove dependency on legacy `topics` and `ideas` tables
 - [ ] Add topic-level "purpose" display
+- [ ] Remove dependency on legacy `topics` and `ideas` tables
 
 ### Phase 3: Projects Layer
 **Goal:** Implement finite groupings of tasks under topics
@@ -176,6 +190,8 @@ setGitHubToken('ghp_your_token_here')
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| Jan 22, 2026 | Window functionality: full implementation | Minimize to parent, maximize to parent, resize, move - all within container |
+| Jan 22, 2026 | Items API migration complete | UI now reads from unified items table |
 | Jan 22, 2026 | Window is parent, Title Bar is child | Component containment hierarchy - Title Bar only exists within Window |
 | Jan 22, 2026 | Skip emulator for now | Use only if we hit a specific visual question we can't answer from docs |
 | Jan 20, 2026 | Title bar: 22px fixed, 20x20 buttons | Win 3.1 SM_CYCAPTION = fixed height; buttons must always be square |

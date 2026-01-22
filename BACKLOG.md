@@ -1,49 +1,77 @@
 # Management System Backlog
 
-## Current State (January 2026)
+## Current State (January 22, 2026)
 
 **Working:**
 - Dashboard with Win3x theme
 - All 7 topic pages with Win3x styling
 - SQL.js database with localStorage persistence
+- GitHub storage backend (read works, write needs token)
 - Weight system (1-10) for topics and ideas
 - Drag-and-drop reordering
 - Ideas / Backlog / Done status flow
+- **Unified items table** - schema complete, UI migrated
+- **Title bar component** - 22px height, 20x20 buttons, system menu
 
-**Data Model:**
-- Topics (ongoing containers, never "done")
-- Ideas/Tasks (atomic, completable)
-- Missing: Projects layer (finite groups of tasks toward a goal)
-
----
-
-## Priority 1: Data Model Design
-
-Before adding features, design the database schema to reflect the philosophy:
-
-**The hierarchy:**
-```
-Universe
-  └── Topics (ongoing, never done - e.g., "Photography", "Health")
-        └── Projects (finite, have an end state - e.g., "Build portfolio site")
-              └── Tasks (atomic, completable - e.g., "Choose domain name")
-```
-
-**Key insight:** A project IS a task made of tasks. Everything is fundamentally the same "thing" with different scope.
-
-**Questions to resolve:**
-- [ ] Should projects be a separate table, or a flag on items?
-- [ ] How to handle nested tasks (subtasks)?
-- [ ] What fields define "doneness" for projects vs topics?
+**Data Model:** ✅ Resolved
+- Unified `items` table - everything is an item
+- `item_type` field distinguishes: topic, project, task, idea, reminder
+- `parent_id` enables hierarchy (tasks under projects under topics)
+- `topic_id` denormalized for fast filtering
 
 ---
 
-## Priority 2: Core Features (once schema is designed)
+## Priority 1: Window Component (Current)
+
+Implement authentic Win3.1 window behavior:
+
+- [ ] **Minimize** - collapse to icon within parent container
+- [ ] **Maximize** - fill parent container
+- [ ] **Resize** - drag window borders
+- [ ] **Move** - drag title bar
+- [ ] Icon tray area for minimized windows
+- [ ] Window state management (JavaScript)
+
+**Constraint:** Windows minimize/maximize within their parent container, not the full browser.
+
+---
+
+## Priority 2: Purpose Field & Legacy Cleanup
+
+- [ ] Add "purpose" field to topic creation/edit UI
+- [ ] Display purpose on topic cards and pages
+- [ ] Remove legacy `topics` and `ideas` tables
+- [ ] Remove dual-write code from ideas-data.js
+
+---
+
+## Priority 3: Projects Layer
 
 - [ ] Projects layer - group tasks under finite goals
+- [ ] Project creation UI
+- [ ] Project progress indicators
+- [ ] Project completion state
+
+---
+
+## Priority 4: Subtasks & Nesting
+
 - [ ] Subtasks - tasks within tasks
+- [ ] Indented display of nested items
+- [ ] Auto-promote task → project when children added
+- [ ] Collapse/expand nested items
+
+---
+
+## Priority 5: Quality of Life
+
 - [ ] Due dates on tasks/projects
 - [ ] Search and filter
+- [ ] Keyboard shortcuts (j/k navigation)
+- [ ] Better mobile UI
+- [ ] Undo/redo functionality
+- [ ] Bulk select and update
+- [ ] Export to CSV/Markdown
 
 ---
 
@@ -57,7 +85,7 @@ Universe
 
 ---
 
-## Priority 4: Future / Nice to Have
+## Priority 6: Future / Nice to Have
 
 - [ ] Time tracking
 - [ ] Progress charts / analytics
@@ -74,4 +102,14 @@ One-time migration scripts, test files, and old documentation have been moved to
 
 ---
 
-**Last Updated:** January 15, 2026
+## Resolved Questions
+
+| Question | Answer | Date |
+|----------|--------|------|
+| Should projects be a separate table? | No - unified `items` table with `item_type` field | Jan 15 |
+| How to handle nested tasks? | `parent_id` field creates hierarchy | Jan 15 |
+| What defines "doneness"? | `status` field (new/backlog/done) + `completed_at` timestamp | Jan 15 |
+
+---
+
+**Last Updated:** January 22, 2026
