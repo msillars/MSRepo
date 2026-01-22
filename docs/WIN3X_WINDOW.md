@@ -217,10 +217,78 @@ Interactive window management implemented in `window-demo.html`:
 
 ### Open Questions for Future Sessions
 
-1. **Scrollbars** - How did Win 3.1 scrollbars work? (needs research)
-2. **Status bar** - Was there a bar at the bottom with info? (needs research)
-3. **Menu bar** - Between title bar and content (documented as future)
-4. **Resize cursor feedback** - Should we show resize cursors on window frame itself?
+1. **Menu bar** - Between title bar and content (documented as future)
+2. **Resize cursor feedback** - Should we show resize cursors on window frame itself?
+
+---
+
+## Scrollbars (Research Notes - Jan 2026)
+
+### Current Implementation
+
+Scrollbar styling already exists in `win3x-theme.css` (lines 117-278).
+
+| Property | Value | Status |
+|----------|-------|--------|
+| Button size | 16x16px | **Implemented** |
+| Track background | #C0C0C0 (`--scrollbar-bg`) | **Implemented** |
+| 3D beveled buttons | Yes | **Implemented** |
+| Arrow icons | SVG files (scroll-up/down/left/right.svg) | **Implemented** |
+
+### System Metrics Reference
+
+Windows uses `SM_CXVSCROLL` and `SM_CYHSCROLL` system metrics for scrollbar dimensions:
+- Modern Windows default: 17px
+- Older systems (Win 3.x era): 15-16px
+- Our implementation: 16px (reasonable approximation)
+
+### Sources
+- [Microsoft Learn - About Scroll Bars](https://learn.microsoft.com/en-us/windows/win32/controls/about-scroll-bars)
+- [Microsoft Learn - GetSystemMetrics](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getsystemmetrics)
+
+### Assessment
+
+**Good news:** Scrollbars are already implemented and styled authentically. No immediate work needed.
+
+---
+
+## Status Bar (Research Notes - Jan 2026)
+
+### What is a Status Bar?
+
+A horizontal window at the **bottom of a parent window** displaying status information. Standard Windows UI element since early versions.
+
+### Typical Features
+
+- Positioned at bottom of window (default)
+- Can be divided into sections/parts for different info types
+- Often includes a **sizing grip** at the right end for resize
+- Displays: current state, background tasks, contextual info (selection, keyboard state)
+
+### Planned Implementation
+
+```
+.window
+├── .title-bar
+├── .menu-bar (future)
+├── .window-body
+└── .status-bar (future)  ← Add here
+```
+
+### Possible Uses in Management System
+
+- Display item count ("3 items selected")
+- Show sync status ("Last synced: 5 min ago")
+- Keyboard state indicators
+- Sizing grip for window resize
+
+### Sources
+- [Wikipedia - Status Bar](https://en.wikipedia.org/wiki/Status_bar)
+- [Microsoft Learn - Status Bars](https://learn.microsoft.com/en-us/windows/win32/controls/status-bars)
+
+### Assessment
+
+**Not urgent.** Status bar is a "nice to have" for future. Already accounted for in component hierarchy.
 
 ---
 
@@ -236,6 +304,7 @@ Interactive window management implemented in `window-demo.html`:
 
 | Date | Change |
 |------|--------|
+| 2026-01-22 | Added scrollbar and status bar research notes |
 | 2026-01-22 | Added window-demo.html with interactive behavior (move, resize, min/max) |
 | 2026-01-22 | Restructured: Window as parent, Title Bar as child. Added Window Frame section. |
 | 2026-01-20 | Title bar rolled out to main dashboard (index.html) |
