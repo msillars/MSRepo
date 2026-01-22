@@ -2,6 +2,23 @@
 
 This document defines the standard title bar layout for all windows in the Management System, based on authentic Windows 3.1 conventions.
 
+> **Design Philosophy:** This project faithfully implements Win 3.1 styling - we follow original specifications, not create new designs. See `WIN3X_WINDOW.md` for full philosophy.
+
+> **Component Hierarchy:** The Title Bar is a **child component** of the Window. It only exists within a `.window` container. See `WIN3X_WINDOW.md` for the parent component specification.
+
+---
+
+## Confirmed Dimensions
+
+| Property | Value | Notes |
+|----------|-------|-------|
+| Title bar height | 22px | Fixed, not dynamic |
+| Button size | 20x20px | **Always square** |
+| Icon size | 10x10px | Centered in button |
+| Button position | Flush to edges | No padding on title-bar |
+
+---
+
 ## Layout (Left to Right)
 
 ```
@@ -197,5 +214,7 @@ To make Phase 2 easier, Phase 1 should:
 
 | Date | Change |
 |------|--------|
+| 2026-01-22 | Added note clarifying Title Bar is a child of Window component |
+| 2026-01-20 | Added Confirmed Dimensions table, design philosophy reference |
 | 2026-01-19 | Added Current Architecture and Migration Roadmap sections |
 | 2026-01-16 | Initial draft |

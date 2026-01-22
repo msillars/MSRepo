@@ -1,0 +1,41 @@
+/**
+ * Win3x Debug Styles
+ *
+ * Include this file and add class="debug-title-bars" to <body> to highlight
+ * title bars that don't follow the standard component structure.
+ *
+ * Standard structure:
+ *   .title-bar
+ *     .title-bar-controls (left: system menu)
+ *       button.system-menu
+ *     .title-bar-text
+ *     .title-bar-controls (right: min/max)
+ *       button[data-minimize]
+ *       button[data-maximize]
+ *
+ * Title bars that ARE compliant will show normal colors.
+ * Title bars that are NOT compliant will show PURPLE.
+ */
+
+/* TEST: This rule should make ALL title bars purple when debug-title-bars class is on body */
+body.debug-title-bars .title-bar {
+  background: #800080 !important;
+  color: #ffffff !important;
+}
+
+/*
+ * COMPLIANT title bars get proper colors restored.
+ * A compliant title bar has: .system-menu AND .title-bar-text AND [data-minimize]
+ */
+
+/* Compliant + Active = Blue */
+body.debug-title-bars .title-bar:has(.system-menu):has(.title-bar-text):has([data-minimize]) {
+  background: #0000C0 !important;
+  color: #ffffff !important;
+}
+
+/* Compliant + Inactive (window without .active) = White */
+body.debug-title-bars .window:not(.active):not(:focus-within) > .title-bar:has(.system-menu):has(.title-bar-text):has([data-minimize]) {
+  background: #ffffff !important;
+  color: #000000 !important;
+}

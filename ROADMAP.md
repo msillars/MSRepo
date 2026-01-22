@@ -1,6 +1,6 @@
 # Management System Roadmap
 
-**Last Updated:** January 15, 2026
+**Last Updated:** January 22, 2026
 
 ---
 
@@ -36,10 +36,13 @@ Universe
 - Drag-and-drop reordering
 - Ideas → Backlog → Done status flow
 - Unified `items` table schema (new architecture)
+- **Title bar component** - 22px height, 20x20 square buttons, flush to edges (Jan 20)
+- **Window/Title Bar hierarchy documented** - Window is parent, Title Bar is child (Jan 22)
 
 ### ⚠️ Partially Working
 - GitHub write (needs token configuration)
 - Migration from legacy tables to unified items
+- **Window Frame** - basic implementation exists, border style needs verification
 
 ### ❌ Not Yet Built
 - Projects layer (finite groups of tasks)
@@ -173,6 +176,10 @@ setGitHubToken('ghp_your_token_here')
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| Jan 22, 2026 | Window is parent, Title Bar is child | Component containment hierarchy - Title Bar only exists within Window |
+| Jan 22, 2026 | Skip emulator for now | Use only if we hit a specific visual question we can't answer from docs |
+| Jan 20, 2026 | Title bar: 22px fixed, 20x20 buttons | Win 3.1 SM_CYCAPTION = fixed height; buttons must always be square |
+| Jan 20, 2026 | Design philosophy: authenticity | Follow original MS specs, not create new designs |
 | Jan 15, 2026 | Unified `items` table | Philosophy: everything is an item |
 | Jan 15, 2026 | GitHub as database | Free, version history, no new services |
 | Jan 15, 2026 | Keep legacy tables temporarily | UI still depends on them |

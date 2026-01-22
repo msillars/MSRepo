@@ -1,6 +1,10 @@
 :root {
   --preferred-font: "Microsoft Sans Serif";
   --desktop-bg: #C0C0C0;
+
+  /* Debug mode: set to 1 to highlight non-standard title bars in purple */
+  --debug-title-bars: 0;
+  --debug-purple: #800080;
   --workspace-bg: #FFFFFF;
   --window-bg: #FFFFFF;
   --window-fg: #000000;
@@ -658,10 +662,17 @@ progress:not([value])::-webkit-progress-value {
   color: var(--title-bar-fg);
   display: flex;
   flex-direction: row;
+  align-items: stretch; /* Buttons fill height */
   font-weight: bold;
   border: 1px solid var(--border);
+  /* Win 3.1: Fixed height = button size (20px) + border (2px) = 22px */
+  /* SM_CYCAPTION system metric defines this as a constant */
+  height: 22px;
   min-height: 22px;
+  max-height: 22px;
   min-width: 120px;
+  padding: 0; /* No padding - buttons flush to edge */
+  box-sizing: border-box;
 }
 
 .dialog > .title-bar {
@@ -733,8 +744,7 @@ progress:not([value])::-webkit-progress-value {
   flex-shrink: 0;
   display: flex;
   flex-direction: row;
-  align-items: stretch;
-  min-height: 18px;
+  align-items: stretch; /* Buttons fill height */
 }
 
 .title-bar-controls:first-child {
@@ -746,17 +756,27 @@ progress:not([value])::-webkit-progress-value {
 }
 
 .title-bar-controls button {
+  /* Win 3.1: Square buttons - always 20x20px */
+  /* Buttons must remain square regardless of title bar context */
+  box-sizing: border-box;
   flex-shrink: 0;
-  width: 24px;
-  height: 18px;
-  min-width: 24px;
-  min-height: 18px;
-  padding: 0;
-  border: 0;
+  flex-grow: 0;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   border-radius: 0;
   background-color: var(--button-bg);
   background-repeat: no-repeat;
   background-position: center;
+  /* 3D raised border - authentic Win 3.1 */
+  border: 1px solid;
+  border-color: var(--button-light) var(--button-dark) var(--button-dark) var(--button-light);
+  box-shadow: inset -1px -1px 0 #000;
 }
 
 .title-bar-controls button::after {
@@ -764,16 +784,18 @@ progress:not([value])::-webkit-progress-value {
 }
 
 .title-bar-controls:first-child button {
-  border-right: 1px solid var(--border);
+  /* System menu - no extra border needed, uses 3D border */
 }
 
 .title-bar-controls:last-child button {
-  border-left: 1px solid var(--border);
+  /* Min/max buttons - no extra border needed, uses 3D border */
 }
 
 .title-bar-controls button:active {
   outline: none;
-  box-shadow: inset 1px 1px 0 var(--button-dark);
+  /* Pressed state - inverted 3D border */
+  border-color: var(--button-dark) var(--button-light) var(--button-light) var(--button-dark);
+  box-shadow: inset 1px 1px 0 #000;
 }
 
 /* System menu icon - horizontal line like Win 3.1 space bar */
@@ -795,12 +817,14 @@ progress:not([value])::-webkit-progress-value {
 
 .title-bar-controls button[data-minimize] {
   background-image: url(minimize.svg);
-  background-position: 7px 8px;
+  background-size: 10px 10px;
+  background-position: center;
 }
 
 .title-bar-controls button[data-maximize] {
   background-image: url(maximize.svg);
-  background-position: 7px 8px;
+  background-size: 10px 10px;
+  background-position: center;
 }
 
 .maximized .title-bar-controls button[data-maximize] {

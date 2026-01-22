@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win3x Title Bar Component Demo</title>
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <style>
+        body {
+            background: var(--desktop-bg);
+            padding: 40px;
+            font-family: var(--font-main);
+        }
+
+        .demo-section {
+            margin-bottom: 40px;
+        }
+
+        .demo-section h2 {
+            color: #000;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .demo-row {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .demo-item {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .demo-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .code-block {
+            background: #fff;
+            border: 2px inset var(--border);
+            padding: 12px;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: pre;
+            overflow-x: auto;
+            max-width: 700px;
+        }
+
+        .notes {
+            background: #ffffcc;
+            border: 1px solid #cccc00;
+            padding: 12px;
+            font-size: 12px;
+            max-width: 700px;
+        }
+
+        .notes.success {
+            background: #ccffcc;
+            border-color: #00cc00;
+        }
+
+        .notes h3 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+        }
+
+        .notes ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .notes li {
+            margin-bottom: 4px;
+        }
+
+        .spec-table {
+            background: #fff;
+            border: 2px solid var(--border);
+            border-collapse: collapse;
+            font-size: 12px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            text-align: left;
+        }
+
+        .spec-table th {
+            background: var(--button-bg);
+        }
+    </style>
+</head>
+<body>
+    <div class="window active" style="max-width: 800px;">
+        <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu"></button>
+            </div>
+            <div class="title-bar-text">Title Bar Component - Confirmed Implementation</div>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
+            </div>
+        </div>
+        <div class="window-body" style="padding: 20px;">
+
+            <!-- SECTION: Confirmed Specs -->
+            <div class="demo-section">
+                <h2>Confirmed Specifications</h2>
+
+                <table class="spec-table">
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Title bar height</td>
+                        <td><strong>22px</strong> (fixed)</td>
+                    </tr>
+                    <tr>
+                        <td>Button dimensions</td>
+                        <td><strong>20x20px</strong> (always square)</td>
+                    </tr>
+                    <tr>
+                        <td>Icon size</td>
+                        <td><strong>10x10px</strong> centered</td>
+                    </tr>
+                    <tr>
+                        <td>Button position</td>
+                        <td>Flush to edges (no padding)</td>
+                    </tr>
+                    <tr>
+                        <td>Button style</td>
+                        <td>3D raised border</td>
+                    </tr>
+                    <tr>
+                        <td>Active color</td>
+                        <td>Blue (#0000C0)</td>
+                    </tr>
+                    <tr>
+                        <td>Inactive color</td>
+                        <td>White (#FFFFFF)</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- SECTION: Live Examples -->
+            <div class="demo-section">
+                <h2>Live Examples</h2>
+
+                <div class="demo-row">
+                    <div class="demo-item">
+                        <label>Active Window</label>
+                        <div class="window active">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Accessories</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="window-body" style="padding: 10px; min-height: 30px; font-size: 11px;">
+                                Blue title bar, 20x20 square buttons
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-item">
+                        <label>Inactive Window</label>
+                        <div class="window">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Notepad</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="window-body" style="padding: 10px; min-height: 30px; font-size: 11px;">
+                                White title bar, same button dimensions
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-row">
+                    <div class="demo-item">
+                        <label>Dialog Window</label>
+                        <div class="dialog active">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Open File</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="dialog-body" style="padding: 10px; min-height: 30px; font-size: 11px;">
+                                Dialog variant with same title bar
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-item">
+                        <label>Narrow Window</label>
+                        <div class="window active" style="max-width: 200px;">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Clock</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="window-body" style="padding: 10px; min-height: 30px; font-size: 11px;">
+                                Buttons stay square
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Critical Constraint -->
+            <div class="demo-section">
+                <div class="notes">
+                    <h3>Critical Constraint: Square Buttons</h3>
+                    <p>Buttons must <strong>always remain square</strong> (20x20px). This is enforced in CSS with explicit width AND height constraints.</p>
+                    <p style="margin-top: 8px;">In Windows 3.1, the title bar height (SM_CYCAPTION) was a system constant. Buttons were 16x16px squares that fit within this fixed height. Our implementation scales this to 20x20px for modern displays.</p>
+                </div>
+            </div>
+
+            <!-- SECTION: HTML Structure -->
+            <div class="demo-section">
+                <h2>HTML Structure</h2>
+                <div class="code-block">&lt;div class="window active"&gt;
+    &lt;div class="title-bar"&gt;
+        &lt;div class="title-bar-controls"&gt;
+            &lt;button class="system-menu" aria-label="System menu"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class="title-bar-text"&gt;Window Title&lt;/div&gt;
+        &lt;div class="title-bar-controls"&gt;
+            &lt;button data-minimize aria-label="Minimize"&gt;&lt;/button&gt;
+            &lt;button data-maximize aria-label="Maximize"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="window-body"&gt;
+        &lt;!-- content --&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</div>
+            </div>
+
+            <!-- SECTION: Documentation -->
+            <div class="demo-section">
+                <div class="notes success">
+                    <h3>Documentation</h3>
+                    <ul>
+                        <li><code>docs/WIN3X_WINDOW.md</code> - Component specification and design philosophy</li>
+                        <li><code>docs/WIN3X_TITLE_BAR.md</code> - Title bar standard and usage</li>
+                        <li><code>dashboard/win3x-theme.css</code> - CSS implementation</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

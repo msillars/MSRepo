@@ -52,3 +52,22 @@ See `ROADMAP.md` for full philosophy and development plan.
 - Repo: https://github.com/msillars/MSRepo
 - Live: https://msillars.github.io/MSRepo/dashboard/index.html
 - Auth: SSH key (`~/.ssh/id_ed25519_github`)
+
+## Working Together (Claude + Matthew)
+
+**This project is about authenticity, not creativity.** The Win 3.1 styling follows original Microsoft specifications - we research and implement, not invent.
+
+### Process that works well:
+1. **Research first** - Find original specs (MS Guidelines, system metrics like SM_CYCAPTION)
+2. **Document decisions** - Update docs before/during implementation, not after
+3. **Test in isolation** - Use demo pages (e.g., `title-bar-demo.html`) before rolling out
+4. **Identify constraints** - e.g., "buttons must always be square" - document these clearly
+5. **Structured approach** - When debugging, find root cause (CSS specificity, multiple selectors) not just symptoms
+
+### Key principle:
+When Matthew provides research or identifies an issue, play it back to confirm understanding before implementing. This prevents wasted iterations.
+
+### Documentation:
+- `docs/WIN3X_WINDOW.md` - Component specs with design philosophy
+- `docs/WIN3X_TITLE_BAR.md` - Title bar standard
+- Demo pages in `dashboard/` for isolated testing
