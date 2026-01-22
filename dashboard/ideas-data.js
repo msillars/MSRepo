@@ -136,38 +136,51 @@ function listBackups() {
     return backups;
 }
 
-// Restore from backup
+// Restore from backup (uses items table)
 function restoreFromBackup(backupKey) {
     try {
         debugLog('RESTORE_ATTEMPT', { backupKey });
-        
+
         const backup = JSON.parse(localStorage.getItem(backupKey));
         if (!backup || !backup.sqlData) {
             throw new Error('Backup not found or invalid');
         }
-        
+
         // Create a backup of current state before restoring
         createBackup('pre-restore');
-        
-        // Clear current database
-        clearDatabase();
-        
-        // Restore topics
-        backup.sqlData.topics.forEach(topic => {
-            executeWrite(
-                'INSERT INTO topics (id, name, priority, color, icon) VALUES (?, ?, ?, ?, ?)',
-                [topic.id, topic.name, topic.priority, topic.color, topic.icon || null]
-            );
-        });
-        
-        // Restore ideas
-        backup.sqlData.ideas.forEach(idea => {
-            executeWrite(
-                'INSERT INTO ideas (id, text, topic, ranking, difficulty, status, "order", timestamp, status_changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [idea.id, idea.text, idea.topic, idea.ranking, idea.difficulty, idea.status, idea.order, idea.timestamp, idea.status_changed_at || null]
-            );
-        });
-        
+
+        // Clear items table
+        executeWrite('DELETE FROM items');
+
+        // Restore topics to items table
+        if (backup.sqlData.topics) {
+            backup.sqlData.topics.forEach(topic => {
+                createItem({
+                    text: topic.name,
+                    item_type: 'topic',
+                    status: 'new',
+                    weight: topic.weight || 5,
+                    icon: topic.icon,
+                    color: topic.color
+                });
+            });
+        }
+
+        // Restore ideas to items table
+        if (backup.sqlData.ideas) {
+            backup.sqlData.ideas.forEach(idea => {
+                createItem({
+                    text: idea.text,
+                    item_type: 'task',
+                    status: idea.status || 'new',
+                    ranking: idea.ranking || 3,
+                    difficulty: idea.difficulty || 'medium',
+                    weight: idea.weight || 5,
+                    order: idea.order || 0
+                });
+            });
+        }
+
         debugLog('RESTORE_SUCCESS', { backupKey });
         window.dispatchEvent(new Event('ideasUpdated'));
         return true;
@@ -188,39 +201,48 @@ function exportAllData() {
     return JSON.stringify(data, null, 2);
 }
 
-// Import data from external backup
+// Import data from external backup (uses items table)
 function importData(jsonString) {
     try {
         const data = JSON.parse(jsonString);
-        
+
         // Validate data structure
         if (!data.ideas || !data.topics) {
             throw new Error('Invalid data format');
         }
-        
+
         // Create backup before import
         createBackup('pre-import');
-        
-        // Clear and reimport
-        clearDatabase();
-        
-        // Import topics
+
+        // Clear items table
+        executeWrite('DELETE FROM items');
+
+        // Import topics to items table
         data.topics.forEach(topic => {
-            executeWrite(
-                'INSERT INTO topics (id, name, priority, color, icon) VALUES (?, ?, ?, ?, ?)',
-                [topic.id, topic.name, topic.priority, topic.color, topic.icon || null]
-            );
+            createItem({
+                text: topic.name,
+                item_type: 'topic',
+                status: 'new',
+                weight: topic.weight || 5,
+                icon: topic.icon,
+                color: topic.color
+            });
         });
-        
-        // Import ideas
+
+        // Import ideas to items table
         data.ideas.forEach(idea => {
-            executeWrite(
-                'INSERT INTO ideas (id, text, topic, ranking, difficulty, status, "order", timestamp, status_changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [idea.id || Date.now(), idea.text, idea.topic, idea.ranking, idea.difficulty, idea.status, idea.order || 0, idea.timestamp, idea.status_changed_at || null]
-            );
+            createItem({
+                text: idea.text,
+                item_type: 'task',
+                status: idea.status || 'new',
+                ranking: idea.ranking || 3,
+                difficulty: idea.difficulty || 'medium',
+                weight: idea.weight || 5,
+                order: idea.order || 0
+            });
         });
-        
-        debugLog('IMPORT_SUCCESS', { itemCount: data.ideas.length });
+
+        debugLog('IMPORT_SUCCESS', { itemCount: data.ideas.length, source: 'items' });
         window.dispatchEvent(new Event('ideasUpdated'));
         return true;
     } catch (error) {
@@ -307,24 +329,28 @@ const PRIORITY_LEVELS = {
 };
 
 /**
- * Seed default topics if the topics table is empty
+ * Seed default topics if no topics exist in items table
  * Called during initialization to ensure a fresh database has topics
  */
 function seedDefaultTopics() {
     try {
-        const existingTopics = queryAsObjects('SELECT COUNT(*) as count FROM topics');
+        const existingTopics = queryAsObjects('SELECT COUNT(*) as count FROM items WHERE item_type = "topic"');
         if (existingTopics[0].count > 0) {
             debugLog('TOPICS_EXIST', { count: existingTopics[0].count });
             return false; // Already has topics
         }
 
-        console.log('[DATA] Seeding default topics...');
+        console.log('[DATA] Seeding default topics to items table...');
 
         DEFAULT_TOPICS.forEach(topic => {
-            executeWrite(
-                'INSERT INTO topics (id, name, priority, color, icon, weight) VALUES (?, ?, ?, ?, ?, ?)',
-                [topic.id, topic.name, topic.priority, topic.color, topic.icon, topic.weight]
-            );
+            createItem({
+                text: topic.name,
+                item_type: 'topic',
+                status: 'new',
+                weight: topic.weight,
+                icon: topic.icon,
+                color: topic.color
+            });
         });
 
         console.log(`[DATA] ✅ Seeded ${DEFAULT_TOPICS.length} default topics`);
@@ -349,21 +375,27 @@ function getTopics() {
 }
 
 function saveTopics(topics) {
+    // DEPRECATED: Use individual addTopic/updateTopic/deleteTopic instead
+    // This bulk save is kept for compatibility but uses items table
     try {
         createBackup('topics-save');
-        
-        // Clear existing topics
-        executeWrite('DELETE FROM topics');
-        
-        // Insert all topics
+
+        // Clear existing topics from items table
+        executeWrite('DELETE FROM items WHERE item_type = "topic"');
+
+        // Insert all topics to items table
         topics.forEach(topic => {
-            executeWrite(
-                'INSERT INTO topics (id, name, priority, color, icon) VALUES (?, ?, ?, ?, ?)',
-                [topic.id, topic.name, topic.priority, topic.color, topic.icon || null]
-            );
+            createItem({
+                text: topic.name,
+                item_type: 'topic',
+                status: 'new',
+                weight: topic.weight || 5,
+                icon: topic.icon,
+                color: topic.color
+            });
         });
-        
-        debugLog('TOPICS_SAVED', { count: topics.length });
+
+        debugLog('TOPICS_SAVED', { count: topics.length, source: 'items' });
         window.dispatchEvent(new Event('ideasUpdated'));
         return true;
     } catch (error) {
@@ -445,6 +477,8 @@ function getIdeas() {
 }
 
 function saveIdeas(ideas) {
+    // DEPRECATED: Use individual addIdea/updateIdea/deleteIdea instead
+    // This bulk save is kept for compatibility but uses items table
     try {
         // Validate before saving
         const validation = validateIdeasArray(ideas);
@@ -452,22 +486,37 @@ function saveIdeas(ideas) {
             console.error('Cannot save invalid ideas:', validation.errors);
             return false;
         }
-        
+
         createBackup('ideas-save');
-        
-        // Clear existing ideas
-        executeWrite('DELETE FROM ideas');
-        
-        // Insert all ideas
+
+        // Clear existing tasks/ideas from items table
+        executeWrite('DELETE FROM items WHERE item_type IN ("task", "idea")');
+
+        // Insert all ideas to items table
         ideas.forEach(idea => {
-            executeWrite(
-                'INSERT INTO ideas (id, text, project, ranking, difficulty, status, "order", timestamp, status_changed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [idea.id, idea.text, idea.project, idea.ranking, idea.difficulty, idea.status, idea.order || 0, idea.timestamp, idea.status_changed_at || null]
-            );
+            // Resolve topic ID
+            let topicId = null;
+            if (idea.topic && idea.topic !== 'untagged') {
+                const topics = getTopicsFromItems();
+                const topic = topics.find(t => t.id === idea.topic || t.text.toLowerCase().replace(/\\s+/g, '-') === idea.topic);
+                if (topic) topicId = topic.id;
+            }
+
+            createItem({
+                text: idea.text,
+                item_type: 'task',
+                topic_id: topicId,
+                parent_id: topicId,
+                status: idea.status || 'new',
+                ranking: idea.ranking || 3,
+                difficulty: idea.difficulty || 'medium',
+                weight: idea.weight || 5,
+                order: idea.order || 0
+            });
         });
-        
-        debugLog('IDEAS_SAVED', { count: ideas.length });
-        
+
+        debugLog('IDEAS_SAVED', { count: ideas.length, source: 'items' });
+
         // Dispatch event for dashboard to update
         window.dispatchEvent(new Event('ideasUpdated'));
         return true;
@@ -750,64 +799,18 @@ function getRankingColor(ranking) {
 // ============================================================
 
 /**
- * Automatically add weight column to ideas table if it doesn't exist
+ * Legacy migration functions - DEPRECATED
+ * Legacy tables have been removed (Jan 22, 2026)
+ * All data now uses unified items table with weight column built-in
  */
 function autoMigrateIdeaWeights() {
-    try {
-        const columns = queryAsObjects("PRAGMA table_info(ideas)");
-        const hasWeight = columns.some(col => col.name === 'weight');
-
-        if (!hasWeight) {
-            console.log('[MIGRATION] Adding weight column to ideas table...');
-            createBackup('auto-migration-idea-weight');
-
-            // Add weight column with default value of 5
-            executeWrite('ALTER TABLE ideas ADD COLUMN weight INTEGER DEFAULT 5');
-
-            // Get all ideas and update their weights based on ranking
-            const ideas = queryAsObjects('SELECT id, ranking FROM ideas');
-            const rankingToWeight = { 1: 2, 2: 4, 3: 5, 4: 7, 5: 9 };
-
-            ideas.forEach(idea => {
-                const weight = rankingToWeight[idea.ranking] || 5;
-                executeWrite('UPDATE ideas SET weight = ? WHERE id = ?', [weight, idea.id]);
-            });
-
-            console.log(`[MIGRATION] ✅ Added weight column and updated ${ideas.length} ideas`);
-            return true;
-        }
-
-        return false; // Already has weight column
-    } catch (error) {
-        console.error('[MIGRATION] ❌ Failed to add weight column:', error);
-        return false;
-    }
+    // No-op: legacy ideas table removed
+    return false;
 }
 
-/**
- * Automatically add weight column to topics table if it doesn't exist
- */
 function autoMigrateTopicWeights() {
-    try {
-        const columns = queryAsObjects("PRAGMA table_info(topics)");
-        const hasWeight = columns.some(col => col.name === 'weight');
-
-        if (!hasWeight) {
-            console.log('[MIGRATION] Adding weight column to topics table...');
-            createBackup('auto-migration-topic-weight');
-
-            // Add weight column with default value of 5
-            executeWrite('ALTER TABLE topics ADD COLUMN weight INTEGER DEFAULT 5');
-
-            console.log('[MIGRATION] ✅ Added weight column to topics table');
-            return true;
-        }
-
-        return false; // Already has weight column
-    } catch (error) {
-        console.error('[MIGRATION] ❌ Failed to add weight column to topics:', error);
-        return false;
-    }
+    // No-op: legacy topics table removed
+    return false;
 }
 
 // ============================================================
@@ -1502,44 +1505,34 @@ const DB_READY_EVENT = 'databaseReady';
 })();
 
 // ============================================================
-// DIAGNOSTIC FUNCTIONS (for debugging sync status)
+// DIAGNOSTIC FUNCTIONS
 // ============================================================
 
 /**
- * Check sync status between legacy tables and items table
- * Run in browser console: checkSyncStatus()
+ * Get database statistics
+ * Run in browser console: getDbStats()
  */
-function checkSyncStatus() {
-    const legacyIdeas = queryAsObjects('SELECT COUNT(*) as count FROM ideas')[0].count;
-    const legacyTopics = queryAsObjects('SELECT COUNT(*) as count FROM topics')[0].count;
+function getDbStats() {
     const itemsTotal = queryAsObjects('SELECT COUNT(*) as count FROM items')[0].count;
     const itemsTopics = queryAsObjects('SELECT COUNT(*) as count FROM items WHERE item_type = "topic"')[0].count;
     const itemsTasks = queryAsObjects('SELECT COUNT(*) as count FROM items WHERE item_type = "task"')[0].count;
+    const itemsByStatus = queryAsObjects(`
+        SELECT status, COUNT(*) as count FROM items
+        WHERE item_type = 'task'
+        GROUP BY status
+    `);
 
-    console.log('=== SYNC STATUS ===');
-    console.log(`Legacy ideas table: ${legacyIdeas} rows`);
-    console.log(`Legacy topics table: ${legacyTopics} rows`);
+    console.log('=== DATABASE STATS ===');
     console.log(`Items table total: ${itemsTotal} rows`);
     console.log(`  - Topics: ${itemsTopics}`);
     console.log(`  - Tasks: ${itemsTasks}`);
-    console.log('');
-    console.log(`Topics sync: ${legacyTopics === itemsTopics ? '✅ OK' : '⚠️ MISMATCH'}`);
-    console.log(`Ideas/Tasks sync: ${legacyIdeas === itemsTasks ? '✅ OK' : '⚠️ MISMATCH'}`);
+    console.log('Tasks by status:');
+    itemsByStatus.forEach(s => console.log(`  - ${s.status}: ${s.count}`));
 
     return {
-        legacy: { ideas: legacyIdeas, topics: legacyTopics },
-        items: { total: itemsTotal, topics: itemsTopics, tasks: itemsTasks },
-        synced: legacyTopics === itemsTopics && legacyIdeas === itemsTasks
+        total: itemsTotal,
+        topics: itemsTopics,
+        tasks: itemsTasks,
+        byStatus: itemsByStatus
     };
-}
-
-/**
- * Force re-sync from legacy to items table
- * Run in browser console: forceSyncToItems()
- */
-function forceSyncToItems() {
-    console.log('[SYNC] Starting forced sync from legacy tables to items...');
-    const result = migrateToUnifiedItems();
-    console.log('[SYNC] Migration result:', result);
-    return result;
 }

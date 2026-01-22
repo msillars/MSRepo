@@ -145,42 +145,9 @@ async function createSchema() {
     db.run('CREATE INDEX IF NOT EXISTS idx_items_topic_status ON items(topic_id, status)');
 
     // ===========================================
-    // LEGACY TABLES (kept for migration)
+    // LEGACY TABLES - REMOVED (Jan 22, 2026)
+    // All data now uses unified 'items' table
     // ===========================================
-
-    // Ideas table - stores all tasks/ideas (LEGACY)
-    db.run(`
-        CREATE TABLE IF NOT EXISTS ideas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            text TEXT NOT NULL,
-            topic TEXT NOT NULL DEFAULT 'untagged',
-            ranking INTEGER NOT NULL DEFAULT 3 CHECK(ranking >= 1 AND ranking <= 5),
-            difficulty TEXT NOT NULL DEFAULT 'medium' CHECK(difficulty IN ('easy', 'medium', 'hard')),
-            status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new', 'backlog', 'done')),
-            "order" INTEGER NOT NULL DEFAULT 0,
-            timestamp TEXT NOT NULL,
-            status_changed_at TEXT
-        )
-    `);
-
-    // Topics table - stores topic definitions (LEGACY)
-    db.run(`
-        CREATE TABLE IF NOT EXISTS topics (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE,
-            priority TEXT NOT NULL DEFAULT 'always-on'
-                CHECK(priority IN ('always-on', 'do-prep', 'getting-important', 'priority', 'urgent')),
-            color TEXT NOT NULL,
-            icon TEXT,
-            weight INTEGER DEFAULT 5 CHECK(weight >= 1 AND weight <= 10)
-        )
-    `);
-
-    // Legacy indexes
-    db.run('CREATE INDEX IF NOT EXISTS idx_ideas_status ON ideas(status)');
-    db.run('CREATE INDEX IF NOT EXISTS idx_ideas_topic ON ideas(topic)');
-    db.run('CREATE INDEX IF NOT EXISTS idx_ideas_status_order ON ideas(status, "order")');
-    db.run('CREATE INDEX IF NOT EXISTS idx_ideas_ranking ON ideas(ranking)');
 
     console.log('[SQL-DB] ✅ Schema created successfully');
 
@@ -395,121 +362,35 @@ function clearDatabase() {
     if (!db) {
         throw new Error('Database not initialized');
     }
-    
+
     console.warn('[SQL-DB] ⚠️ Clearing all data from database...');
-    
-    db.run('DELETE FROM ideas');
-    db.run('DELETE FROM topics');
-    
+
+    db.run('DELETE FROM items');
+
     // Reset auto-increment counters
     db.run('DELETE FROM sqlite_sequence');
-    
+
     saveDatabase();
-    
+
     console.log('[SQL-DB] Database cleared');
 }
 
 /**
- * Migrate data from legacy tables (topics, ideas) to unified items table
- * This is a one-time migration that preserves all data
- * @returns {object} - Migration results
+ * Migration function - DEPRECATED
+ * Legacy tables have been removed (Jan 22, 2026)
+ * All data now uses unified items table exclusively
  */
 function migrateToUnifiedItems() {
-    console.log('[SQL-DB] Starting migration to unified items table...');
-
-    try {
-        // Check if already migrated
-        const itemsCount = queryAsObjects('SELECT COUNT(*) as count FROM items')[0].count;
-        if (itemsCount > 0) {
-            console.log('[SQL-DB] Items table already has data, skipping migration');
-            return { migrated: false, reason: 'already_migrated' };
-        }
-
-        // Check if there's anything to migrate
-        const topicsCount = queryAsObjects('SELECT COUNT(*) as count FROM topics')[0].count;
-        const ideasCount = queryAsObjects('SELECT COUNT(*) as count FROM ideas')[0].count;
-
-        if (topicsCount === 0 && ideasCount === 0) {
-            console.log('[SQL-DB] No data to migrate');
-            return { migrated: false, reason: 'no_data' };
-        }
-
-        // Create a mapping of old topic IDs to new item IDs
-        const topicIdMap = {};
-
-        // Step 1: Migrate topics as items with item_type='topic'
-        const topics = queryAsObjects('SELECT * FROM topics ORDER BY id');
-        console.log(`[SQL-DB] Migrating ${topics.length} topics...`);
-
-        topics.forEach(topic => {
-            db.run(`
-                INSERT INTO items (text, parent_id, topic_id, item_type, status, weight, purpose, icon, color, "order", created_at)
-                VALUES (?, NULL, NULL, 'topic', 'new', ?, ?, ?, ?, 0, ?)
-            `, [
-                topic.name,
-                topic.weight || 5,
-                null,  // purpose - will need to be added later
-                topic.icon,
-                topic.color,
-                new Date().toISOString()
-            ]);
-
-            // Get the new ID and store mapping
-            const newId = db.exec('SELECT last_insert_rowid() as id')[0].values[0][0];
-            topicIdMap[topic.id] = newId;
-            console.log(`[SQL-DB]   Topic "${topic.name}" (${topic.id}) → item #${newId}`);
-        });
-
-        // Step 2: Migrate ideas as items with item_type='task'
-        const ideas = queryAsObjects('SELECT * FROM ideas ORDER BY id');
-        console.log(`[SQL-DB] Migrating ${ideas.length} ideas/tasks...`);
-
-        ideas.forEach(idea => {
-            const topicItemId = topicIdMap[idea.topic] || null;
-
-            db.run(`
-                INSERT INTO items (text, parent_id, topic_id, item_type, status, weight, ranking, difficulty, "order", created_at, completed_at)
-                VALUES (?, ?, ?, 'task', ?, ?, ?, ?, ?, ?, ?)
-            `, [
-                idea.text,
-                topicItemId,           // parent_id = the topic
-                topicItemId,           // topic_id = same as parent for direct children
-                idea.status,
-                idea.weight || 5,
-                idea.ranking,
-                idea.difficulty,
-                idea.order || 0,
-                idea.timestamp,
-                idea.status_changed_at
-            ]);
-        });
-
-        saveDatabase();
-
-        const result = {
-            migrated: true,
-            topicsMigrated: topics.length,
-            tasksMigrated: ideas.length,
-            topicIdMap: topicIdMap
-        };
-
-        console.log('[SQL-DB] ✅ Migration complete:', result);
-        return result;
-
-    } catch (error) {
-        console.error('[SQL-DB] ❌ Migration failed:', error);
-        return { migrated: false, error: error.message };
-    }
+    console.log('[SQL-DB] Migration not needed - legacy tables removed');
+    return { migrated: false, reason: 'legacy_tables_removed' };
 }
 
 /**
- * Check if database needs migration
- * @returns {boolean} - True if migration is needed
+ * Check if database needs migration - DEPRECATED
+ * Always returns false since legacy tables are removed
  */
 function needsMigration() {
-    const itemsCount = queryAsObjects('SELECT COUNT(*) as count FROM items')[0].count;
-    const topicsCount = queryAsObjects('SELECT COUNT(*) as count FROM topics')[0].count;
-    return itemsCount === 0 && topicsCount > 0;
+    return false;
 }
 
 /**
