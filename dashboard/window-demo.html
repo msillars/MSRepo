@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win3x Window Behavior Demo</title>
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: system-ui;
+        }
+
+        /* Desktop container - windows operate within this boundary */
+        .desktop-container {
+            background: var(--desktop-bg);
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Icon tray at bottom for minimized windows */
+        .icon-tray {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: var(--desktop-bg);
+            border-top: 1px solid var(--button-light);
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        /* Minimized window icon */
+        .minimized-icon {
+            width: 140px;
+            height: 32px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset -1px -1px 0 var(--button-dark),
+                        inset 1px 1px 0 var(--button-light);
+            display: flex;
+            align-items: center;
+            padding: 2px 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .minimized-icon:active {
+            box-shadow: inset 1px 1px 0 var(--button-dark);
+        }
+
+        .minimized-icon .icon-bar {
+            width: 10px;
+            height: 2px;
+            background: var(--window-fg);
+            margin-right: 6px;
+        }
+
+        .minimized-icon .icon-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Draggable window styles */
+        .window.draggable {
+            position: absolute;
+            cursor: default;
+        }
+
+        .window.draggable .title-bar {
+            cursor: move;
+        }
+
+        .window.draggable.maximized .title-bar {
+            cursor: default;
+        }
+
+        /* Resize handles */
+        .window.draggable .resize-handle {
+            position: absolute;
+            background: transparent;
+        }
+
+        .window.draggable .resize-handle.n {
+            top: -3px;
+            left: 3px;
+            right: 3px;
+            height: 6px;
+            cursor: n-resize;
+        }
+
+        .window.draggable .resize-handle.s {
+            bottom: -3px;
+            left: 3px;
+            right: 3px;
+            height: 6px;
+            cursor: s-resize;
+        }
+
+        .window.draggable .resize-handle.e {
+            right: -3px;
+            top: 3px;
+            bottom: 3px;
+            width: 6px;
+            cursor: e-resize;
+        }
+
+        .window.draggable .resize-handle.w {
+            left: -3px;
+            top: 3px;
+            bottom: 3px;
+            width: 6px;
+            cursor: w-resize;
+        }
+
+        .window.draggable .resize-handle.nw {
+            top: -3px;
+            left: -3px;
+            width: 8px;
+            height: 8px;
+            cursor: nw-resize;
+        }
+
+        .window.draggable .resize-handle.ne {
+            top: -3px;
+            right: -3px;
+            width: 8px;
+            height: 8px;
+            cursor: ne-resize;
+        }
+
+        .window.draggable .resize-handle.sw {
+            bottom: -3px;
+            left: -3px;
+            width: 8px;
+            height: 8px;
+            cursor: sw-resize;
+        }
+
+        .window.draggable .resize-handle.se {
+            bottom: -3px;
+            right: -3px;
+            width: 8px;
+            height: 8px;
+            cursor: se-resize;
+        }
+
+        /* Hide resize handles when maximized */
+        .window.draggable.maximized .resize-handle {
+            display: none;
+        }
+
+        /* Minimized window hidden */
+        .window.draggable.minimized {
+            display: none;
+        }
+
+        /* Demo info panel */
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 260px;
+            background: #ffffcc;
+            border: 1px solid #cccc00;
+            padding: 12px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .info-panel h3 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+        }
+
+        .info-panel ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .info-panel li {
+            margin-bottom: 4px;
+        }
+
+        .info-panel code {
+            background: #fff;
+            padding: 1px 3px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop-container" id="desktop">
+        <!-- Info panel -->
+        <div class="info-panel">
+            <h3>Window Behavior Demo</h3>
+            <ul>
+                <li><strong>Move:</strong> Drag title bar</li>
+                <li><strong>Resize:</strong> Drag window edges</li>
+                <li><strong>Minimize:</strong> Click ▼ button</li>
+                <li><strong>Maximize:</strong> Click ▲ button</li>
+                <li><strong>Restore:</strong> Click icon in tray or ▲ on maximized</li>
+                <li><strong>Close:</strong> Double-click system menu</li>
+                <li><strong>Focus:</strong> Click anywhere on window</li>
+            </ul>
+        </div>
+
+        <!-- Test Window 1: Notepad -->
+        <div class="window draggable active" id="window-notepad"
+             style="left: 50px; top: 50px; width: 350px; height: 250px;"
+             data-restore-left="50" data-restore-top="50"
+             data-restore-width="350" data-restore-height="250">
+            <div class="resize-handle n"></div>
+            <div class="resize-handle s"></div>
+            <div class="resize-handle e"></div>
+            <div class="resize-handle w"></div>
+            <div class="resize-handle nw"></div>
+            <div class="resize-handle ne"></div>
+            <div class="resize-handle sw"></div>
+            <div class="resize-handle se"></div>
+            <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
+                <div class="title-bar-text">Notepad</div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
+                </div>
+            </div>
+            <div class="window-body" style="padding: 8px; overflow: auto; height: calc(100% - 26px);">
+                <p style="margin: 0; font-size: 12px;">
+                    This is Notepad. Try dragging, resizing, minimizing, and maximizing this window.
+                </p>
+                <p style="margin: 8px 0 0 0; font-size: 12px;">
+                    Windows operate within the gray desktop area and cannot extend beyond it.
+                </p>
+            </div>
+        </div>
+
+        <!-- Test Window 2: Calculator -->
+        <div class="window draggable" id="window-calculator"
+             style="left: 200px; top: 150px; width: 200px; height: 180px;"
+             data-restore-left="200" data-restore-top="150"
+             data-restore-width="200" data-restore-height="180">
+            <div class="resize-handle n"></div>
+            <div class="resize-handle s"></div>
+            <div class="resize-handle e"></div>
+            <div class="resize-handle w"></div>
+            <div class="resize-handle nw"></div>
+            <div class="resize-handle ne"></div>
+            <div class="resize-handle sw"></div>
+            <div class="resize-handle se"></div>
+            <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
+                <div class="title-bar-text">Calculator</div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
+                </div>
+            </div>
+            <div class="window-body" style="padding: 8px; overflow: auto; height: calc(100% - 26px);">
+                <p style="margin: 0; font-size: 12px;">
+                    A second window. Click to bring to front.
+                </p>
+            </div>
+        </div>
+
+        <!-- Test Window 3: File Manager -->
+        <div class="window draggable" id="window-filemanager"
+             style="left: 350px; top: 80px; width: 300px; height: 200px;"
+             data-restore-left="350" data-restore-top="80"
+             data-restore-width="300" data-restore-height="200">
+            <div class="resize-handle n"></div>
+            <div class="resize-handle s"></div>
+            <div class="resize-handle e"></div>
+            <div class="resize-handle w"></div>
+            <div class="resize-handle nw"></div>
+            <div class="resize-handle ne"></div>
+            <div class="resize-handle sw"></div>
+            <div class="resize-handle se"></div>
+            <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
+                <div class="title-bar-text">File Manager</div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
+                </div>
+            </div>
+            <div class="window-body" style="padding: 8px; overflow: auto; height: calc(100% - 26px);">
+                <p style="margin: 0; font-size: 12px;">
+                    Third window for testing z-order and focus management.
+                </p>
+            </div>
+        </div>
+
+        <!-- Icon tray for minimized windows -->
+        <div class="icon-tray" id="icon-tray"></div>
+    </div>
+
+    <script>
+        /**
+         * Win3x Window Manager
+         * Manages window state: move, resize, minimize, maximize, focus
+         */
+        (function() {
+            const desktop = document.getElementById('desktop');
+            const iconTray = document.getElementById('icon-tray');
+            let highestZIndex = 10;
+            let activeWindow = null;
+            let dragState = null;
+
+            // Initialize all windows
+            function init() {
+                const windows = document.querySelectorAll('.window.draggable');
+                windows.forEach(win => {
+                    setupWindow(win);
+                });
+
+                // Set initial active window
+                const activeWin = document.querySelector('.window.draggable.active');
+                if (activeWin) {
+                    setActiveWindow(activeWin);
+                }
+            }
+
+            function setupWindow(win) {
+                const titleBar = win.querySelector('.title-bar');
+                const minimizeBtn = win.querySelector('[data-minimize]');
+                const maximizeBtn = win.querySelector('[data-maximize]');
+                const systemMenu = win.querySelector('.system-menu');
+                const resizeHandles = win.querySelectorAll('.resize-handle');
+
+                // Title bar drag to move
+                titleBar.addEventListener('mousedown', (e) => {
+                    // Don't drag if clicking a button
+                    if (e.target.tagName === 'BUTTON') return;
+                    // Don't drag if maximized
+                    if (win.classList.contains('maximized')) return;
+
+                    setActiveWindow(win);
+                    startDrag(e, win, 'move');
+                });
+
+                // Minimize button
+                minimizeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    minimizeWindow(win);
+                });
+
+                // Maximize/Restore button
+                maximizeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (win.classList.contains('maximized')) {
+                        restoreWindow(win);
+                    } else {
+                        maximizeWindow(win);
+                    }
+                });
+
+                // System menu double-click to close
+                systemMenu.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    closeWindow(win);
+                });
+
+                // Resize handles
+                resizeHandles.forEach(handle => {
+                    handle.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        setActiveWindow(win);
+                        const direction = Array.from(handle.classList).find(c =>
+                            ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'].includes(c)
+                        );
+                        startDrag(e, win, 'resize', direction);
+                    });
+                });
+
+                // Click to focus
+                win.addEventListener('mousedown', () => {
+                    setActiveWindow(win);
+                });
+            }
+
+            function setActiveWindow(win) {
+                // Remove active from all windows
+                document.querySelectorAll('.window.draggable').forEach(w => {
+                    w.classList.remove('active');
+                });
+
+                // Set this window active
+                win.classList.add('active');
+                highestZIndex++;
+                win.style.zIndex = highestZIndex;
+                activeWindow = win;
+            }
+
+            function startDrag(e, win, type, direction = null) {
+                e.preventDefault();
+
+                const rect = win.getBoundingClientRect();
+                const desktopRect = desktop.getBoundingClientRect();
+                const iconTrayHeight = iconTray.offsetHeight;
+
+                dragState = {
+                    type,
+                    direction,
+                    win,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    startLeft: rect.left - desktopRect.left,
+                    startTop: rect.top - desktopRect.top,
+                    startWidth: rect.width,
+                    startHeight: rect.height,
+                    desktopWidth: desktopRect.width,
+                    desktopHeight: desktopRect.height - iconTrayHeight,
+                    minWidth: 120,
+                    minHeight: 60
+                };
+
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', endDrag);
+            }
+
+            function onDrag(e) {
+                if (!dragState) return;
+
+                const dx = e.clientX - dragState.startX;
+                const dy = e.clientY - dragState.startY;
+                const win = dragState.win;
+
+                if (dragState.type === 'move') {
+                    let newLeft = dragState.startLeft + dx;
+                    let newTop = dragState.startTop + dy;
+
+                    // Constrain to desktop (allow partial off-screen)
+                    const minVisible = 40;
+                    newLeft = Math.max(-win.offsetWidth + minVisible,
+                              Math.min(newLeft, dragState.desktopWidth - minVisible));
+                    newTop = Math.max(0,
+                             Math.min(newTop, dragState.desktopHeight - minVisible));
+
+                    win.style.left = newLeft + 'px';
+                    win.style.top = newTop + 'px';
+                }
+                else if (dragState.type === 'resize') {
+                    let newLeft = dragState.startLeft;
+                    let newTop = dragState.startTop;
+                    let newWidth = dragState.startWidth;
+                    let newHeight = dragState.startHeight;
+                    const dir = dragState.direction;
+
+                    // Horizontal resize
+                    if (dir.includes('e')) {
+                        newWidth = Math.max(dragState.minWidth, dragState.startWidth + dx);
+                        newWidth = Math.min(newWidth, dragState.desktopWidth - newLeft);
+                    }
+                    if (dir.includes('w')) {
+                        const maxDx = dragState.startWidth - dragState.minWidth;
+                        const actualDx = Math.max(-dragState.startLeft, Math.min(dx, maxDx));
+                        newLeft = dragState.startLeft + actualDx;
+                        newWidth = dragState.startWidth - actualDx;
+                    }
+
+                    // Vertical resize
+                    if (dir.includes('s')) {
+                        newHeight = Math.max(dragState.minHeight, dragState.startHeight + dy);
+                        newHeight = Math.min(newHeight, dragState.desktopHeight - newTop);
+                    }
+                    if (dir.includes('n')) {
+                        const maxDy = dragState.startHeight - dragState.minHeight;
+                        const actualDy = Math.max(-dragState.startTop, Math.min(dy, maxDy));
+                        newTop = dragState.startTop + actualDy;
+                        newHeight = dragState.startHeight - actualDy;
+                    }
+
+                    win.style.left = newLeft + 'px';
+                    win.style.top = newTop + 'px';
+                    win.style.width = newWidth + 'px';
+                    win.style.height = newHeight + 'px';
+                }
+            }
+
+            function endDrag() {
+                if (dragState && dragState.type !== 'move') {
+                    // Save restore position after resize
+                    const win = dragState.win;
+                    if (!win.classList.contains('maximized')) {
+                        saveRestoreState(win);
+                    }
+                }
+                dragState = null;
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', endDrag);
+            }
+
+            function saveRestoreState(win) {
+                win.dataset.restoreLeft = parseInt(win.style.left);
+                win.dataset.restoreTop = parseInt(win.style.top);
+                win.dataset.restoreWidth = parseInt(win.style.width);
+                win.dataset.restoreHeight = parseInt(win.style.height);
+            }
+
+            function minimizeWindow(win) {
+                // Save current state if not maximized
+                if (!win.classList.contains('maximized')) {
+                    saveRestoreState(win);
+                }
+
+                // Create icon in tray
+                const title = win.querySelector('.title-bar-text').textContent;
+                const icon = document.createElement('div');
+                icon.className = 'minimized-icon';
+                icon.dataset.windowId = win.id;
+                icon.innerHTML = `
+                    <div class="icon-bar"></div>
+                    <span class="icon-title">${title}</span>
+                `;
+                icon.addEventListener('click', () => {
+                    restoreFromMinimize(win);
+                });
+                iconTray.appendChild(icon);
+
+                // Hide window
+                win.classList.add('minimized');
+
+                // Activate next window if this was active
+                if (win === activeWindow) {
+                    const visibleWindows = Array.from(
+                        document.querySelectorAll('.window.draggable:not(.minimized)')
+                    ).sort((a, b) => (parseInt(b.style.zIndex) || 0) - (parseInt(a.style.zIndex) || 0));
+
+                    if (visibleWindows.length > 0) {
+                        setActiveWindow(visibleWindows[0]);
+                    } else {
+                        activeWindow = null;
+                    }
+                }
+            }
+
+            function restoreFromMinimize(win) {
+                // Remove icon from tray
+                const icon = iconTray.querySelector(`[data-window-id="${win.id}"]`);
+                if (icon) {
+                    icon.remove();
+                }
+
+                // Show window
+                win.classList.remove('minimized');
+                setActiveWindow(win);
+            }
+
+            function maximizeWindow(win) {
+                // Save current state
+                if (!win.classList.contains('maximized')) {
+                    saveRestoreState(win);
+                }
+
+                const iconTrayHeight = iconTray.offsetHeight;
+
+                // Maximize to fill desktop (excluding icon tray)
+                win.classList.add('maximized');
+                win.style.left = '0';
+                win.style.top = '0';
+                win.style.width = '100%';
+                win.style.height = `calc(100% - ${iconTrayHeight}px)`;
+            }
+
+            function restoreWindow(win) {
+                win.classList.remove('maximized');
+                win.style.left = (win.dataset.restoreLeft || 50) + 'px';
+                win.style.top = (win.dataset.restoreTop || 50) + 'px';
+                win.style.width = (win.dataset.restoreWidth || 300) + 'px';
+                win.style.height = (win.dataset.restoreHeight || 200) + 'px';
+            }
+
+            function closeWindow(win) {
+                // Remove icon if minimized
+                const icon = iconTray.querySelector(`[data-window-id="${win.id}"]`);
+                if (icon) {
+                    icon.remove();
+                }
+
+                // Remove window
+                win.remove();
+
+                // Activate next window
+                const visibleWindows = Array.from(
+                    document.querySelectorAll('.window.draggable:not(.minimized)')
+                ).sort((a, b) => (parseInt(b.style.zIndex) || 0) - (parseInt(a.style.zIndex) || 0));
+
+                if (visibleWindows.length > 0) {
+                    setActiveWindow(visibleWindows[0]);
+                } else {
+                    activeWindow = null;
+                }
+            }
+
+            // Initialize on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>

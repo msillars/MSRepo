@@ -172,11 +172,55 @@ Windows respond to focus:
 
 ---
 
-## Demo Page
+## Demo Pages
 
-Test the window component in isolation: `dashboard/title-bar-demo.html`
+| Page | Purpose |
+|------|---------|
+| `dashboard/title-bar-demo.html` | Static title bar and window frame examples |
+| `dashboard/window-demo.html` | **Interactive window behavior** (move, resize, minimize, maximize) |
 
-(This page tests both the window frame and title bar together.)
+---
+
+## Window Behavior (First Draft - Jan 2026)
+
+Interactive window management implemented in `window-demo.html`:
+
+### Implemented Features
+
+| Feature | Behavior | Implementation |
+|---------|----------|----------------|
+| **Move** | Drag title bar | Mouse events on `.title-bar` |
+| **Resize** | Drag edges/corners | 8 invisible resize handles around window |
+| **Minimize** | Collapse to icon tray | Window hidden, icon appears in bottom tray |
+| **Maximize** | Fill parent container | Window expands to desktop bounds (not browser) |
+| **Restore** | Return to previous size | Saved in `data-restore-*` attributes |
+| **Close** | Double-click system menu | Window removed from DOM |
+| **Focus/Z-order** | Click to bring to front | `z-index` incremented on activation |
+
+### Key Design Decisions
+
+1. **Windows operate within desktop container** - not the full browser viewport
+2. **Icon tray at bottom** - minimized windows become clickable icons (like Win 3.1 desktop icons)
+3. **Title bar unchanged** - uses existing 22px height, 20x20 buttons exactly as documented
+4. **State preservation** - window remembers size/position before maximize
+
+### CSS Classes Added
+
+```css
+.window.draggable      /* Enables positioning */
+.window.minimized      /* Hidden state */
+.window.maximized      /* Full desktop size */
+.resize-handle         /* Invisible drag targets */
+.icon-tray             /* Bottom bar for minimized icons */
+.minimized-icon        /* Clickable restore button */
+```
+
+### Open Questions for Future Sessions
+
+1. **Scrollbars** - How did Win 3.1 scrollbars work? (needs research)
+2. **Status bar** - Was there a bar at the bottom with info? (needs research)
+3. **Menu bar** - Between title bar and content (documented as future)
+4. **Resize cursor feedback** - Should we show resize cursors on window frame itself?
 
 ---
 
@@ -192,6 +236,7 @@ Test the window component in isolation: `dashboard/title-bar-demo.html`
 
 | Date | Change |
 |------|--------|
+| 2026-01-22 | Added window-demo.html with interactive behavior (move, resize, min/max) |
 | 2026-01-22 | Restructured: Window as parent, Title Bar as child. Added Window Frame section. |
 | 2026-01-20 | Title bar rolled out to main dashboard (index.html) |
 | 2026-01-20 | Added Design Philosophy section, confirmed all button dimensions |
@@ -199,11 +244,29 @@ Test the window component in isolation: `dashboard/title-bar-demo.html`
 
 ---
 
-## Session Summary (2026-01-22)
+## Session Summary
 
-**Context for next session:**
+### 2026-01-22 (Session 2) - Window Behavior Demo
 
-This session focused on documentation review and restructuring to ensure we're building systematically.
+**What we built:**
+- Created `window-demo.html` with full interactive window management
+- Move, resize, minimize, maximize, restore, close, focus/z-order all working
+- Icon tray at bottom for minimized windows
+- Windows constrained to desktop container (not browser)
+
+**Status:**
+- First draft complete and functional
+- Title bar component unchanged (as intended)
+- Ready for visual review and refinement
+
+**Next steps:**
+1. Research scrollbars and status bar for Win 3.1 authenticity
+2. Review demo, identify any behavior issues
+3. Consider extracting JS to reusable module
+
+---
+
+### 2026-01-22 (Session 1) - Documentation Restructure
 
 **Key clarification made:**
 - Window is the parent component; Title Bar is a child that lives inside it
@@ -213,11 +276,6 @@ This session focused on documentation review and restructuring to ensure we're b
 - Title Bar: Fully specified and implemented (22px, 20x20 buttons, etc.)
 - Window Frame: Basic implementation exists, but border style needs verification
 
-**Next steps for Window component:**
-1. Research whether Win 3.1 window frames had 3D beveled outer borders
-2. Verify the 2px frame padding is authentic
-3. Update CSS if needed
-4. Then move to Phase 2 (Items API migration)
-
-**Decision made:**
-- Skip emulator for now - use only if we hit a specific visual question we can't answer from documentation
+**Open questions:**
+1. Should window frame have 3D beveled outer border?
+2. Verify 2px frame padding is authentic
