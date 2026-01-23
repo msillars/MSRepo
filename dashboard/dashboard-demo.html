@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Demo - Full Interactive</title>
+    <link rel="icon" type="image/x-icon" href="../Icons/FavIco.ICO">
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <link rel="stylesheet" href="desktop-icons.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+            font-size: 11px;
+        }
+
+        /* THE UNIVERSE: Initial blank desktop */
+        .universe {
+            background: var(--desktop-bg);
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Desktop icons in Universe */
+        .universe .desktop-icons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 80px);
+            grid-auto-rows: 90px;
+            gap: 8px 16px;
+            padding: 20px;
+            align-content: start;
+        }
+
+        /* Minimized window icon - sits directly on desktop */
+        .window-icon {
+            position: absolute;
+            width: 100px;
+            height: 32px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset -1px -1px 0 var(--button-dark),
+                        inset 1px 1px 0 var(--button-light);
+            display: flex;
+            align-items: center;
+            padding: 2px 4px;
+            cursor: pointer;
+            font-size: 11px;
+            user-select: none;
+        }
+
+        .window-icon:active {
+            box-shadow: inset 1px 1px 0 var(--button-dark);
+        }
+
+        .window-icon .icon-symbol {
+            width: 16px;
+            height: 14px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset -1px -1px 0 var(--button-dark),
+                        inset 1px 1px 0 var(--button-light);
+            margin-right: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .window-icon .icon-symbol::after {
+            content: '';
+            width: 8px;
+            height: 2px;
+            background: var(--window-fg);
+        }
+
+        .window-icon .icon-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .window-icon.dragging {
+            opacity: 0.7;
+            z-index: 9999;
+        }
+
+        /* Draggable window styles */
+        .window.draggable {
+            position: absolute;
+            cursor: default;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .window.draggable .title-bar {
+            cursor: move;
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .window.draggable.maximized .title-bar {
+            cursor: default;
+        }
+
+        .window.draggable .title-bar-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .window.draggable .title-bar-controls {
+            flex-shrink: 0;
+        }
+
+        .window.draggable .window-body {
+            flex: 1;
+            overflow: auto;
+            min-height: 0;
+        }
+
+        .window.draggable .status-bar {
+            flex-shrink: 0;
+        }
+
+        /* Resize handles */
+        .window.draggable .resize-handle {
+            position: absolute;
+            background: transparent;
+        }
+
+        .window.draggable .resize-handle.n { top: -3px; left: 3px; right: 3px; height: 6px; cursor: n-resize; }
+        .window.draggable .resize-handle.s { bottom: -3px; left: 3px; right: 3px; height: 6px; cursor: s-resize; }
+        .window.draggable .resize-handle.e { right: -3px; top: 3px; bottom: 3px; width: 6px; cursor: e-resize; }
+        .window.draggable .resize-handle.w { left: -3px; top: 3px; bottom: 3px; width: 6px; cursor: w-resize; }
+        .window.draggable .resize-handle.nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; }
+        .window.draggable .resize-handle.ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; }
+        .window.draggable .resize-handle.sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
+        .window.draggable .resize-handle.se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; }
+
+        .window.draggable.maximized .resize-handle { display: none; }
+        .window.draggable.minimized { display: none; }
+
+        /* MY LIFE content styles */
+        .mylife-content {
+            padding: 20px;
+            background: white;
+            min-height: 100%;
+        }
+
+        .mylife-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mylife-header h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Priorities Window (embedded, not draggable) */
+        .priorities-window {
+            width: 320px;
+            flex-shrink: 0;
+        }
+
+        .priorities-content {
+            padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .priority-item {
+            border: 1px solid var(--border);
+            padding: 12px;
+            margin-bottom: 12px;
+            background: white;
+            display: flex;
+            gap: 12px;
+        }
+
+        .priority-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .priority-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .priority-text {
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .priority-meta {
+            font-size: 10px;
+            color: var(--button-dark);
+        }
+
+        /* Topics Grid */
+        .topics-section {
+            flex: 1;
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        /* Topic Card (embedded window style) */
+        .topic-card {
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .topic-card-body {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--window-bg);
+            position: relative;
+        }
+
+        .weight-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border);
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .topic-weight {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .topic-icon {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .topic-icon img {
+            width: 28px;
+            height: 28px;
+            image-rendering: pixelated;
+        }
+
+        .topic-name {
+            font-size: 12px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .topic-ideas-count {
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+            margin-bottom: 8px;
+            background: rgba(0,0,0,0.05);
+        }
+
+        .topic-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .topic-btn {
+            flex: 1;
+            min-width: 0;
+            font-size: 10px;
+        }
+
+        /* Weight colors */
+        .weight-10 { background: #ff0000; }
+        .weight-9 { background: #ff3300; }
+        .weight-8 { background: #ff6600; }
+        .weight-7 { background: #ff9900; }
+        .weight-6 { background: #ffcc00; }
+        .weight-5 { background: #99cc00; }
+        .weight-4 { background: #66cc33; }
+        .weight-3 { background: #33cc66; }
+        .weight-2 { background: #00cc99; }
+        .weight-1 { background: #0099cc; }
+    </style>
+</head>
+<body>
+    <!-- THE UNIVERSE: The blank desktop - contains icon(s) to open desktops -->
+    <div class="universe" id="universe">
+        <!-- Universe Icons -->
+        <div class="desktop-icons" id="universe-icons">
+            <div class="desktop-icon" tabindex="0" id="mylife-icon">
+                <div class="desktop-icon-image">
+                    <img src="../Icons/PROGM001.ICO" alt="My Life">
+                </div>
+                <div class="desktop-icon-label">My Life</div>
+            </div>
+        </div>
+
+        <!-- MY LIFE: Desktop window containing topics (opens from Universe) -->
+        <div class="window draggable active" id="mylife-window"
+             style="left: 40px; top: 30px; width: calc(100% - 80px); height: calc(100% - 60px); display: none;"
+             data-restore-left="40" data-restore-top="30"
+             data-restore-width="calc(100% - 80px)" data-restore-height="calc(100% - 60px)">
+            <!-- Resize handles -->
+            <div class="resize-handle n"></div>
+            <div class="resize-handle s"></div>
+            <div class="resize-handle e"></div>
+            <div class="resize-handle w"></div>
+            <div class="resize-handle nw"></div>
+            <div class="resize-handle ne"></div>
+            <div class="resize-handle sw"></div>
+            <div class="resize-handle se"></div>
+
+            <div class="title-bar">
+                <div class="title-bar-controls">
+                    <button class="system-menu" aria-label="System menu"></button>
+                </div>
+                <div class="title-bar-text">My Life</div>
+                <div class="title-bar-controls">
+                    <button data-minimize aria-label="Minimize"></button>
+                    <button data-maximize aria-label="Maximize"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="mylife-content">
+                    <!-- Header -->
+                    <div class="mylife-header">
+                        <h1>My Life</h1>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button class="primary">Ideas (42)</button>
+                        </div>
+                    </div>
+
+                    <!-- Main Layout -->
+                    <div class="main-layout">
+                        <!-- Top Priorities Window (embedded) -->
+                        <div class="window priorities-window active">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Top 5 Priorities</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="window-body priorities-content">
+                                <div class="priority-item">
+                                    <div class="priority-rank">1</div>
+                                    <div class="priority-content">
+                                        <div class="priority-text">Complete dashboard demo with interactive windows</div>
+                                        <div class="priority-meta">Work / Weight: 9</div>
+                                    </div>
+                                </div>
+                                <div class="priority-item">
+                                    <div class="priority-rank">2</div>
+                                    <div class="priority-content">
+                                        <div class="priority-text">Review Win 3.1 specifications for menu bar</div>
+                                        <div class="priority-meta">Work / Weight: 8</div>
+                                    </div>
+                                </div>
+                                <div class="priority-item">
+                                    <div class="priority-rank">3</div>
+                                    <div class="priority-content">
+                                        <div class="priority-text">Schedule dentist appointment</div>
+                                        <div class="priority-meta">Health / Weight: 7</div>
+                                    </div>
+                                </div>
+                                <div class="priority-item">
+                                    <div class="priority-rank">4</div>
+                                    <div class="priority-content">
+                                        <div class="priority-text">Plan weekend photography trip</div>
+                                        <div class="priority-meta">Photography / Weight: 6</div>
+                                    </div>
+                                </div>
+                                <div class="priority-item">
+                                    <div class="priority-rank">5</div>
+                                    <div class="priority-content">
+                                        <div class="priority-text">Organize kitchen cabinets</div>
+                                        <div class="priority-meta">Living / Weight: 5</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topics Grid -->
+                        <div class="topics-section">
+                            <div class="topics-grid">
+                                <!-- Work -->
+                                <div class="window topic-card active">
+                                    <div class="title-bar">
+                                        <div class="title-bar-controls">
+                                            <button class="system-menu" aria-label="System menu"></button>
+                                        </div>
+                                        <div class="title-bar-text">Work</div>
+                                        <div class="title-bar-controls">
+                                            <button data-minimize aria-label="Minimize"></button>
+                                            <button data-maximize aria-label="Maximize"></button>
+                                        </div>
+                                    </div>
+                                    <div class="topic-card-body">
+                                        <div class="weight-badge topic-weight weight-9">9</div>
+                                        <div class="topic-header">
+                                            <div class="topic-icon">
+                                                <img src="../Icons/Work.ICO" alt="Work">
+                                            </div>
+                                            <div class="topic-name">Work</div>
+                                        </div>
+                                        <div class="topic-ideas-count">12 IDEAS</div>
+                                        <div class="topic-actions">
+                                            <button class="topic-btn">EDIT</button>
+                                            <button class="topic-btn">VIEW</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Health -->
+                                <div class="window topic-card active">
+                                    <div class="title-bar">
+                                        <div class="title-bar-controls">
+                                            <button class="system-menu" aria-label="System menu"></button>
+                                        </div>
+                                        <div class="title-bar-text">Health</div>
+                                        <div class="title-bar-controls">
+                                            <button data-minimize aria-label="Minimize"></button>
+                                            <button data-maximize aria-label="Maximize"></button>
+                                        </div>
+                                    </div>
+                                    <div class="topic-card-body">
+                                        <div class="weight-badge topic-weight weight-8">8</div>
+                                        <div class="topic-header">
+                                            <div class="topic-icon">
+                                                <img src="../Icons/hearts.ICO" alt="Health">
+                                            </div>
+                                            <div class="topic-name">Health</div>
+                                        </div>
+                                        <div class="topic-ideas-count">8 IDEAS</div>
+                                        <div class="topic-actions">
+                                            <button class="topic-btn">EDIT</button>
+                                            <button class="topic-btn">VIEW</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Photography -->
+                                <div class="window topic-card active">
+                                    <div class="title-bar">
+                                        <div class="title-bar-controls">
+                                            <button class="system-menu" aria-label="System menu"></button>
+                                        </div>
+                                        <div class="title-bar-text">Photography</div>
+                                        <div class="title-bar-controls">
+                                            <button data-minimize aria-label="Minimize"></button>
+                                            <button data-maximize aria-label="Maximize"></button>
+                                        </div>
+                                    </div>
+                                    <div class="topic-card-body">
+                                        <div class="weight-badge topic-weight weight-7">7</div>
+                                        <div class="topic-header">
+                                            <div class="topic-icon">
+                                                <img src="../Icons/Photography.ICO" alt="Photography">
+                                            </div>
+                                            <div class="topic-name">Photography</div>
+                                        </div>
+                                        <div class="topic-ideas-count">6 IDEAS</div>
+                                        <div class="topic-actions">
+                                            <button class="topic-btn">EDIT</button>
+                                            <button class="topic-btn">VIEW</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Living -->
+                                <div class="window topic-card active">
+                                    <div class="title-bar">
+                                        <div class="title-bar-controls">
+                                            <button class="system-menu" aria-label="System menu"></button>
+                                        </div>
+                                        <div class="title-bar-text">Living</div>
+                                        <div class="title-bar-controls">
+                                            <button data-minimize aria-label="Minimize"></button>
+                                            <button data-maximize aria-label="Maximize"></button>
+                                        </div>
+                                    </div>
+                                    <div class="topic-card-body">
+                                        <div class="weight-badge topic-weight weight-6">6</div>
+                                        <div class="topic-header">
+                                            <div class="topic-icon">
+                                                <img src="../Icons/Living.ICO" alt="Living">
+                                            </div>
+                                            <div class="topic-name">Living</div>
+                                        </div>
+                                        <div class="topic-ideas-count">9 IDEAS</div>
+                                        <div class="topic-actions">
+                                            <button class="topic-btn">EDIT</button>
+                                            <button class="topic-btn">VIEW</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Relationships -->
+                                <div class="window topic-card active">
+                                    <div class="title-bar">
+                                        <div class="title-bar-controls">
+                                            <button class="system-menu" aria-label="System menu"></button>
+                                        </div>
+                                        <div class="title-bar-text">Relationships</div>
+                                        <div class="title-bar-controls">
+                                            <button data-minimize aria-label="Minimize"></button>
+                                            <button data-maximize aria-label="Maximize"></button>
+                                        </div>
+                                    </div>
+                                    <div class="topic-card-body">
+                                        <div class="weight-badge topic-weight weight-5">5</div>
+                                        <div class="topic-header">
+                                            <div class="topic-icon">
+                                                <img src="../Icons/Relationships.ICO" alt="Relationships">
+                                            </div>
+                                            <div class="topic-name">Relationships</div>
+                                        </div>
+                                        <div class="topic-ideas-count">4 IDEAS</div>
+                                        <div class="topic-actions">
+                                            <button class="topic-btn">EDIT</button>
+                                            <button class="topic-btn">VIEW</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Life Admin -->
+                                <div class="window topic-card active">
+                                    <div class="title-bar">
+                                        <div class="title-bar-controls">
+                                            <button class="system-menu" aria-label="System menu"></button>
+                                        </div>
+                                        <div class="title-bar-text">Life Admin</div>
+                                        <div class="title-bar-controls">
+                                            <button data-minimize aria-label="Minimize"></button>
+                                            <button data-maximize aria-label="Maximize"></button>
+                                        </div>
+                                    </div>
+                                    <div class="topic-card-body">
+                                        <div class="weight-badge topic-weight weight-4">4</div>
+                                        <div class="topic-header">
+                                            <div class="topic-icon">
+                                                <img src="../Icons/LifeAdmin.ICO" alt="Life Admin">
+                                            </div>
+                                            <div class="topic-name">Life Admin</div>
+                                        </div>
+                                        <div class="topic-ideas-count">3 IDEAS</div>
+                                        <div class="topic-actions">
+                                            <button class="topic-btn">EDIT</button>
+                                            <button class="topic-btn">VIEW</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="status-bar">
+                <div class="status-bar-section">Ready</div>
+                <div class="status-bar-section">42 items</div>
+                <div class="sizing-grip"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Dashboard Demo - Interactive Window Manager
+         * Combines Universe/My Life hierarchy with full window behavior
+         */
+        (function() {
+            const universe = document.getElementById('universe');
+            const myLifeIcon = document.getElementById('mylife-icon');
+            const myLifeWindow = document.getElementById('mylife-window');
+
+            let highestZIndex = 10;
+            let activeWindow = null;
+            let dragState = null;
+
+            // Icon grid configuration for minimized windows
+            const ICON_WIDTH = 100;
+            const ICON_HEIGHT = 32;
+            const ICON_GAP = 8;
+            const ICON_MARGIN = 8;
+
+            // ===== Desktop Icon Selection =====
+            const desktopIcons = document.querySelectorAll('.desktop-icon');
+            desktopIcons.forEach(icon => {
+                icon.addEventListener('click', function(e) {
+                    desktopIcons.forEach(i => i.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+
+                icon.addEventListener('dblclick', function() {
+                    openMyLife();
+                });
+            });
+
+            // Click on Universe to deselect icons
+            universe.addEventListener('click', function(e) {
+                if (e.target === this || e.target.classList.contains('desktop-icons')) {
+                    desktopIcons.forEach(i => i.classList.remove('selected'));
+                }
+            });
+
+            // Keyboard support
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const selected = document.querySelector('.desktop-icon.selected');
+                    if (selected) {
+                        openMyLife();
+                    }
+                }
+                if (e.key === 'Escape' && myLifeWindow.style.display !== 'none') {
+                    closeMyLife();
+                }
+            });
+
+            // ===== My Life Window Functions =====
+            function openMyLife() {
+                myLifeWindow.style.display = 'flex';
+                setActiveWindow(myLifeWindow);
+            }
+
+            function closeMyLife() {
+                myLifeWindow.style.display = 'none';
+            }
+
+            // ===== Window Management =====
+            function setupWindow(win) {
+                const titleBar = win.querySelector('.title-bar');
+                const minimizeBtn = win.querySelector('[data-minimize]');
+                const maximizeBtn = win.querySelector('[data-maximize]');
+                const systemMenu = win.querySelector('.system-menu');
+                const resizeHandles = win.querySelectorAll('.resize-handle');
+
+                // Title bar drag to move
+                titleBar.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName === 'BUTTON') return;
+                    if (win.classList.contains('maximized')) return;
+
+                    setActiveWindow(win);
+                    startDrag(e, win, 'move');
+                });
+
+                // Minimize button
+                minimizeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (win.id === 'mylife-window') {
+                        closeMyLife();
+                    } else {
+                        minimizeWindow(win);
+                    }
+                });
+
+                // Maximize/Restore button
+                maximizeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (win.classList.contains('maximized')) {
+                        restoreWindow(win);
+                    } else {
+                        maximizeWindow(win);
+                    }
+                });
+
+                // System menu double-click to close
+                systemMenu.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    if (win.id === 'mylife-window') {
+                        closeMyLife();
+                    }
+                });
+
+                // Resize handles
+                resizeHandles.forEach(handle => {
+                    handle.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        setActiveWindow(win);
+                        const direction = Array.from(handle.classList).find(c =>
+                            ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'].includes(c)
+                        );
+                        startDrag(e, win, 'resize', direction);
+                    });
+                });
+
+                // Click to focus
+                win.addEventListener('mousedown', () => {
+                    setActiveWindow(win);
+                });
+            }
+
+            function setActiveWindow(win) {
+                document.querySelectorAll('.window.draggable').forEach(w => {
+                    w.classList.remove('active');
+                });
+                win.classList.add('active');
+                highestZIndex++;
+                win.style.zIndex = highestZIndex;
+                activeWindow = win;
+            }
+
+            function startDrag(e, win, type, direction = null) {
+                e.preventDefault();
+
+                const rect = win.getBoundingClientRect();
+                const containerRect = universe.getBoundingClientRect();
+
+                dragState = {
+                    type,
+                    direction,
+                    win,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    startLeft: rect.left - containerRect.left,
+                    startTop: rect.top - containerRect.top,
+                    startWidth: rect.width,
+                    startHeight: rect.height,
+                    containerWidth: containerRect.width,
+                    containerHeight: containerRect.height,
+                    minWidth: 200,
+                    minHeight: 150
+                };
+
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', endDrag);
+            }
+
+            function onDrag(e) {
+                if (!dragState) return;
+
+                const dx = e.clientX - dragState.startX;
+                const dy = e.clientY - dragState.startY;
+                const win = dragState.win;
+
+                if (dragState.type === 'move') {
+                    let newLeft = dragState.startLeft + dx;
+                    let newTop = dragState.startTop + dy;
+
+                    const minVisible = 40;
+                    newLeft = Math.max(-win.offsetWidth + minVisible,
+                              Math.min(newLeft, dragState.containerWidth - minVisible));
+                    newTop = Math.max(0,
+                             Math.min(newTop, dragState.containerHeight - minVisible));
+
+                    win.style.left = newLeft + 'px';
+                    win.style.top = newTop + 'px';
+                    win.style.width = dragState.startWidth + 'px';
+                    win.style.height = dragState.startHeight + 'px';
+                }
+                else if (dragState.type === 'resize') {
+                    let newLeft = dragState.startLeft;
+                    let newTop = dragState.startTop;
+                    let newWidth = dragState.startWidth;
+                    let newHeight = dragState.startHeight;
+                    const dir = dragState.direction;
+
+                    if (dir.includes('e')) {
+                        newWidth = Math.max(dragState.minWidth, dragState.startWidth + dx);
+                        newWidth = Math.min(newWidth, dragState.containerWidth - newLeft);
+                    }
+                    if (dir.includes('w')) {
+                        const maxDx = dragState.startWidth - dragState.minWidth;
+                        const actualDx = Math.max(-dragState.startLeft, Math.min(dx, maxDx));
+                        newLeft = dragState.startLeft + actualDx;
+                        newWidth = dragState.startWidth - actualDx;
+                    }
+                    if (dir.includes('s')) {
+                        newHeight = Math.max(dragState.minHeight, dragState.startHeight + dy);
+                        newHeight = Math.min(newHeight, dragState.containerHeight - newTop);
+                    }
+                    if (dir.includes('n')) {
+                        const maxDy = dragState.startHeight - dragState.minHeight;
+                        const actualDy = Math.max(-dragState.startTop, Math.min(dy, maxDy));
+                        newTop = dragState.startTop + actualDy;
+                        newHeight = dragState.startHeight - actualDy;
+                    }
+
+                    win.style.left = newLeft + 'px';
+                    win.style.top = newTop + 'px';
+                    win.style.width = newWidth + 'px';
+                    win.style.height = newHeight + 'px';
+                }
+            }
+
+            function endDrag() {
+                if (dragState && dragState.type !== 'move') {
+                    const win = dragState.win;
+                    if (!win.classList.contains('maximized')) {
+                        saveRestoreState(win);
+                    }
+                }
+                dragState = null;
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', endDrag);
+            }
+
+            function saveRestoreState(win) {
+                win.dataset.restoreLeft = parseInt(win.style.left);
+                win.dataset.restoreTop = parseInt(win.style.top);
+                win.dataset.restoreWidth = parseInt(win.style.width);
+                win.dataset.restoreHeight = parseInt(win.style.height);
+            }
+
+            function getNextIconPosition() {
+                const existingIcons = universe.querySelectorAll('.window-icon');
+                const containerRect = universe.getBoundingClientRect();
+                const cols = Math.floor((containerRect.width - ICON_MARGIN * 2) / (ICON_WIDTH + ICON_GAP));
+
+                const occupied = new Set();
+                existingIcons.forEach(icon => {
+                    const col = Math.round((parseInt(icon.style.left) - ICON_MARGIN) / (ICON_WIDTH + ICON_GAP));
+                    const row = Math.round((containerRect.height - parseInt(icon.style.top) - ICON_HEIGHT - ICON_MARGIN) / (ICON_HEIGHT + ICON_GAP));
+                    occupied.add(`${col},${row}`);
+                });
+
+                for (let row = 0; row < 100; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        if (!occupied.has(`${col},${row}`)) {
+                            return {
+                                left: ICON_MARGIN + col * (ICON_WIDTH + ICON_GAP),
+                                top: containerRect.height - ICON_MARGIN - ICON_HEIGHT - row * (ICON_HEIGHT + ICON_GAP)
+                            };
+                        }
+                    }
+                }
+                return { left: ICON_MARGIN, top: containerRect.height - ICON_MARGIN - ICON_HEIGHT };
+            }
+
+            function minimizeWindow(win) {
+                if (!win.classList.contains('maximized')) {
+                    saveRestoreState(win);
+                }
+
+                const title = win.querySelector('.title-bar-text').textContent;
+                const pos = getNextIconPosition();
+
+                const icon = document.createElement('div');
+                icon.className = 'window-icon';
+                icon.dataset.windowId = win.id;
+                icon.style.left = pos.left + 'px';
+                icon.style.top = pos.top + 'px';
+                icon.innerHTML = `
+                    <div class="icon-symbol"></div>
+                    <span class="icon-title">${title}</span>
+                `;
+
+                icon.addEventListener('click', () => {
+                    restoreFromMinimize(win);
+                });
+
+                universe.appendChild(icon);
+                win.classList.add('minimized');
+            }
+
+            function restoreFromMinimize(win) {
+                const icon = universe.querySelector(`.window-icon[data-window-id="${win.id}"]`);
+                if (icon) icon.remove();
+                win.classList.remove('minimized');
+                setActiveWindow(win);
+            }
+
+            function maximizeWindow(win) {
+                if (!win.classList.contains('maximized')) {
+                    saveRestoreState(win);
+                }
+
+                win.classList.add('maximized');
+                win.style.left = '0';
+                win.style.top = '0';
+                win.style.width = '100%';
+                win.style.height = '100%';
+            }
+
+            function restoreWindow(win) {
+                win.classList.remove('maximized');
+                win.style.left = (win.dataset.restoreLeft || 40) + 'px';
+                win.style.top = (win.dataset.restoreTop || 30) + 'px';
+                win.style.width = (win.dataset.restoreWidth || 600) + 'px';
+                win.style.height = (win.dataset.restoreHeight || 400) + 'px';
+            }
+
+            // ===== Initialize =====
+            function init() {
+                const windows = document.querySelectorAll('.window.draggable');
+                windows.forEach(win => {
+                    setupWindow(win);
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>
