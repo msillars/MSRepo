@@ -222,6 +222,69 @@ Interactive window management implemented in `window-demo.html`:
 
 ---
 
+## MDI Minimize Behavior (Design Spec - Jan 2026)
+
+Windows minimize to **icons inside their parent container**, not a global taskbar. This follows the classic MDI (Multiple Document Interface) pattern.
+
+### Behavior
+
+| Action | Result |
+|--------|--------|
+| Click minimize button | Window collapses to icon at bottom of **parent** window |
+| Click minimized icon | Window restores to previous size/position |
+| Double-click icon | Same as single click (restore) |
+| Drag icon | Snaps to grid within parent |
+| Right-click icon | Context menu (future) |
+
+### Icon Appearance
+
+```
+┌─────────────────┐
+│ ═  Window Title │  ← Small title bar style icon
+└─────────────────┘
+```
+
+- Uses default icon for now (system menu bar style)
+- Each window type will eventually have its own icon
+- Icon shows window title (truncated if needed)
+- 3D beveled border like buttons
+
+### Grid Snap
+
+- Icons snap to a grid at bottom of parent container
+- Grid starts from bottom-left corner
+- Standard icon size: ~100x32px (approximate, needs testing)
+- Grid spacing: icon width + small gap
+
+### Arrange Icons
+
+- Accessible via: right-click on parent window body, or future menu bar
+- Re-positions all minimized icons to neat grid
+- Fills from bottom-left, wrapping upward if needed
+
+### Implementation Notes
+
+```javascript
+// Each window tracks its parent container
+// When minimized:
+// 1. Hide the window
+// 2. Create icon in parent's icon area
+// 3. Position icon on grid
+
+// Icon area is inside .window-body of parent, at bottom
+// Or if parent is desktop, use desktop's icon area
+```
+
+### CSS Classes (Planned)
+
+```css
+.window-icon-area      /* Container for minimized icons within a window */
+.window-icon           /* A minimized window icon */
+.window-icon.selected  /* Currently selected icon */
+```
+
+---
+
 ## Scrollbars (Research Notes - Jan 2026)
 
 ### Current Implementation
