@@ -637,7 +637,7 @@
 
                 <div class="demo-row">
                     <div class="demo-item" style="max-width: 350px;">
-                        <label>Window with Custom Scrollbars</label>
+                        <label>Window with Functional Scrollbars (try clicking arrows)</label>
                         <div class="window active">
                             <div class="title-bar">
                                 <div class="title-bar-controls">
@@ -651,35 +651,40 @@
                             </div>
                             <div class="window-body" style="padding: 0; position: relative;">
                                 <div class="scrollable-demo">
-                                    <div class="scroll-viewport-demo">
-                                        <div class="scroll-inner-demo" style="font-size: 11px;">
-                                            <p style="margin: 0;">This window demonstrates custom Win3x scrollbars with arrow buttons.</p>
+                                    <div class="scroll-viewport-demo" id="demo-viewport">
+                                        <div class="scroll-inner-demo" id="demo-content" style="font-size: 11px;">
+                                            <p style="margin: 0;"><strong>Functional Scrollbars Demo</strong></p>
+                                            <p style="margin: 8px 0 0 0;">Click and hold the arrow buttons to scroll. Auto-repeat starts after 400ms.</p>
                                             <p style="margin: 8px 0 0 0;">The scrollbar buttons are 16x16px with 3D beveled styling.</p>
                                             <p style="margin: 8px 0 0 0;">Arrows are CSS triangles (5px borders).</p>
-                                            <p style="margin: 8px 0 0 0;">Click and hold for auto-repeat scrolling.</p>
+                                            <p style="margin: 8px 0 0 0;">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                                            <p style="margin: 8px 0 0 0;">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                                            <p style="margin: 8px 0 0 0;">Ut enim ad minim veniam, quis nostrud exercitation.</p>
+                                            <p style="margin: 8px 0 0 0;">Duis aute irure dolor in reprehenderit in voluptate.</p>
+                                            <p style="margin: 8px 0 0 0; white-space: nowrap;">This line is intentionally long to demonstrate horizontal scrolling ──────────────────────────</p>
                                         </div>
                                     </div>
                                     <!-- Vertical scrollbar -->
-                                    <div class="scrollbar-v">
-                                        <div class="scroll-btn">
+                                    <div class="scrollbar-v" id="demo-scrollbar-v">
+                                        <div class="scroll-btn" data-direction="up">
                                             <div class="scroll-arrow up"></div>
                                         </div>
                                         <div class="scroll-track">
-                                            <div class="scroll-thumb" style="top: 0; height: 40px;"></div>
+                                            <div class="scroll-thumb" id="demo-thumb-v" style="top: 0; height: 40px;"></div>
                                         </div>
-                                        <div class="scroll-btn">
+                                        <div class="scroll-btn" data-direction="down">
                                             <div class="scroll-arrow down"></div>
                                         </div>
                                     </div>
                                     <!-- Horizontal scrollbar -->
-                                    <div class="scrollbar-h">
-                                        <div class="scroll-btn">
+                                    <div class="scrollbar-h" id="demo-scrollbar-h">
+                                        <div class="scroll-btn" data-direction="left">
                                             <div class="scroll-arrow left"></div>
                                         </div>
                                         <div class="scroll-track">
-                                            <div class="scroll-thumb" style="left: 0; width: 60px;"></div>
+                                            <div class="scroll-thumb" id="demo-thumb-h" style="left: 0; width: 60px;"></div>
                                         </div>
-                                        <div class="scroll-btn">
+                                        <div class="scroll-btn" data-direction="right">
                                             <div class="scroll-arrow right"></div>
                                         </div>
                                     </div>
@@ -730,7 +735,13 @@
                 </table>
 
                 <div class="notes" style="margin-top: 16px;">
-                    <p><strong>See:</strong> <a href="window-demo.html">window-demo.html</a> for functional scrollbars with auto-repeat.</p>
+                    <h3>Scrollbar Behavior</h3>
+                    <ul>
+                        <li><strong>Click:</strong> Scrolls one line (20px)</li>
+                        <li><strong>Hold:</strong> Auto-repeat starts after 400ms at 50ms intervals</li>
+                        <li><strong>Thumb:</strong> Shows scroll position and content ratio</li>
+                    </ul>
+                    <p style="margin-top: 8px;"><strong>See also:</strong> <a href="window-demo.html">window-demo.html</a> for full interactive windows with move/resize.</p>
                 </div>
             </div>
 
@@ -810,5 +821,138 @@
         </div>
     </div>
 
+    <script>
+        /**
+         * Scrollbar functionality for the demo
+         */
+        (function() {
+            const viewport = document.getElementById('demo-viewport');
+            const content = document.getElementById('demo-content');
+            const vScrollbar = document.getElementById('demo-scrollbar-v');
+            const hScrollbar = document.getElementById('demo-scrollbar-h');
+            const vThumb = document.getElementById('demo-thumb-v');
+            const hThumb = document.getElementById('demo-thumb-h');
+
+            if (!viewport || !content) return;
+
+            let scrollTop = 0;
+            let scrollLeft = 0;
+            let autoRepeatTimer = null;
+            let autoRepeatInterval = null;
+
+            const SCROLL_LINE = 20;  // Pixels per arrow click
+            const AUTO_REPEAT_DELAY = 400;  // ms before auto-repeat starts
+            const AUTO_REPEAT_RATE = 50;    // ms between repeats
+
+            function updateScrollPosition() {
+                const maxScrollTop = Math.max(0, content.scrollHeight - viewport.clientHeight);
+                const maxScrollLeft = Math.max(0, content.scrollWidth - viewport.clientWidth);
+
+                scrollTop = Math.max(0, Math.min(scrollTop, maxScrollTop));
+                scrollLeft = Math.max(0, Math.min(scrollLeft, maxScrollLeft));
+
+                content.style.transform = `translate(${-scrollLeft}px, ${-scrollTop}px)`;
+
+                // Update thumb positions
+                updateThumbs(maxScrollTop, maxScrollLeft);
+            }
+
+            function updateThumbs(maxScrollTop, maxScrollLeft) {
+                if (vThumb && vScrollbar) {
+                    const track = vScrollbar.querySelector('.scroll-track');
+                    if (track && maxScrollTop > 0) {
+                        const trackHeight = track.clientHeight;
+                        const thumbHeight = Math.max(20, (viewport.clientHeight / content.scrollHeight) * trackHeight);
+                        const thumbTop = (scrollTop / maxScrollTop) * (trackHeight - thumbHeight);
+                        vThumb.style.height = thumbHeight + 'px';
+                        vThumb.style.top = thumbTop + 'px';
+                    }
+                }
+
+                if (hThumb && hScrollbar) {
+                    const track = hScrollbar.querySelector('.scroll-track');
+                    if (track && maxScrollLeft > 0) {
+                        const trackWidth = track.clientWidth;
+                        const thumbWidth = Math.max(20, (viewport.clientWidth / content.scrollWidth) * trackWidth);
+                        const thumbLeft = (scrollLeft / maxScrollLeft) * (trackWidth - thumbWidth);
+                        hThumb.style.width = thumbWidth + 'px';
+                        hThumb.style.left = thumbLeft + 'px';
+                    }
+                }
+            }
+
+            function scrollBy(dx, dy) {
+                scrollTop += dy;
+                scrollLeft += dx;
+                updateScrollPosition();
+            }
+
+            function startAutoRepeat(dx, dy) {
+                stopAutoRepeat();
+                scrollBy(dx, dy);
+
+                autoRepeatTimer = setTimeout(() => {
+                    autoRepeatInterval = setInterval(() => {
+                        scrollBy(dx, dy);
+                    }, AUTO_REPEAT_RATE);
+                }, AUTO_REPEAT_DELAY);
+            }
+
+            function stopAutoRepeat() {
+                if (autoRepeatTimer) {
+                    clearTimeout(autoRepeatTimer);
+                    autoRepeatTimer = null;
+                }
+                if (autoRepeatInterval) {
+                    clearInterval(autoRepeatInterval);
+                    autoRepeatInterval = null;
+                }
+            }
+
+            // Vertical scrollbar buttons
+            if (vScrollbar) {
+                const upBtn = vScrollbar.querySelector('[data-direction="up"]');
+                const downBtn = vScrollbar.querySelector('[data-direction="down"]');
+
+                if (upBtn) {
+                    upBtn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        startAutoRepeat(0, -SCROLL_LINE);
+                    });
+                }
+                if (downBtn) {
+                    downBtn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        startAutoRepeat(0, SCROLL_LINE);
+                    });
+                }
+            }
+
+            // Horizontal scrollbar buttons
+            if (hScrollbar) {
+                const leftBtn = hScrollbar.querySelector('[data-direction="left"]');
+                const rightBtn = hScrollbar.querySelector('[data-direction="right"]');
+
+                if (leftBtn) {
+                    leftBtn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        startAutoRepeat(-SCROLL_LINE, 0);
+                    });
+                }
+                if (rightBtn) {
+                    rightBtn.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        startAutoRepeat(SCROLL_LINE, 0);
+                    });
+                }
+            }
+
+            // Stop auto-repeat on mouseup anywhere
+            document.addEventListener('mouseup', stopAutoRepeat);
+
+            // Initial update
+            updateScrollPosition();
+        })();
+    </script>
 </body>
 </html>
