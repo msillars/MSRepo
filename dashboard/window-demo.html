@@ -144,6 +144,7 @@
             flex: 1;
             overflow: hidden;
             position: relative;
+            height: 100%;
         }
 
         .scroll-viewport {
@@ -283,10 +284,32 @@
             border-top: 1px solid var(--border);
         }
 
+        /* Constrain title bar to window width */
+        .window.draggable .title-bar {
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* Title bar text truncation for narrow windows */
+        .window.draggable .title-bar-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+            flex: 1;
+        }
+
+        /* Ensure title bar buttons don't shrink */
+        .window.draggable .title-bar-controls {
+            flex-shrink: 0;
+        }
+
         /* Draggable window styles */
         .window.draggable {
             position: absolute;
             cursor: default;
+            overflow: hidden;
         }
 
         .window.draggable .title-bar {
@@ -543,25 +566,62 @@
                     <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
-            <div class="window-body" style="padding: 8px; overflow: auto; height: calc(100% - 26px);">
-                <p style="margin: 0; font-size: 12px;">
-                    A second window. Click to bring to front.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    Calculator content with scrollbars. Try resizing smaller to see them.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    7 8 9 /<br>
-                    4 5 6 *<br>
-                    1 2 3 -<br>
-                    0 . = +
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    Memory: M+ M- MR MC
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    Additional content to ensure scrolling works properly in this window.
-                </p>
+            <div class="window-body" style="height: calc(100% - 48px); position: relative;">
+                <div class="scroll-content">
+                    <div class="scroll-viewport" id="calc-viewport">
+                        <div class="scroll-inner" id="calc-content">
+                            <p style="margin: 0; font-size: 12px;">
+                                A second window. Click to bring to front.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                Calculator content with scrollbars.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                7 8 9 /<br>
+                                4 5 6 *<br>
+                                1 2 3 -<br>
+                                0 . = +
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                Memory: M+ M- MR MC
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                Additional content to ensure scrolling works properly in this window.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Vertical scrollbar -->
+                    <div class="scrollbar-v" id="calc-scrollbar-v">
+                        <div class="scroll-btn scroll-btn-up" data-direction="up">
+                            <div class="scroll-arrow up"></div>
+                        </div>
+                        <div class="scroll-track">
+                            <div class="scroll-thumb" id="calc-thumb-v" style="top: 0; height: 40px;"></div>
+                        </div>
+                        <div class="scroll-btn scroll-btn-down" data-direction="down">
+                            <div class="scroll-arrow down"></div>
+                        </div>
+                    </div>
+                    <!-- Horizontal scrollbar -->
+                    <div class="scrollbar-h" id="calc-scrollbar-h">
+                        <div class="scroll-btn scroll-btn-left" data-direction="left">
+                            <div class="scroll-arrow left"></div>
+                        </div>
+                        <div class="scroll-track">
+                            <div class="scroll-thumb" id="calc-thumb-h" style="left: 0; width: 40px;"></div>
+                        </div>
+                        <div class="scroll-btn scroll-btn-right" data-direction="right">
+                            <div class="scroll-arrow right"></div>
+                        </div>
+                    </div>
+                    <!-- Corner piece -->
+                    <div class="scroll-corner"></div>
+                </div>
+            </div>
+            <!-- Status bar -->
+            <div class="status-bar">
+                <div class="status-bar-section">Ready</div>
+                <div class="sizing-grip"></div>
             </div>
         </div>
 
@@ -588,28 +648,66 @@
                     <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
-            <div class="window-body" style="padding: 8px; overflow: auto; height: calc(100% - 26px);">
-                <p style="margin: 0; font-size: 12px;">
-                    Third window for testing z-order and focus management.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    <strong>Directory of C:\WINDOWS</strong>
-                </p>
-                <p style="margin: 4px 0 0 0; font-size: 11px; font-family: monospace;">
-                    SYSTEM.INI&nbsp;&nbsp;&nbsp;&nbsp;2,048<br>
-                    WIN.INI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4,096<br>
-                    NOTEPAD.EXE&nbsp;&nbsp;32,768<br>
-                    CALC.EXE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;28,672<br>
-                    WRITE.EXE&nbsp;&nbsp;&nbsp;&nbsp;45,056<br>
-                    CLOCK.EXE&nbsp;&nbsp;&nbsp;&nbsp;16,384<br>
-                    TERMINAL.EXE&nbsp;65,536<br>
-                    CARDFILE.EXE&nbsp;24,576<br>
-                    CALENDAR.EXE&nbsp;20,480<br>
-                    PAINTBRUSH.EXE&nbsp;98,304
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    10 file(s)&nbsp;&nbsp;&nbsp;337,920 bytes free
-                </p>
+            <div class="window-body" style="height: calc(100% - 48px); position: relative;">
+                <div class="scroll-content">
+                    <div class="scroll-viewport" id="filemgr-viewport">
+                        <div class="scroll-inner" id="filemgr-content">
+                            <p style="margin: 0; font-size: 12px;">
+                                Third window for testing z-order and focus management.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                <strong>Directory of C:\WINDOWS</strong>
+                            </p>
+                            <p style="margin: 4px 0 0 0; font-size: 11px; font-family: monospace;">
+                                SYSTEM.INI&nbsp;&nbsp;&nbsp;&nbsp;2,048<br>
+                                WIN.INI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4,096<br>
+                                NOTEPAD.EXE&nbsp;&nbsp;32,768<br>
+                                CALC.EXE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;28,672<br>
+                                WRITE.EXE&nbsp;&nbsp;&nbsp;&nbsp;45,056<br>
+                                CLOCK.EXE&nbsp;&nbsp;&nbsp;&nbsp;16,384<br>
+                                TERMINAL.EXE&nbsp;65,536<br>
+                                CARDFILE.EXE&nbsp;24,576<br>
+                                CALENDAR.EXE&nbsp;20,480<br>
+                                PAINTBRUSH.EXE&nbsp;98,304
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                10 file(s)&nbsp;&nbsp;&nbsp;337,920 bytes free
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Vertical scrollbar -->
+                    <div class="scrollbar-v" id="filemgr-scrollbar-v">
+                        <div class="scroll-btn scroll-btn-up" data-direction="up">
+                            <div class="scroll-arrow up"></div>
+                        </div>
+                        <div class="scroll-track">
+                            <div class="scroll-thumb" id="filemgr-thumb-v" style="top: 0; height: 40px;"></div>
+                        </div>
+                        <div class="scroll-btn scroll-btn-down" data-direction="down">
+                            <div class="scroll-arrow down"></div>
+                        </div>
+                    </div>
+                    <!-- Horizontal scrollbar -->
+                    <div class="scrollbar-h" id="filemgr-scrollbar-h">
+                        <div class="scroll-btn scroll-btn-left" data-direction="left">
+                            <div class="scroll-arrow left"></div>
+                        </div>
+                        <div class="scroll-track">
+                            <div class="scroll-thumb" id="filemgr-thumb-h" style="left: 0; width: 40px;"></div>
+                        </div>
+                        <div class="scroll-btn scroll-btn-right" data-direction="right">
+                            <div class="scroll-arrow right"></div>
+                        </div>
+                    </div>
+                    <!-- Corner piece -->
+                    <div class="scroll-corner"></div>
+                </div>
+            </div>
+            <!-- Status bar -->
+            <div class="status-bar">
+                <div class="status-bar-section">C:\WINDOWS</div>
+                <div class="status-bar-section">10 file(s)</div>
+                <div class="sizing-grip"></div>
             </div>
         </div>
 
@@ -736,8 +834,8 @@
                     startHeight: rect.height,
                     desktopWidth: desktopRect.width,
                     desktopHeight: desktopRect.height,
-                    minWidth: 120,
-                    minHeight: 60
+                    minWidth: 80,   // Just enough for title bar buttons
+                    minHeight: 70   // Title bar + status bar + minimal content
                 };
 
                 document.addEventListener('mousemove', onDrag);
@@ -1181,25 +1279,37 @@
                 };
             }
 
-            // Initialize on DOM ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    init();
-                    // Initialize scrollbar for Notepad
-                    initScrollbar(
-                        'notepad-viewport', 'notepad-content',
-                        'notepad-scrollbar-v', 'notepad-scrollbar-h',
-                        'notepad-thumb-v', 'notepad-thumb-h'
-                    );
-                });
-            } else {
-                init();
-                // Initialize scrollbar for Notepad
+            // Initialize all scrollbars
+            function initAllScrollbars() {
+                // Notepad
                 initScrollbar(
                     'notepad-viewport', 'notepad-content',
                     'notepad-scrollbar-v', 'notepad-scrollbar-h',
                     'notepad-thumb-v', 'notepad-thumb-h'
                 );
+                // Calculator
+                initScrollbar(
+                    'calc-viewport', 'calc-content',
+                    'calc-scrollbar-v', 'calc-scrollbar-h',
+                    'calc-thumb-v', 'calc-thumb-h'
+                );
+                // File Manager
+                initScrollbar(
+                    'filemgr-viewport', 'filemgr-content',
+                    'filemgr-scrollbar-v', 'filemgr-scrollbar-h',
+                    'filemgr-thumb-v', 'filemgr-thumb-h'
+                );
+            }
+
+            // Initialize on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    init();
+                    initAllScrollbars();
+                });
+            } else {
+                init();
+                initAllScrollbars();
             }
         })();
     </script>
