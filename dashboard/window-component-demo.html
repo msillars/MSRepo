@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win3x Window Component Demo</title>
+    <link rel="stylesheet" href="win3x-theme.css">
+    <link rel="stylesheet" href="win3x-skin-3.1.css">
+    <style>
+        body {
+            background: var(--desktop-bg);
+            padding: 40px;
+            font-family: var(--font-main);
+        }
+
+        .demo-section {
+            margin-bottom: 40px;
+        }
+
+        .demo-section h2 {
+            color: #000;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .demo-row {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .demo-item {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .demo-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .code-block {
+            background: #fff;
+            border: 2px inset var(--border);
+            padding: 12px;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: pre;
+            overflow-x: auto;
+            max-width: 700px;
+        }
+
+        .notes {
+            background: #ffffcc;
+            border: 1px solid #cccc00;
+            padding: 12px;
+            font-size: 12px;
+            max-width: 700px;
+        }
+
+        .notes.success {
+            background: #ccffcc;
+            border-color: #00cc00;
+        }
+
+        .notes h3 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+        }
+
+        .notes ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .notes li {
+            margin-bottom: 4px;
+        }
+
+        .spec-table {
+            background: #fff;
+            border: 2px solid var(--border);
+            border-collapse: collapse;
+            font-size: 12px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            text-align: left;
+        }
+
+        .spec-table th {
+            background: var(--button-bg);
+        }
+
+        /* Status bar for demo */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            border-top: 0;
+            height: 20px;
+            padding: 0 2px;
+            font-size: 11px;
+        }
+
+        .status-bar-section {
+            padding: 0 8px;
+            border-right: 1px solid var(--button-dark);
+            box-shadow: 1px 0 0 var(--button-light);
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-bar-section:last-child:not(.sizing-grip) {
+            flex: 1;
+            border-right: none;
+            box-shadow: none;
+        }
+
+        .sizing-grip {
+            width: 16px;
+            height: 16px;
+            margin-left: auto;
+            cursor: se-resize;
+            background: var(--button-bg);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .sizing-grip::before {
+            content: '';
+            position: absolute;
+            right: 2px;
+            bottom: 2px;
+            width: 10px;
+            height: 10px;
+            background:
+                linear-gradient(135deg,
+                    transparent 0%, transparent 30%,
+                    var(--button-dark) 30%, var(--button-dark) 40%,
+                    transparent 40%, transparent 50%,
+                    var(--button-dark) 50%, var(--button-dark) 60%,
+                    transparent 60%, transparent 70%,
+                    var(--button-dark) 70%, var(--button-dark) 80%,
+                    transparent 80%, transparent 100%
+                );
+        }
+    </style>
+</head>
+<body>
+    <div class="window active" style="max-width: 900px;">
+        <div class="title-bar">
+            <div class="title-bar-controls">
+                <button class="system-menu" aria-label="System menu"></button>
+            </div>
+            <div class="title-bar-text">Window Component - Confirmed Implementation</div>
+            <div class="title-bar-controls">
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
+            </div>
+        </div>
+        <div class="window-body" style="padding: 20px;">
+
+            <!-- SECTION: Confirmed Specs -->
+            <div class="demo-section">
+                <h2>Window Component Specifications</h2>
+
+                <table class="spec-table">
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td>Frame background</td>
+                        <td><strong>#C0C0C0</strong> (gray)</td>
+                        <td>Confirmed</td>
+                    </tr>
+                    <tr>
+                        <td>Frame border</td>
+                        <td><strong>1px solid black</strong></td>
+                        <td>Confirmed</td>
+                    </tr>
+                    <tr>
+                        <td>Frame padding</td>
+                        <td><strong>2px</strong></td>
+                        <td>Confirmed</td>
+                    </tr>
+                    <tr>
+                        <td>Window body background</td>
+                        <td><strong>#FFFFFF</strong> (white)</td>
+                        <td>Confirmed</td>
+                    </tr>
+                    <tr>
+                        <td>Title bar height</td>
+                        <td><strong>22px</strong> (fixed)</td>
+                        <td>Confirmed</td>
+                    </tr>
+                    <tr>
+                        <td>Title bar buttons</td>
+                        <td><strong>20x20px</strong> (always square)</td>
+                        <td>Confirmed</td>
+                    </tr>
+                    <tr>
+                        <td>Status bar height</td>
+                        <td><strong>20px</strong></td>
+                        <td>Confirmed</td>
+                    </tr>
+                    <tr>
+                        <td>Scrollbar width</td>
+                        <td><strong>16-17px</strong></td>
+                        <td>Confirmed</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- SECTION: Component Hierarchy -->
+            <div class="demo-section">
+                <h2>Component Hierarchy</h2>
+                <div class="code-block">.window (THE CONTAINER)
+|
++-- .title-bar (CHILD - 22px height)
+|   +-- .title-bar-controls (left)
+|   |   +-- button.system-menu
+|   +-- .title-bar-text
+|   +-- .title-bar-controls (right)
+|       +-- button[data-minimize]
+|       +-- button[data-maximize]
+|
++-- .menu-bar (CHILD - future)
+|
++-- .window-body (CHILD - content area)
+|
++-- .status-bar (CHILD - optional)</div>
+            </div>
+
+            <!-- SECTION: Live Examples -->
+            <div class="demo-section">
+                <h2>Live Examples</h2>
+
+                <div class="demo-row">
+                    <div class="demo-item">
+                        <label>Active Window</label>
+                        <div class="window active">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Program Manager</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="window-body" style="padding: 12px; min-height: 60px; font-size: 11px;">
+                                Active window has blue title bar. Frame stays gray.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-item">
+                        <label>Inactive Window</label>
+                        <div class="window">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Notepad</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="window-body" style="padding: 12px; min-height: 60px; font-size: 11px;">
+                                Inactive window has white title bar. Frame stays gray.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-row">
+                    <div class="demo-item">
+                        <label>Window with Status Bar</label>
+                        <div class="window active">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">File Manager</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="window-body" style="padding: 12px; min-height: 40px; font-size: 11px;">
+                                Window content with status bar below.
+                            </div>
+                            <div class="status-bar">
+                                <div class="status-bar-section">C:\WINDOWS</div>
+                                <div class="status-bar-section">10 file(s)</div>
+                                <div class="sizing-grip"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="demo-item">
+                        <label>Dialog Window</label>
+                        <div class="dialog active">
+                            <div class="title-bar">
+                                <div class="title-bar-controls">
+                                    <button class="system-menu" aria-label="System menu"></button>
+                                </div>
+                                <div class="title-bar-text">Open File</div>
+                                <div class="title-bar-controls">
+                                    <button data-minimize aria-label="Minimize"></button>
+                                    <button data-maximize aria-label="Maximize"></button>
+                                </div>
+                            </div>
+                            <div class="dialog-body" style="padding: 12px; min-height: 40px; font-size: 11px;">
+                                Dialog variant uses same window structure.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Active/Inactive States -->
+            <div class="demo-section">
+                <h2>Active/Inactive States</h2>
+
+                <table class="spec-table">
+                    <tr>
+                        <th>State</th>
+                        <th>Title Bar</th>
+                        <th>Frame</th>
+                    </tr>
+                    <tr>
+                        <td>Active</td>
+                        <td>Blue (#0000C0) background, white text</td>
+                        <td>Gray (#C0C0C0) - unchanged</td>
+                    </tr>
+                    <tr>
+                        <td>Inactive</td>
+                        <td>White (#FFFFFF) background, black text</td>
+                        <td>Gray (#C0C0C0) - unchanged</td>
+                    </tr>
+                </table>
+
+                <div class="notes" style="margin-top: 16px;">
+                    <h3>Key Point</h3>
+                    <p>The window frame (gray border area) does <strong>not</strong> change when the window is active or inactive. Only the title bar changes color.</p>
+                </div>
+            </div>
+
+            <!-- SECTION: Window Behavior -->
+            <div class="demo-section">
+                <h2>Interactive Behavior</h2>
+
+                <table class="spec-table">
+                    <tr>
+                        <th>Action</th>
+                        <th>Trigger</th>
+                        <th>Result</th>
+                    </tr>
+                    <tr>
+                        <td>Move</td>
+                        <td>Drag title bar</td>
+                        <td>Window repositions</td>
+                    </tr>
+                    <tr>
+                        <td>Resize</td>
+                        <td>Drag window edges/corners</td>
+                        <td>Window changes size</td>
+                    </tr>
+                    <tr>
+                        <td>Minimize</td>
+                        <td>Click minimize button</td>
+                        <td>Window collapses to icon</td>
+                    </tr>
+                    <tr>
+                        <td>Maximize</td>
+                        <td>Click maximize button</td>
+                        <td>Window fills container</td>
+                    </tr>
+                    <tr>
+                        <td>Restore</td>
+                        <td>Click maximize on maximized window</td>
+                        <td>Returns to previous size</td>
+                    </tr>
+                    <tr>
+                        <td>Close</td>
+                        <td>Double-click system menu</td>
+                        <td>Window closes</td>
+                    </tr>
+                    <tr>
+                        <td>Focus</td>
+                        <td>Click anywhere on window</td>
+                        <td>Brings to front, becomes active</td>
+                    </tr>
+                </table>
+
+                <div class="notes" style="margin-top: 16px;">
+                    <p><strong>See:</strong> <a href="window-demo.html">window-demo.html</a> for interactive behavior demo.</p>
+                </div>
+            </div>
+
+            <!-- SECTION: HTML Structure -->
+            <div class="demo-section">
+                <h2>HTML Structure</h2>
+                <div class="code-block">&lt;div class="window active"&gt;
+    &lt;div class="title-bar"&gt;
+        &lt;div class="title-bar-controls"&gt;
+            &lt;button class="system-menu" aria-label="System menu"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class="title-bar-text"&gt;Window Title&lt;/div&gt;
+        &lt;div class="title-bar-controls"&gt;
+            &lt;button data-minimize aria-label="Minimize"&gt;&lt;/button&gt;
+            &lt;button data-maximize aria-label="Maximize"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="window-body"&gt;
+        &lt;!-- content --&gt;
+    &lt;/div&gt;
+    &lt;!-- Optional: status bar --&gt;
+    &lt;div class="status-bar"&gt;
+        &lt;div class="status-bar-section"&gt;Status text&lt;/div&gt;
+        &lt;div class="sizing-grip"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</div>
+            </div>
+
+            <!-- SECTION: CSS Classes -->
+            <div class="demo-section">
+                <h2>CSS Classes</h2>
+
+                <table class="spec-table">
+                    <tr>
+                        <th>Class</th>
+                        <th>Purpose</th>
+                    </tr>
+                    <tr>
+                        <td><code>.window</code></td>
+                        <td>Base window container</td>
+                    </tr>
+                    <tr>
+                        <td><code>.window.active</code></td>
+                        <td>Active (focused) window state</td>
+                    </tr>
+                    <tr>
+                        <td><code>.window.draggable</code></td>
+                        <td>Enables interactive positioning</td>
+                    </tr>
+                    <tr>
+                        <td><code>.window.minimized</code></td>
+                        <td>Hidden state (minimized to icon)</td>
+                    </tr>
+                    <tr>
+                        <td><code>.window.maximized</code></td>
+                        <td>Full container size</td>
+                    </tr>
+                    <tr>
+                        <td><code>.dialog</code></td>
+                        <td>Dialog window variant</td>
+                    </tr>
+                    <tr>
+                        <td><code>.title-bar</code></td>
+                        <td>Title bar container (22px)</td>
+                    </tr>
+                    <tr>
+                        <td><code>.window-body</code></td>
+                        <td>Main content area</td>
+                    </tr>
+                    <tr>
+                        <td><code>.status-bar</code></td>
+                        <td>Bottom status bar (20px)</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- SECTION: Documentation -->
+            <div class="demo-section">
+                <div class="notes success">
+                    <h3>Related Documentation</h3>
+                    <ul>
+                        <li><code>docs/WIN3X_WINDOW.md</code> - Window component specification</li>
+                        <li><code>docs/WIN3X_TITLE_BAR.md</code> - Title bar standard</li>
+                        <li><code>dashboard/win3x-theme.css</code> - CSS implementation</li>
+                        <li><code>dashboard/win3x-components.js</code> - JS render functions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- SECTION: Demo Pages -->
+            <div class="demo-section">
+                <div class="notes">
+                    <h3>Demo Pages</h3>
+                    <ul>
+                        <li><a href="title-bar-demo.html">title-bar-demo.html</a> - Static title bar examples</li>
+                        <li><a href="window-component-demo.html">window-component-demo.html</a> - Window component reference (this page)</li>
+                        <li><a href="window-demo.html">window-demo.html</a> - Interactive window behavior (move, resize, min/max)</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

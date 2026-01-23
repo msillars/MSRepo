@@ -1261,3 +1261,60 @@ progress:not([value])::-webkit-progress-value {
   width: 7px;
   border-bottom: 1px solid var(--border);
 }
+
+/* ===== Status Bar ===== */
+.status-bar {
+  display: flex;
+  align-items: center;
+  background: var(--button-bg);
+  border: 1px solid var(--border);
+  border-top: 0;
+  height: 20px;
+  padding: 0 2px;
+  font-size: 11px;
+}
+
+.status-bar-section {
+  padding: 0 8px;
+  border-right: 1px solid var(--button-dark);
+  box-shadow: 1px 0 0 var(--button-light);
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.status-bar-section:last-child:not(.sizing-grip) {
+  flex: 1;
+  border-right: none;
+  box-shadow: none;
+}
+
+/* Sizing grip - diagonal lines in corner */
+.sizing-grip {
+  width: 16px;
+  height: 16px;
+  margin-left: auto;
+  cursor: se-resize;
+  background: var(--button-bg);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sizing-grip::before {
+  content: '';
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 10px;
+  height: 10px;
+  background:
+    linear-gradient(135deg,
+      transparent 0%, transparent 30%,
+      var(--button-dark) 30%, var(--button-dark) 40%,
+      transparent 40%, transparent 50%,
+      var(--button-dark) 50%, var(--button-dark) 60%,
+      transparent 60%, transparent 70%,
+      var(--button-dark) 70%, var(--button-dark) 80%,
+      transparent 80%, transparent 100%
+    );
+}

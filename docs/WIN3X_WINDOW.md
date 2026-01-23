@@ -176,7 +176,8 @@ Windows respond to focus:
 
 | Page | Purpose |
 |------|---------|
-| `dashboard/title-bar-demo.html` | Static title bar and window frame examples |
+| `dashboard/title-bar-demo.html` | Static title bar examples |
+| `dashboard/window-component-demo.html` | **Window component reference** (specs, hierarchy, examples) |
 | `dashboard/window-demo.html` | **Interactive window behavior** (move, resize, minimize, maximize) |
 
 ---
@@ -315,27 +316,42 @@ Windows uses `SM_CXVSCROLL` and `SM_CYHSCROLL` system metrics for scrollbar dime
 
 ---
 
-## Status Bar (Research Notes - Jan 2026)
+## Status Bar (Implemented - Jan 2026)
 
 ### What is a Status Bar?
 
 A horizontal window at the **bottom of a parent window** displaying status information. Standard Windows UI element since early versions.
 
-### Typical Features
+### Current Implementation
 
-- Positioned at bottom of window (default)
-- Can be divided into sections/parts for different info types
-- Often includes a **sizing grip** at the right end for resize
-- Displays: current state, background tasks, contextual info (selection, keyboard state)
-
-### Planned Implementation
-
+```css
+.status-bar {
+    display: flex;
+    align-items: center;
+    background: var(--button-bg);    /* #C0C0C0 */
+    border: 1px solid var(--border);
+    border-top: 0;
+    height: 20px;
+    padding: 0 2px;
+    font-size: 11px;
+}
 ```
-.window
-├── .title-bar
-├── .menu-bar (future)
-├── .window-body
-└── .status-bar (future)  ← Add here
+
+| Property | Value | Status |
+|----------|-------|--------|
+| Height | 20px | **Implemented** |
+| Background | #C0C0C0 (button gray) | **Implemented** |
+| Sections | Dividers with 3D effect | **Implemented** |
+| Sizing grip | Diagonal lines at right | **Implemented** |
+
+### HTML Structure
+
+```html
+<div class="status-bar">
+    <div class="status-bar-section">Status text</div>
+    <div class="status-bar-section">More info</div>
+    <div class="sizing-grip"></div>
+</div>
 ```
 
 ### Possible Uses in Management System
@@ -348,10 +364,6 @@ A horizontal window at the **bottom of a parent window** displaying status infor
 ### Sources
 - [Wikipedia - Status Bar](https://en.wikipedia.org/wiki/Status_bar)
 - [Microsoft Learn - Status Bars](https://learn.microsoft.com/en-us/windows/win32/controls/status-bars)
-
-### Assessment
-
-**Not urgent.** Status bar is a "nice to have" for future. Already accounted for in component hierarchy.
 
 ---
 
@@ -367,6 +379,9 @@ A horizontal window at the **bottom of a parent window** displaying status infor
 
 | Date | Change |
 |------|--------|
+| 2026-01-23 | Created window-component-demo.html as component reference page |
+| 2026-01-23 | Implemented custom scrollbars with arrow buttons, status bars with sizing grip |
+| 2026-01-23 | Fixed title bar overflow on narrow windows |
 | 2026-01-22 | Added scrollbar and status bar research notes |
 | 2026-01-22 | Added window-demo.html with interactive behavior (move, resize, min/max) |
 | 2026-01-22 | Restructured: Window as parent, Title Bar as child. Added Window Frame section. |
