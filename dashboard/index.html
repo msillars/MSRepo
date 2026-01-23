@@ -432,28 +432,28 @@
     </style>
 </head>
 <body class="debug-title-bars">
-    <!-- The Desktop (blank computer) -->
-    <div class="desktop" id="desktop">
-        <!-- Desktop Icons -->
-        <div class="desktop-icons" id="desktop-icons">
-            <div class="desktop-icon" tabindex="0" ondblclick="openUniverse()">
+    <!-- THE UNIVERSE: The blank desktop - contains icon(s) to open desktops -->
+    <div class="desktop" id="universe">
+        <!-- Universe Icons -->
+        <div class="desktop-icons" id="universe-icons">
+            <div class="desktop-icon" tabindex="0" ondblclick="openMyLife()">
                 <div class="desktop-icon-image">
-                    <img src="../Icons/PROGM001.ICO" alt="Universe">
+                    <img src="../Icons/PROGM001.ICO" alt="My Life">
                 </div>
-                <div class="desktop-icon-label">Management System</div>
+                <div class="desktop-icon-label">My Life</div>
             </div>
         </div>
     </div>
 
-    <!-- Universe Window (contains dashboard content) -->
-    <div class="window universe-window" id="universe-window">
+    <!-- MY LIFE: Desktop window containing topics (opens from Universe) -->
+    <div class="window universe-window" id="mylife-window">
         <div class="title-bar">
             <div class="title-bar-controls">
-                <button class="system-menu" aria-label="System menu" ondblclick="closeUniverse()"></button>
+                <button class="system-menu" aria-label="System menu" ondblclick="closeMyLife()"></button>
             </div>
-            <div class="title-bar-text">Universe</div>
+            <div class="title-bar-text">My Life</div>
             <div class="title-bar-controls">
-                <button data-minimize aria-label="Minimize" onclick="minimizeUniverse()"></button>
+                <button data-minimize aria-label="Minimize" onclick="minimizeMyLife()"></button>
                 <button data-maximize aria-label="Maximize" onclick="toggleMaximize()"></button>
             </div>
         </div>
@@ -461,7 +461,7 @@
             <div class="universe-content">
                 <!-- Header -->
                 <div class="universe-header">
-                    <h1>Universe</h1>
+                    <h1>My Life</h1>
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <a href="ideas.html">
                             <button class="primary">Ideas (<span id="total-ideas">0</span>)</button>
@@ -471,19 +471,19 @@
 
                 <!-- Main Layout -->
                 <div class="main-layout">
-                    <!-- Top Priorities -->
+                    <!-- Top Priorities Window -->
                     <div class="window priorities-window active">
                         <div class="title-bar">
                             <div class="title-bar-controls">
                                 <button class="system-menu" aria-label="System menu"></button>
                             </div>
-                            <div class="title-bar-text">Top 5 Priorities (All Topics)</div>
+                            <div class="title-bar-text">Top 5 Priorities</div>
                             <div class="title-bar-controls">
                                 <button data-minimize aria-label="Minimize"></button>
                                 <button data-maximize aria-label="Maximize"></button>
                             </div>
                         </div>
-                        <div class="priorities-content" id="priorities-list">
+                        <div class="window-body priorities-content" id="priorities-list">
                             <!-- Priorities load here -->
                         </div>
                     </div>
@@ -583,58 +583,58 @@
     <script src="shared-top-priorities.js"></script>
     <script>
         // Track window state
-        let universeOpen = false;
-        let universeMaximized = false;
+        let myLifeOpen = false;
+        let myLifeMaximized = false;
 
         /**
-         * Open the Universe window
+         * Open the My Life desktop window
          */
-        function openUniverse() {
-            const universeWindow = document.getElementById('universe-window');
-            universeWindow.classList.add('open');
-            universeOpen = true;
+        function openMyLife() {
+            const myLifeWindow = document.getElementById('mylife-window');
+            myLifeWindow.classList.add('open');
+            myLifeOpen = true;
         }
 
         /**
-         * Close the Universe window
+         * Close the My Life desktop window
          */
-        function closeUniverse() {
-            const universeWindow = document.getElementById('universe-window');
-            universeWindow.classList.remove('open');
-            universeOpen = false;
+        function closeMyLife() {
+            const myLifeWindow = document.getElementById('mylife-window');
+            myLifeWindow.classList.remove('open');
+            myLifeOpen = false;
         }
 
         /**
-         * Minimize the Universe window (close for now)
+         * Minimize the My Life window (close for now)
          */
-        function minimizeUniverse() {
-            closeUniverse();
+        function minimizeMyLife() {
+            closeMyLife();
         }
 
         /**
          * Toggle maximize state
          */
         function toggleMaximize() {
-            const universeWindow = document.getElementById('universe-window');
+            const myLifeWindow = document.getElementById('mylife-window');
 
-            if (universeMaximized) {
+            if (myLifeMaximized) {
                 // Restore to windowed
-                universeWindow.style.top = '40px';
-                universeWindow.style.left = '40px';
-                universeWindow.style.right = '40px';
-                universeWindow.style.bottom = '40px';
-                universeMaximized = false;
+                myLifeWindow.style.top = '40px';
+                myLifeWindow.style.left = '40px';
+                myLifeWindow.style.right = '40px';
+                myLifeWindow.style.bottom = '40px';
+                myLifeMaximized = false;
             } else {
                 // Maximize
-                universeWindow.style.top = '0';
-                universeWindow.style.left = '0';
-                universeWindow.style.right = '0';
-                universeWindow.style.bottom = '0';
-                universeMaximized = true;
+                myLifeWindow.style.top = '0';
+                myLifeWindow.style.left = '0';
+                myLifeWindow.style.right = '0';
+                myLifeWindow.style.bottom = '0';
+                myLifeMaximized = true;
             }
         }
 
-        // Desktop icon selection
+        // Universe icon selection
         document.querySelectorAll('.desktop-icon').forEach(icon => {
             icon.addEventListener('click', function(e) {
                 // Deselect all
@@ -644,8 +644,8 @@
             });
         });
 
-        // Click on desktop to deselect icons
-        document.getElementById('desktop').addEventListener('click', function(e) {
+        // Click on Universe to deselect icons
+        document.getElementById('universe').addEventListener('click', function(e) {
             if (e.target === this || e.target.classList.contains('desktop-icons')) {
                 document.querySelectorAll('.desktop-icon').forEach(i => i.classList.remove('selected'));
             }
@@ -656,11 +656,11 @@
             if (e.key === 'Enter') {
                 const selected = document.querySelector('.desktop-icon.selected');
                 if (selected) {
-                    openUniverse();
+                    openMyLife();
                 }
             }
-            if (e.key === 'Escape' && universeOpen) {
-                closeUniverse();
+            if (e.key === 'Escape' && myLifeOpen) {
+                closeMyLife();
             }
         });
 
