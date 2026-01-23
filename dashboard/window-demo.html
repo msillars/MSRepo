@@ -22,24 +22,10 @@
             overflow: hidden;
         }
 
-        /* Icon tray at bottom for minimized windows */
-        .icon-tray {
+        /* Minimized window icon - sits directly on desktop */
+        .window-icon {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 48px;
-            background: var(--desktop-bg);
-            border-top: 1px solid var(--button-light);
-            display: flex;
-            align-items: center;
-            padding: 4px;
-            gap: 4px;
-        }
-
-        /* Minimized window icon */
-        .minimized-icon {
-            width: 140px;
+            width: 100px;
             height: 32px;
             background: var(--button-bg);
             border: 1px solid var(--border);
@@ -49,24 +35,256 @@
             align-items: center;
             padding: 2px 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
+            user-select: none;
         }
 
-        .minimized-icon:active {
+        .window-icon:active {
             box-shadow: inset 1px 1px 0 var(--button-dark);
         }
 
-        .minimized-icon .icon-bar {
-            width: 10px;
-            height: 2px;
-            background: var(--window-fg);
-            margin-right: 6px;
+        .window-icon .icon-symbol {
+            width: 16px;
+            height: 14px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset -1px -1px 0 var(--button-dark),
+                        inset 1px 1px 0 var(--button-light);
+            margin-right: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .minimized-icon .icon-title {
+        .window-icon .icon-symbol::after {
+            content: '';
+            width: 8px;
+            height: 2px;
+            background: var(--window-fg);
+        }
+
+        .window-icon .icon-title {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        .window-icon.dragging {
+            opacity: 0.7;
+            z-index: 9999;
+        }
+
+        /* Status bar at bottom of window */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            border-top: 0;
+            height: 20px;
+            padding: 0 2px;
+            font-size: 11px;
+        }
+
+        .status-bar-section {
+            padding: 0 8px;
+            border-right: 1px solid var(--button-dark);
+            box-shadow: 1px 0 0 var(--button-light);
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-bar-section:last-child:not(.sizing-grip) {
+            flex: 1;
+            border-right: none;
+            box-shadow: none;
+        }
+
+        /* Sizing grip - diagonal lines in corner */
+        .sizing-grip {
+            width: 16px;
+            height: 16px;
+            margin-left: auto;
+            cursor: se-resize;
+            background: var(--button-bg);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .sizing-grip::before {
+            content: '';
+            position: absolute;
+            right: 2px;
+            bottom: 2px;
+            width: 10px;
+            height: 10px;
+            background:
+                linear-gradient(135deg,
+                    transparent 0%, transparent 30%,
+                    var(--button-dark) 30%, var(--button-dark) 40%,
+                    transparent 40%, transparent 50%,
+                    var(--button-dark) 50%, var(--button-dark) 60%,
+                    transparent 60%, transparent 70%,
+                    var(--button-dark) 70%, var(--button-dark) 80%,
+                    transparent 80%, transparent 100%
+                );
+        }
+
+        /* Custom scrollbar container for explicit scrollbars */
+        .scrollable-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .scroll-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scroll-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 17px;
+            bottom: 17px;
+            overflow: hidden;
+            background: var(--window-bg);
+        }
+
+        .scroll-inner {
+            padding: 8px;
+        }
+
+        /* Vertical scrollbar */
+        .scrollbar-v {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 17px;
+            bottom: 17px;
+            display: flex;
+            flex-direction: column;
+            background: var(--scrollbar-bg);
+            border-left: 1px solid var(--border);
+        }
+
+        /* Horizontal scrollbar */
+        .scrollbar-h {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 17px;
+            height: 17px;
+            display: flex;
+            flex-direction: row;
+            background: var(--scrollbar-bg);
+            border-top: 1px solid var(--border);
+        }
+
+        /* Scrollbar buttons */
+        .scroll-btn {
+            width: 16px;
+            height: 16px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset 1px 1px 0 var(--button-light),
+                        inset -2px -2px 0 var(--button-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .scroll-btn:active {
+            box-shadow: inset 1px 1px 0 var(--button-dark);
+        }
+
+        .scroll-btn:active .scroll-arrow {
+            transform: translate(1px, 1px);
+        }
+
+        /* Arrow icons */
+        .scroll-arrow {
+            width: 0;
+            height: 0;
+            border: 4px solid transparent;
+        }
+
+        .scroll-arrow.up {
+            border-bottom-color: var(--window-fg);
+            border-top: none;
+            margin-bottom: 2px;
+        }
+
+        .scroll-arrow.down {
+            border-top-color: var(--window-fg);
+            border-bottom: none;
+            margin-top: 2px;
+        }
+
+        .scroll-arrow.left {
+            border-right-color: var(--window-fg);
+            border-left: none;
+            margin-right: 2px;
+        }
+
+        .scroll-arrow.right {
+            border-left-color: var(--window-fg);
+            border-right: none;
+            margin-left: 2px;
+        }
+
+        /* Scrollbar track */
+        .scroll-track {
+            flex: 1;
+            background: var(--scrollbar-bg);
+            position: relative;
+            min-height: 16px;
+            min-width: 16px;
+        }
+
+        /* Scrollbar thumb */
+        .scroll-thumb {
+            position: absolute;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset 1px 1px 0 var(--button-light),
+                        inset -2px -2px 0 var(--button-dark);
+            cursor: pointer;
+        }
+
+        .scroll-thumb:active {
+            box-shadow: inset 1px 1px 0 var(--button-dark);
+        }
+
+        .scrollbar-v .scroll-thumb {
+            left: 0;
+            right: 0;
+            min-height: 16px;
+        }
+
+        .scrollbar-h .scroll-thumb {
+            top: 0;
+            bottom: 0;
+            min-width: 16px;
+        }
+
+        /* Corner piece where scrollbars meet */
+        .scroll-corner {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 17px;
+            height: 17px;
+            background: var(--button-bg);
+            border-left: 1px solid var(--border);
+            border-top: 1px solid var(--border);
         }
 
         /* Draggable window styles */
@@ -205,11 +423,13 @@
             <ul>
                 <li><strong>Move:</strong> Drag title bar</li>
                 <li><strong>Resize:</strong> Drag window edges</li>
-                <li><strong>Minimize:</strong> Click ▼ button</li>
+                <li><strong>Minimize:</strong> Click ▼ → icon on desktop</li>
                 <li><strong>Maximize:</strong> Click ▲ button</li>
-                <li><strong>Restore:</strong> Click icon in tray or ▲ on maximized</li>
+                <li><strong>Restore:</strong> Click icon or ▲ on maximized</li>
                 <li><strong>Close:</strong> Double-click system menu</li>
                 <li><strong>Focus:</strong> Click anywhere on window</li>
+                <li><strong>Drag icon:</strong> Snaps to grid</li>
+                <li><strong>Arrange:</strong> Right-click desktop</li>
             </ul>
         </div>
 
@@ -236,32 +456,71 @@
                     <button data-maximize aria-label="Maximize"></button>
                 </div>
             </div>
-            <div class="window-body" style="padding: 8px; overflow: auto; height: calc(100% - 26px);">
-                <p style="margin: 0; font-size: 12px;">
-                    This is Notepad. Try dragging, resizing, minimizing, and maximizing this window.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    Windows operate within the gray desktop area and cannot extend beyond it.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    This window has enough content to demonstrate the Win3x styled scrollbars.
-                    Resize the window smaller to see them appear.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    The scrollbars use 16x16px buttons with 3D beveled styling and arrow icons,
-                    matching the authentic Windows 3.1 appearance.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
-                    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px;">
-                    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
-                    eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
-                </p>
-                <p style="margin: 8px 0 0 0; font-size: 12px; white-space: nowrap;">
-                    This line is intentionally long to demonstrate horizontal scrolling when the window is narrow enough ──────────────────────────────────────
-                </p>
+            <div class="window-body" style="height: calc(100% - 48px); position: relative;">
+                <!-- Custom scrollable area with explicit scrollbars -->
+                <div class="scroll-content">
+                    <div class="scroll-viewport" id="notepad-viewport">
+                        <div class="scroll-inner" id="notepad-content">
+                            <p style="margin: 0; font-size: 12px;">
+                                This is Notepad. Try dragging, resizing, minimizing, and maximizing this window.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                Windows operate within the gray desktop area and cannot extend beyond it.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                This window has enough content to demonstrate the Win3x styled scrollbars.
+                                Resize the window smaller to see them appear.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                The scrollbars use 16x16px buttons with 3D beveled styling and arrow icons,
+                                matching the authentic Windows 3.1 appearance.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+                                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px;">
+                                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+                                eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 12px; white-space: nowrap;">
+                                This line is intentionally long to demonstrate horizontal scrolling when the window is narrow enough ──────────────────────────────────────
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Vertical scrollbar -->
+                    <div class="scrollbar-v" id="notepad-scrollbar-v">
+                        <div class="scroll-btn scroll-btn-up" data-direction="up">
+                            <div class="scroll-arrow up"></div>
+                        </div>
+                        <div class="scroll-track">
+                            <div class="scroll-thumb" id="notepad-thumb-v" style="top: 0; height: 40px;"></div>
+                        </div>
+                        <div class="scroll-btn scroll-btn-down" data-direction="down">
+                            <div class="scroll-arrow down"></div>
+                        </div>
+                    </div>
+                    <!-- Horizontal scrollbar -->
+                    <div class="scrollbar-h" id="notepad-scrollbar-h">
+                        <div class="scroll-btn scroll-btn-left" data-direction="left">
+                            <div class="scroll-arrow left"></div>
+                        </div>
+                        <div class="scroll-track">
+                            <div class="scroll-thumb" id="notepad-thumb-h" style="left: 0; width: 40px;"></div>
+                        </div>
+                        <div class="scroll-btn scroll-btn-right" data-direction="right">
+                            <div class="scroll-arrow right"></div>
+                        </div>
+                    </div>
+                    <!-- Corner piece -->
+                    <div class="scroll-corner"></div>
+                </div>
+            </div>
+            <!-- Status bar -->
+            <div class="status-bar">
+                <div class="status-bar-section">Ln 1, Col 1</div>
+                <div class="status-bar-section">100%</div>
+                <div class="sizing-grip"></div>
             </div>
         </div>
 
@@ -358,21 +617,25 @@
             </div>
         </div>
 
-        <!-- Icon tray for minimized windows -->
-        <div class="icon-tray" id="icon-tray"></div>
     </div>
 
     <script>
         /**
          * Win3x Window Manager
          * Manages window state: move, resize, minimize, maximize, focus
+         * MDI-style: minimized windows become icons in parent container
          */
         (function() {
             const desktop = document.getElementById('desktop');
-            const iconTray = document.getElementById('icon-tray');
             let highestZIndex = 10;
             let activeWindow = null;
             let dragState = null;
+
+            // Icon grid configuration
+            const ICON_WIDTH = 100;
+            const ICON_HEIGHT = 32;
+            const ICON_GAP = 8;
+            const ICON_MARGIN = 8;  // Margin from edges
 
             // Initialize all windows
             function init() {
@@ -464,7 +727,6 @@
 
                 const rect = win.getBoundingClientRect();
                 const desktopRect = desktop.getBoundingClientRect();
-                const iconTrayHeight = iconTray.offsetHeight;
 
                 dragState = {
                     type,
@@ -477,7 +739,7 @@
                     startWidth: rect.width,
                     startHeight: rect.height,
                     desktopWidth: desktopRect.width,
-                    desktopHeight: desktopRect.height - iconTrayHeight,
+                    desktopHeight: desktopRect.height,
                     minWidth: 120,
                     minHeight: 60
                 };
@@ -565,25 +827,85 @@
                 win.dataset.restoreHeight = parseInt(win.style.height);
             }
 
+            // Get next available grid position for an icon
+            function getNextIconPosition() {
+                const existingIcons = desktop.querySelectorAll('.window-icon');
+                const desktopRect = desktop.getBoundingClientRect();
+                const cols = Math.floor((desktopRect.width - ICON_MARGIN * 2) / (ICON_WIDTH + ICON_GAP));
+
+                // Find occupied positions
+                const occupied = new Set();
+                existingIcons.forEach(icon => {
+                    const col = Math.round((parseInt(icon.style.left) - ICON_MARGIN) / (ICON_WIDTH + ICON_GAP));
+                    const row = Math.round((desktopRect.height - parseInt(icon.style.top) - ICON_HEIGHT - ICON_MARGIN) / (ICON_HEIGHT + ICON_GAP));
+                    occupied.add(`${col},${row}`);
+                });
+
+                // Find first available position (bottom-left, filling right then up)
+                for (let row = 0; row < 100; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        if (!occupied.has(`${col},${row}`)) {
+                            return {
+                                left: ICON_MARGIN + col * (ICON_WIDTH + ICON_GAP),
+                                top: desktopRect.height - ICON_MARGIN - ICON_HEIGHT - row * (ICON_HEIGHT + ICON_GAP)
+                            };
+                        }
+                    }
+                }
+                return { left: ICON_MARGIN, top: desktopRect.height - ICON_MARGIN - ICON_HEIGHT };
+            }
+
+            // Snap position to grid
+            function snapToGrid(left, top) {
+                const desktopRect = desktop.getBoundingClientRect();
+                const col = Math.round((left - ICON_MARGIN) / (ICON_WIDTH + ICON_GAP));
+                const row = Math.round((desktopRect.height - top - ICON_HEIGHT - ICON_MARGIN) / (ICON_HEIGHT + ICON_GAP));
+
+                const cols = Math.floor((desktopRect.width - ICON_MARGIN * 2) / (ICON_WIDTH + ICON_GAP));
+                const clampedCol = Math.max(0, Math.min(col, cols - 1));
+                const clampedRow = Math.max(0, row);
+
+                return {
+                    left: ICON_MARGIN + clampedCol * (ICON_WIDTH + ICON_GAP),
+                    top: desktopRect.height - ICON_MARGIN - ICON_HEIGHT - clampedRow * (ICON_HEIGHT + ICON_GAP)
+                };
+            }
+
             function minimizeWindow(win) {
                 // Save current state if not maximized
                 if (!win.classList.contains('maximized')) {
                     saveRestoreState(win);
                 }
 
-                // Create icon in tray
+                // Create icon on desktop
                 const title = win.querySelector('.title-bar-text').textContent;
+                const pos = getNextIconPosition();
+
                 const icon = document.createElement('div');
-                icon.className = 'minimized-icon';
+                icon.className = 'window-icon';
                 icon.dataset.windowId = win.id;
+                icon.style.left = pos.left + 'px';
+                icon.style.top = pos.top + 'px';
                 icon.innerHTML = `
-                    <div class="icon-bar"></div>
+                    <div class="icon-symbol"></div>
                     <span class="icon-title">${title}</span>
                 `;
-                icon.addEventListener('click', () => {
-                    restoreFromMinimize(win);
+
+                // Click to restore
+                icon.addEventListener('click', (e) => {
+                    if (!icon.classList.contains('was-dragged')) {
+                        restoreFromMinimize(win);
+                    }
+                    icon.classList.remove('was-dragged');
                 });
-                iconTray.appendChild(icon);
+
+                // Drag icon
+                icon.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    startIconDrag(e, icon);
+                });
+
+                desktop.appendChild(icon);
 
                 // Hide window
                 win.classList.add('minimized');
@@ -602,9 +924,46 @@
                 }
             }
 
+            function startIconDrag(e, icon) {
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startLeft = parseInt(icon.style.left);
+                const startTop = parseInt(icon.style.top);
+                let hasMoved = false;
+
+                function onMove(e) {
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                        hasMoved = true;
+                        icon.classList.add('dragging');
+                        icon.style.left = (startLeft + dx) + 'px';
+                        icon.style.top = (startTop + dy) + 'px';
+                    }
+                }
+
+                function onUp() {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    icon.classList.remove('dragging');
+
+                    if (hasMoved) {
+                        icon.classList.add('was-dragged');
+                        // Snap to grid
+                        const snapped = snapToGrid(parseInt(icon.style.left), parseInt(icon.style.top));
+                        icon.style.left = snapped.left + 'px';
+                        icon.style.top = snapped.top + 'px';
+                    }
+                }
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            }
+
             function restoreFromMinimize(win) {
-                // Remove icon from tray
-                const icon = iconTray.querySelector(`[data-window-id="${win.id}"]`);
+                // Remove icon from desktop
+                const icon = desktop.querySelector(`.window-icon[data-window-id="${win.id}"]`);
                 if (icon) {
                     icon.remove();
                 }
@@ -620,14 +979,12 @@
                     saveRestoreState(win);
                 }
 
-                const iconTrayHeight = iconTray.offsetHeight;
-
-                // Maximize to fill desktop (excluding icon tray)
+                // Maximize to fill desktop
                 win.classList.add('maximized');
                 win.style.left = '0';
                 win.style.top = '0';
                 win.style.width = '100%';
-                win.style.height = `calc(100% - ${iconTrayHeight}px)`;
+                win.style.height = '100%';
             }
 
             function restoreWindow(win) {
@@ -640,7 +997,7 @@
 
             function closeWindow(win) {
                 // Remove icon if minimized
-                const icon = iconTray.querySelector(`[data-window-id="${win.id}"]`);
+                const icon = desktop.querySelector(`.window-icon[data-window-id="${win.id}"]`);
                 if (icon) {
                     icon.remove();
                 }
@@ -660,11 +1017,193 @@
                 }
             }
 
+            // Arrange all icons in a neat grid
+            function arrangeIcons() {
+                const icons = Array.from(desktop.querySelectorAll('.window-icon'));
+                const desktopRect = desktop.getBoundingClientRect();
+                const cols = Math.floor((desktopRect.width - ICON_MARGIN * 2) / (ICON_WIDTH + ICON_GAP));
+
+                icons.forEach((icon, index) => {
+                    const col = index % cols;
+                    const row = Math.floor(index / cols);
+                    icon.style.left = (ICON_MARGIN + col * (ICON_WIDTH + ICON_GAP)) + 'px';
+                    icon.style.top = (desktopRect.height - ICON_MARGIN - ICON_HEIGHT - row * (ICON_HEIGHT + ICON_GAP)) + 'px';
+                });
+            }
+
+            // Right-click on desktop to arrange icons
+            desktop.addEventListener('contextmenu', (e) => {
+                // Only if clicking on desktop itself, not on a window or icon
+                if (e.target === desktop || e.target.classList.contains('desktop-container')) {
+                    e.preventDefault();
+                    arrangeIcons();
+                }
+            });
+
+            // ============================================
+            // Custom Scrollbar Management
+            // ============================================
+
+            function initScrollbar(viewportId, contentId, vScrollbarId, hScrollbarId, vThumbId, hThumbId) {
+                const viewport = document.getElementById(viewportId);
+                const content = document.getElementById(contentId);
+                const vScrollbar = document.getElementById(vScrollbarId);
+                const hScrollbar = document.getElementById(hScrollbarId);
+                const vThumb = document.getElementById(vThumbId);
+                const hThumb = document.getElementById(hThumbId);
+
+                if (!viewport || !content) return;
+
+                let scrollTop = 0;
+                let scrollLeft = 0;
+                let autoRepeatTimer = null;
+                let autoRepeatInterval = null;
+
+                const SCROLL_LINE = 20;  // Pixels per arrow click
+                const SCROLL_PAGE = 100; // Pixels per track click
+                const AUTO_REPEAT_DELAY = 400;  // ms before auto-repeat starts
+                const AUTO_REPEAT_RATE = 50;    // ms between repeats
+
+                function updateScrollPosition() {
+                    const maxScrollTop = Math.max(0, content.scrollHeight - viewport.clientHeight);
+                    const maxScrollLeft = Math.max(0, content.scrollWidth - viewport.clientWidth);
+
+                    scrollTop = Math.max(0, Math.min(scrollTop, maxScrollTop));
+                    scrollLeft = Math.max(0, Math.min(scrollLeft, maxScrollLeft));
+
+                    content.style.transform = `translate(${-scrollLeft}px, ${-scrollTop}px)`;
+
+                    // Update thumb positions
+                    updateThumbs(maxScrollTop, maxScrollLeft);
+                }
+
+                function updateThumbs(maxScrollTop, maxScrollLeft) {
+                    if (vThumb && vScrollbar) {
+                        const track = vScrollbar.querySelector('.scroll-track');
+                        if (track && maxScrollTop > 0) {
+                            const trackHeight = track.clientHeight;
+                            const thumbHeight = Math.max(20, (viewport.clientHeight / content.scrollHeight) * trackHeight);
+                            const thumbTop = (scrollTop / maxScrollTop) * (trackHeight - thumbHeight);
+                            vThumb.style.height = thumbHeight + 'px';
+                            vThumb.style.top = thumbTop + 'px';
+                        }
+                    }
+
+                    if (hThumb && hScrollbar) {
+                        const track = hScrollbar.querySelector('.scroll-track');
+                        if (track && maxScrollLeft > 0) {
+                            const trackWidth = track.clientWidth;
+                            const thumbWidth = Math.max(20, (viewport.clientWidth / content.scrollWidth) * trackWidth);
+                            const thumbLeft = (scrollLeft / maxScrollLeft) * (trackWidth - thumbWidth);
+                            hThumb.style.width = thumbWidth + 'px';
+                            hThumb.style.left = thumbLeft + 'px';
+                        }
+                    }
+                }
+
+                function scrollBy(dx, dy) {
+                    scrollTop += dy;
+                    scrollLeft += dx;
+                    updateScrollPosition();
+                }
+
+                function startAutoRepeat(dx, dy) {
+                    stopAutoRepeat();
+                    scrollBy(dx, dy);
+
+                    autoRepeatTimer = setTimeout(() => {
+                        autoRepeatInterval = setInterval(() => {
+                            scrollBy(dx, dy);
+                        }, AUTO_REPEAT_RATE);
+                    }, AUTO_REPEAT_DELAY);
+                }
+
+                function stopAutoRepeat() {
+                    if (autoRepeatTimer) {
+                        clearTimeout(autoRepeatTimer);
+                        autoRepeatTimer = null;
+                    }
+                    if (autoRepeatInterval) {
+                        clearInterval(autoRepeatInterval);
+                        autoRepeatInterval = null;
+                    }
+                }
+
+                // Vertical scrollbar buttons
+                if (vScrollbar) {
+                    const upBtn = vScrollbar.querySelector('[data-direction="up"]');
+                    const downBtn = vScrollbar.querySelector('[data-direction="down"]');
+
+                    if (upBtn) {
+                        upBtn.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            startAutoRepeat(0, -SCROLL_LINE);
+                        });
+                    }
+                    if (downBtn) {
+                        downBtn.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            startAutoRepeat(0, SCROLL_LINE);
+                        });
+                    }
+                }
+
+                // Horizontal scrollbar buttons
+                if (hScrollbar) {
+                    const leftBtn = hScrollbar.querySelector('[data-direction="left"]');
+                    const rightBtn = hScrollbar.querySelector('[data-direction="right"]');
+
+                    if (leftBtn) {
+                        leftBtn.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            startAutoRepeat(-SCROLL_LINE, 0);
+                        });
+                    }
+                    if (rightBtn) {
+                        rightBtn.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            startAutoRepeat(SCROLL_LINE, 0);
+                        });
+                    }
+                }
+
+                // Stop auto-repeat on mouseup anywhere
+                document.addEventListener('mouseup', stopAutoRepeat);
+
+                // Initial update
+                updateScrollPosition();
+
+                // Update on window resize
+                window.addEventListener('resize', () => {
+                    updateScrollPosition();
+                });
+
+                // Return controller for external access if needed
+                return {
+                    scrollBy,
+                    updateScrollPosition
+                };
+            }
+
             // Initialize on DOM ready
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
+                document.addEventListener('DOMContentLoaded', () => {
+                    init();
+                    // Initialize scrollbar for Notepad
+                    initScrollbar(
+                        'notepad-viewport', 'notepad-content',
+                        'notepad-scrollbar-v', 'notepad-scrollbar-h',
+                        'notepad-thumb-v', 'notepad-thumb-h'
+                    );
+                });
             } else {
                 init();
+                // Initialize scrollbar for Notepad
+                initScrollbar(
+                    'notepad-viewport', 'notepad-content',
+                    'notepad-scrollbar-v', 'notepad-scrollbar-h',
+                    'notepad-thumb-v', 'notepad-thumb-h'
+                );
             }
         })();
     </script>
