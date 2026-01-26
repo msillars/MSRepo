@@ -635,6 +635,9 @@ progress:not([value])::-webkit-progress-value {
   border: 1px solid var(--border);
   position: relative;
   padding: 2px;
+  /* Windows use flex layout so window-body fills available space */
+  display: flex;
+  flex-direction: column;
 }
 
 .window.maximized,
@@ -837,6 +840,9 @@ progress:not([value])::-webkit-progress-value {
   color: var(--window-fg);
   border: 1px solid var(--border);
   border-top: 0;
+  /* Fill available space in parent window */
+  flex: 1;
+  min-height: 0; /* Allow shrinking in flex context */
 }
 
 .dialog-body {

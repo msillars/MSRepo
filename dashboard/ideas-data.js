@@ -159,7 +159,6 @@ function restoreFromBackup(backupKey) {
                     text: topic.name,
                     item_type: 'topic',
                     status: 'new',
-                    weight: topic.weight || 5,
                     icon: topic.icon,
                     color: topic.color
                 });
@@ -173,9 +172,7 @@ function restoreFromBackup(backupKey) {
                     text: idea.text,
                     item_type: 'task',
                     status: idea.status || 'new',
-                    ranking: idea.ranking || 3,
                     difficulty: idea.difficulty || 'medium',
-                    weight: idea.weight || 5,
                     order: idea.order || 0
                 });
             });
@@ -223,7 +220,6 @@ function importData(jsonString) {
                 text: topic.name,
                 item_type: 'topic',
                 status: 'new',
-                weight: topic.weight || 5,
                 icon: topic.icon,
                 color: topic.color
             });
@@ -235,9 +231,7 @@ function importData(jsonString) {
                 text: idea.text,
                 item_type: 'task',
                 status: idea.status || 'new',
-                ranking: idea.ranking || 3,
                 difficulty: idea.difficulty || 'medium',
-                weight: idea.weight || 5,
                 order: idea.order || 0
             });
         });
@@ -269,11 +263,7 @@ function validateIdea(idea) {
     if (!['new', 'backlog', 'done'].includes(idea.status)) {
         errors.push('Status must be: new, backlog, or done');
     }
-    
-    if (!Number.isInteger(idea.ranking) || idea.ranking < 1 || idea.ranking > 5) {
-        errors.push('Ranking must be an integer between 1 and 5');
-    }
-    
+
     if (!['easy', 'medium', 'hard'].includes(idea.difficulty)) {
         errors.push('Difficulty must be: easy, medium, or hard');
     }
@@ -311,22 +301,16 @@ function validateIdeasArray(ideas) {
 // ============================================================
 
 const DEFAULT_TOPICS = [
-    { id: 'photography', name: 'Photography', priority: 'always-on', color: '#FF6B35', icon: 'Photography.ICO', weight: 5 },
-    { id: 'work', name: 'Work', priority: 'priority', color: '#004E89', icon: 'Work.ICO', weight: 7 },
-    { id: 'life-admin', name: 'Life Admin', priority: 'do-prep', color: '#F77F00', icon: 'LifeAdmin.ICO', weight: 5 },
-    { id: 'relationships', name: 'Relationships', priority: 'always-on', color: '#06A77D', icon: 'Relationships.ICO', weight: 6 },
-    { id: 'living', name: 'Living', priority: 'getting-important', color: '#9D4EDD', icon: 'Living.ICO', weight: 4 },
-    { id: 'health', name: 'Health', priority: 'always-on', color: '#E63946', icon: 'hearts.ICO', weight: 7 },
-    { id: 'creating-this-dashboard', name: 'Creating This Dashboard', priority: 'do-prep', color: '#06A77D', icon: 'Ideas.ICO', weight: 3 }
+    { id: 'photography', name: 'Photography', color: '#FF6B35', icon: 'Photography.ICO' },
+    { id: 'work', name: 'Work', color: '#004E89', icon: 'Work.ICO' },
+    { id: 'life-admin', name: 'Life Admin', color: '#F77F00', icon: 'LifeAdmin.ICO' },
+    { id: 'relationships', name: 'Relationships', color: '#06A77D', icon: 'Relationships.ICO' },
+    { id: 'living', name: 'Living', color: '#9D4EDD', icon: 'Living.ICO' },
+    { id: 'health', name: 'Health', color: '#E63946', icon: 'hearts.ICO' },
+    { id: 'creating-this-dashboard', name: 'Creating This Dashboard', color: '#06A77D', icon: 'Ideas.ICO' }
 ];
 
-const PRIORITY_LEVELS = {
-    'always-on': { label: 'Always on', weight: 1, color: '#95B8D1' },
-    'do-prep': { label: 'Do prep for', weight: 2, color: '#B8E0D2' },
-    'getting-important': { label: 'Getting important', weight: 3, color: '#FDD835' },
-    'priority': { label: 'Priority', weight: 4, color: '#FF8A65' },
-    'urgent': { label: 'Urgent', weight: 5, color: '#EF5350' }
-};
+// Priority levels now stored in priority_tiers table (see Priorities API below)
 
 /**
  * Seed default topics if no topics exist in items table
@@ -347,7 +331,6 @@ function seedDefaultTopics() {
                 text: topic.name,
                 item_type: 'topic',
                 status: 'new',
-                weight: topic.weight,
                 icon: topic.icon,
                 color: topic.color
             });
@@ -389,7 +372,6 @@ function saveTopics(topics) {
                 text: topic.name,
                 item_type: 'topic',
                 status: 'new',
-                weight: topic.weight || 5,
                 icon: topic.icon,
                 color: topic.color
             });
@@ -416,12 +398,12 @@ function updateTopic(topicId, updates) {
     }
 }
 
-function addTopic(name, priority = 'always-on', icon = null, weight = 5) {
+function addTopic(name, priority = 'always-on', icon = null) {
     // MIGRATED: Now writes to items table only
     try {
-        const result = addTopicToItems(name, priority, icon, weight);
+        const result = addTopicToItems(name, priority, icon);
         if (result) {
-            debugLog('TOPIC_ADDED', { name, icon, weight, source: 'items' });
+            debugLog('TOPIC_ADDED', { name, icon, source: 'items' });
             return result.id;  // Return the new topic ID for compatibility
         }
         return null;
@@ -460,13 +442,12 @@ function getIdeas() {
             id: item.id,
             text: item.text,
             topic: item.topic_id || 'untagged',
-            ranking: item.ranking || 3,
             difficulty: item.difficulty || 'medium',
             status: item.status || 'new',
             order: item.order || 0,
             timestamp: item.created_at,
             status_changed_at: item.completed_at,
-            weight: item.weight || 5
+            priorities: getItemPriorities(item.id)
         }));
         debugLog('IDEAS_LOADED', { count: ideas.length, source: 'items' });
         return ideas;
@@ -508,9 +489,7 @@ function saveIdeas(ideas) {
                 topic_id: topicId,
                 parent_id: topicId,
                 status: idea.status || 'new',
-                ranking: idea.ranking || 3,
                 difficulty: idea.difficulty || 'medium',
-                weight: idea.weight || 5,
                 order: idea.order || 0
             });
         });
@@ -526,18 +505,12 @@ function saveIdeas(ideas) {
     }
 }
 
-function addIdea(text, topic = 'untagged', ranking = 3, difficulty = 'medium', status = 'new', weight = null) {
+function addIdea(text, topic = 'untagged', difficulty = 'medium', status = 'new') {
     // MIGRATED: Now writes to items table only
     try {
-        // If weight not provided, derive from ranking (1→2, 2→4, 3→5, 4→7, 5→9)
-        if (weight === null) {
-            const rankingToWeight = { 1: 2, 2: 4, 3: 5, 4: 7, 5: 9 };
-            weight = rankingToWeight[ranking] || 5;
-        }
-
-        const result = addIdeaToItems(text, topic, ranking, difficulty, status, weight);
+        const result = addIdeaToItems(text, topic, difficulty, status);
         if (result) {
-            debugLog('IDEA_ADDED', { id: result.id, topic, status, weight, source: 'items' });
+            debugLog('IDEA_ADDED', { id: result.id, topic, status, source: 'items' });
         }
         return result;
     } catch (error) {
@@ -618,13 +591,12 @@ function getIdeasByStatus(status, topicId = null) {
             id: item.id,
             text: item.text,
             topic: item.topic_id || 'untagged',
-            ranking: item.ranking || 3,
             difficulty: item.difficulty || 'medium',
             status: item.status || 'new',
             order: item.order || 0,
             timestamp: item.created_at,
             status_changed_at: item.completed_at,
-            weight: item.weight || 5
+            priorities: getItemPriorities(item.id)
         }));
         return ideas;
     } catch (error) {
@@ -731,29 +703,12 @@ function getIdeaCounts() {
     }
 }
 
+/**
+ * Get top priority items - delegates to getTopPrioritiesFromItems
+ * Kept for backwards compatibility
+ */
 function getTopPriorities(limit = 5) {
-    try {
-        const ideas = getIdeas().filter(i => i.status !== 'done');
-        const topics = getTopics();
-        
-        const scored = ideas.map(idea => {
-            const topic = topics.find(t => t.id === idea.topic);
-            // Use numeric weight if available, otherwise fall back to categorical priority weight
-            const topicWeight = topic && topic.weight ? topic.weight : (topic ? PRIORITY_LEVELS[topic.priority].weight : 1);
-            const score = (idea.ranking * 2) + topicWeight;
-            return { ...idea, score, topicName: topic ? topic.name : 'Unknown' };
-        });
-        
-        scored.sort((a, b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            return new Date(b.timestamp) - new Date(a.timestamp);
-        });
-        
-        return scored.slice(0, limit);
-    } catch (error) {
-        console.error('Error getting top priorities:', error);
-        return [];
-    }
+    return getTopPrioritiesFromItems(limit);
 }
 
 // ============================================================
@@ -785,6 +740,8 @@ function getDifficultyColor(difficulty) {
     return colors[difficulty] || colors.medium;
 }
 
+// DEPRECATED: Ranking replaced by Priorities system (Jan 26, 2026)
+// Kept for backwards compatibility but will be removed
 function getRankingColor(ranking) {
     const colors = ['#B0BEC5', '#90A4AE', '#FDD835', '#FF8A65', '#EF5350'];
     return colors[ranking - 1] || colors[2];
@@ -799,19 +756,10 @@ function getRankingColor(ranking) {
 // ============================================================
 
 /**
- * Legacy migration functions - DEPRECATED
- * Legacy tables have been removed (Jan 22, 2026)
- * All data now uses unified items table with weight column built-in
+ * Legacy migration functions - REMOVED (Jan 26, 2026)
+ * Weight column has been replaced by Priorities entity system
+ * See Priorities API section for the new approach
  */
-function autoMigrateIdeaWeights() {
-    // No-op: legacy ideas table removed
-    return false;
-}
-
-function autoMigrateTopicWeights() {
-    // No-op: legacy topics table removed
-    return false;
-}
 
 // ============================================================
 // UNIFIED ITEMS API (new architecture)
@@ -933,20 +881,18 @@ function createItem(item) {
         }
 
         executeWrite(`
-            INSERT INTO items (text, parent_id, topic_id, item_type, status, weight, purpose, due_date, icon, color, ranking, difficulty, "order", created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO items (text, parent_id, topic_id, item_type, status, purpose, due_date, icon, color, difficulty, "order", created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             item.text.trim(),
             item.parent_id || null,
             item.topic_id || item.parent_id || null,  // topic_id defaults to parent_id for direct children
             itemType,
             item.status || 'new',
-            item.weight || 5,
             item.purpose || null,
             item.due_date || null,
             item.icon || null,
             item.color || null,
-            item.ranking || 3,
             item.difficulty || 'medium',
             maxOrder + 1,
             now
@@ -979,7 +925,7 @@ function updateItem(itemId, updates) {
         const params = [];
 
         // Build dynamic UPDATE statement
-        const allowedFields = ['text', 'parent_id', 'topic_id', 'item_type', 'status', 'weight', 'purpose', 'due_date', 'icon', 'color', 'ranking', 'difficulty', 'order'];
+        const allowedFields = ['text', 'parent_id', 'topic_id', 'item_type', 'status', 'purpose', 'due_date', 'icon', 'color', 'difficulty', 'order'];
 
         allowedFields.forEach(field => {
             if (updates.hasOwnProperty(field)) {
@@ -1093,8 +1039,7 @@ function quickAddIdea(text, topicId = null) {
         item_type: 'idea',
         parent_id: topicId,
         topic_id: topicId,
-        status: 'new',
-        weight: 3  // Ideas start low priority until promoted
+        status: 'new'
     });
 }
 
@@ -1154,39 +1099,40 @@ function getItemsByStatusGlobal(status, topicId = null) {
 }
 
 /**
- * Get top priorities from items table with scoring
- * Replicates legacy getTopPriorities() behavior
+ * Get top priority items based on linked Priority entities
+ * Items are scored by their highest linked priority rank
  */
 function getTopPrioritiesFromItems(limit = 5) {
     try {
-        // Get all non-done items (tasks and ideas)
+        // Get all non-done items with their highest priority rank
         const items = queryAsObjects(`
-            SELECT * FROM items
-            WHERE item_type IN ('task', 'idea')
-            AND status != 'done'
-            ORDER BY weight DESC, ranking DESC, created_at DESC
+            SELECT i.*,
+                   COALESCE(MAX(p.rank), 0) as max_priority_rank
+            FROM items i
+            LEFT JOIN item_priorities ip ON i.id = ip.item_id
+            LEFT JOIN priorities p ON ip.priority_id = p.id
+            WHERE i.item_type IN ('task', 'idea')
+            AND i.status != 'done'
+            GROUP BY i.id
+            ORDER BY max_priority_rank DESC, i.created_at DESC
         `);
 
-        // Get all topics for weight lookup
+        // Get all topics for enrichment
         const topics = getTopicsFromItems();
         const topicMap = {};
         topics.forEach(t => {
             topicMap[t.id] = t;
         });
 
-        // Score and enrich each item
-        const scored = items.map(item => {
+        // Enrich each item with topic info and priorities
+        const enriched = items.map(item => {
             const topic = topicMap[item.topic_id];
-            const topicWeight = topic ? (topic.weight || 5) : 5;
-            const itemWeight = item.weight || 5;
-            const ranking = item.ranking || 3;
-
-            // Score formula: item weight * 2 + topic weight + ranking
-            const score = (itemWeight * 2) + topicWeight + ranking;
+            const itemPriorities = getItemPriorities(item.id);
 
             return {
                 ...item,
-                score,
+                score: item.max_priority_rank,
+                priorities: itemPriorities,
                 topicName: topic ? topic.text : 'Untagged',
                 topicColor: topic ? topic.color : '#999',
                 topicIcon: topic ? topic.icon : null,
@@ -1196,13 +1142,7 @@ function getTopPrioritiesFromItems(limit = 5) {
             };
         });
 
-        // Sort by score descending, then by created_at
-        scored.sort((a, b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            return new Date(b.created_at) - new Date(a.created_at);
-        });
-
-        return scored.slice(0, limit);
+        return enriched.slice(0, limit);
     } catch (error) {
         console.error('Error getting top priorities from items:', error);
         return [];
@@ -1263,13 +1203,13 @@ function adaptItemToIdea(item) {
         id: item.id,
         text: item.text,
         topic: item.topic_id || 'untagged',
-        ranking: item.ranking || 3,
         difficulty: item.difficulty || 'medium',
         status: item.status || 'new',
-        weight: item.weight || 5,
         timestamp: item.created_at,
         order: item.order || 0,
-        status_changed_at: item.completed_at || null
+        status_changed_at: item.completed_at || null,
+        // Include linked priorities for display
+        priorities: getItemPriorities(item.id)
     };
 }
 
@@ -1280,10 +1220,10 @@ function adaptItemToTopic(item) {
     return {
         id: item.id,
         name: item.text,
-        priority: 'priority',  // Not used in new model
         color: item.color || '#999',
         icon: item.icon || 'Door.ICO',
-        weight: item.weight || 5
+        // Include linked priorities for display
+        priorities: getItemPriorities(item.id)
     };
 }
 
@@ -1314,7 +1254,7 @@ function getActiveItemsFromItems() {
  * Add a new idea/task using Items API
  * Replaces legacy addIdea() - same signature for compatibility
  */
-function addIdeaToItems(text, topicId = null, ranking = 3, difficulty = 'medium', status = 'new', weight = null) {
+function addIdeaToItems(text, topicId = null, difficulty = 'medium', status = 'new') {
     // Find topic item to get proper topic_id
     let resolvedTopicId = null;
     if (topicId && topicId !== 'untagged') {
@@ -1332,9 +1272,7 @@ function addIdeaToItems(text, topicId = null, ranking = 3, difficulty = 'medium'
         topic_id: resolvedTopicId,
         parent_id: resolvedTopicId,  // Direct child of topic
         status: status,
-        ranking: ranking,
-        difficulty: difficulty,
-        weight: weight || 5
+        difficulty: difficulty
     });
 
     // Return in legacy format for compatibility
@@ -1354,9 +1292,7 @@ function updateIdeaInItems(ideaId, updates) {
 
     if (updates.text !== undefined) itemUpdates.text = updates.text;
     if (updates.status !== undefined) itemUpdates.status = updates.status;
-    if (updates.ranking !== undefined) itemUpdates.ranking = updates.ranking;
     if (updates.difficulty !== undefined) itemUpdates.difficulty = updates.difficulty;
-    if (updates.weight !== undefined) itemUpdates.weight = updates.weight;
     if (updates.order !== undefined) itemUpdates.order = updates.order;
 
     // Handle topic change
@@ -1384,13 +1320,12 @@ function deleteIdeaFromItems(ideaId) {
  * Add a new topic using Items API
  * Replaces legacy addTopic()
  */
-function addTopicToItems(name, priority = 'always-on', icon = null, weight = 5) {
+function addTopicToItems(name, priority = 'always-on', icon = null) {
     const item = createItem({
         text: name,
         item_type: 'topic',
         status: 'new',  // Topics are ongoing
         icon: icon,
-        weight: weight,
         color: getDefaultTopicColor(name)  // Generate a default color
     });
 
@@ -1408,7 +1343,6 @@ function updateTopicInItems(topicId, updates) {
     const itemUpdates = {};
 
     if (updates.name !== undefined) itemUpdates.text = updates.name;
-    if (updates.weight !== undefined) itemUpdates.weight = updates.weight;
     if (updates.icon !== undefined) itemUpdates.icon = updates.icon;
     if (updates.color !== undefined) itemUpdates.color = updates.color;
 
@@ -1458,6 +1392,267 @@ function reorderItemsInItems(itemIds, status, topicId) {
     }
 }
 
+// ============================================================
+// PRIORITIES API (Jan 26, 2026)
+// ============================================================
+// Priorities are named entities that items link to (many-to-many)
+// e.g., "Get healthy", "Find new job", "Sort out finances"
+// Each Priority has a rank (1-10) with tier descriptors
+
+/**
+ * Get all priorities
+ */
+function getPriorities() {
+    try {
+        return queryAsObjects('SELECT * FROM priorities ORDER BY rank DESC, name');
+    } catch (error) {
+        console.error('Error getting priorities:', error);
+        return [];
+    }
+}
+
+/**
+ * Get a single priority by ID
+ */
+function getPriority(priorityId) {
+    try {
+        const results = queryAsObjects('SELECT * FROM priorities WHERE id = ?', [priorityId]);
+        return results.length > 0 ? results[0] : null;
+    } catch (error) {
+        console.error('Error getting priority:', error);
+        return null;
+    }
+}
+
+/**
+ * Create a new priority
+ * @param {string} name - Priority name (e.g., "Get healthy")
+ * @param {number} rank - Rank 1-10
+ */
+function createPriority(name, rank = 5) {
+    try {
+        if (!name || name.trim() === '') {
+            throw new Error('Priority name is required');
+        }
+        if (rank < 1 || rank > 10) {
+            throw new Error('Rank must be between 1 and 10');
+        }
+
+        const now = new Date().toISOString();
+        executeWrite(
+            'INSERT INTO priorities (name, rank, created_at) VALUES (?, ?, ?)',
+            [name.trim(), rank, now]
+        );
+
+        const newId = queryAsObjects('SELECT last_insert_rowid() as id')[0].id;
+        debugLog('PRIORITY_CREATED', { id: newId, name, rank });
+
+        window.dispatchEvent(new Event('prioritiesUpdated'));
+        return getPriority(newId);
+    } catch (error) {
+        console.error('Error creating priority:', error);
+        return null;
+    }
+}
+
+/**
+ * Update a priority
+ */
+function updatePriority(priorityId, updates) {
+    try {
+        const fields = [];
+        const params = [];
+
+        if (updates.name !== undefined) {
+            fields.push('name = ?');
+            params.push(updates.name.trim());
+        }
+        if (updates.rank !== undefined) {
+            if (updates.rank < 1 || updates.rank > 10) {
+                throw new Error('Rank must be between 1 and 10');
+            }
+            fields.push('rank = ?');
+            params.push(updates.rank);
+        }
+
+        if (fields.length === 0) return true;
+
+        params.push(priorityId);
+        executeWrite(`UPDATE priorities SET ${fields.join(', ')} WHERE id = ?`, params);
+
+        debugLog('PRIORITY_UPDATED', { id: priorityId, updates });
+        window.dispatchEvent(new Event('prioritiesUpdated'));
+        return true;
+    } catch (error) {
+        console.error('Error updating priority:', error);
+        return false;
+    }
+}
+
+/**
+ * Delete a priority (also removes all item links)
+ */
+function deletePriority(priorityId) {
+    try {
+        // Junction table has ON DELETE CASCADE, so links are auto-removed
+        executeWrite('DELETE FROM priorities WHERE id = ?', [priorityId]);
+        debugLog('PRIORITY_DELETED', { id: priorityId });
+        window.dispatchEvent(new Event('prioritiesUpdated'));
+        return true;
+    } catch (error) {
+        console.error('Error deleting priority:', error);
+        return false;
+    }
+}
+
+/**
+ * Link an item to a priority
+ */
+function linkItemToPriority(itemId, priorityId) {
+    try {
+        executeWrite(
+            'INSERT OR IGNORE INTO item_priorities (item_id, priority_id) VALUES (?, ?)',
+            [itemId, priorityId]
+        );
+        debugLog('ITEM_PRIORITY_LINKED', { itemId, priorityId });
+        window.dispatchEvent(new Event('ideasUpdated'));
+        return true;
+    } catch (error) {
+        console.error('Error linking item to priority:', error);
+        return false;
+    }
+}
+
+/**
+ * Unlink an item from a priority
+ */
+function unlinkItemFromPriority(itemId, priorityId) {
+    try {
+        executeWrite(
+            'DELETE FROM item_priorities WHERE item_id = ? AND priority_id = ?',
+            [itemId, priorityId]
+        );
+        debugLog('ITEM_PRIORITY_UNLINKED', { itemId, priorityId });
+        window.dispatchEvent(new Event('ideasUpdated'));
+        return true;
+    } catch (error) {
+        console.error('Error unlinking item from priority:', error);
+        return false;
+    }
+}
+
+/**
+ * Get all priorities for an item
+ */
+function getItemPriorities(itemId) {
+    try {
+        return queryAsObjects(`
+            SELECT p.* FROM priorities p
+            JOIN item_priorities ip ON p.id = ip.priority_id
+            WHERE ip.item_id = ?
+            ORDER BY p.rank DESC, p.name
+        `, [itemId]);
+    } catch (error) {
+        console.error('Error getting item priorities:', error);
+        return [];
+    }
+}
+
+/**
+ * Get all items linked to a priority
+ */
+function getItemsByPriority(priorityId) {
+    try {
+        return queryAsObjects(`
+            SELECT i.* FROM items i
+            JOIN item_priorities ip ON i.id = ip.item_id
+            WHERE ip.priority_id = ?
+            ORDER BY i."order", i.id
+        `, [priorityId]);
+    } catch (error) {
+        console.error('Error getting items by priority:', error);
+        return [];
+    }
+}
+
+/**
+ * Get the highest priority rank for an item (for sorting/display)
+ * Returns 0 if item has no priorities
+ */
+function getItemHighestPriorityRank(itemId) {
+    try {
+        const result = queryAsObjects(`
+            SELECT MAX(p.rank) as max_rank FROM priorities p
+            JOIN item_priorities ip ON p.id = ip.priority_id
+            WHERE ip.item_id = ?
+        `, [itemId]);
+        return result[0]?.max_rank || 0;
+    } catch (error) {
+        console.error('Error getting item highest priority:', error);
+        return 0;
+    }
+}
+
+/**
+ * Get priority tier info for a rank value
+ */
+function getPriorityTier(rank) {
+    try {
+        const tiers = queryAsObjects(`
+            SELECT * FROM priority_tiers
+            WHERE min_rank <= ? AND max_rank >= ?
+        `, [rank, rank]);
+        return tiers.length > 0 ? tiers[0] : null;
+    } catch (error) {
+        console.error('Error getting priority tier:', error);
+        // Fallback to hardcoded tiers
+        if (rank <= 2) return { label: 'Not immediate', description: 'Can wait' };
+        if (rank <= 4) return { label: 'Attention soon', description: 'On the radar' };
+        if (rank <= 6) return { label: 'Current', description: 'Actively working on' };
+        if (rank <= 8) return { label: 'High', description: 'Distracting until sorted' };
+        return { label: 'Urgent', description: 'Something is not right' };
+    }
+}
+
+/**
+ * Get all priority tiers
+ */
+function getPriorityTiers() {
+    try {
+        return queryAsObjects('SELECT * FROM priority_tiers ORDER BY min_rank');
+    } catch (error) {
+        console.error('Error getting priority tiers:', error);
+        return [];
+    }
+}
+
+/**
+ * Set all priorities for an item (replaces existing links)
+ * @param {number} itemId
+ * @param {number[]} priorityIds - Array of priority IDs
+ */
+function setItemPriorities(itemId, priorityIds) {
+    try {
+        // Remove existing links
+        executeWrite('DELETE FROM item_priorities WHERE item_id = ?', [itemId]);
+
+        // Add new links
+        priorityIds.forEach(priorityId => {
+            executeWrite(
+                'INSERT INTO item_priorities (item_id, priority_id) VALUES (?, ?)',
+                [itemId, priorityId]
+            );
+        });
+
+        debugLog('ITEM_PRIORITIES_SET', { itemId, priorityIds });
+        window.dispatchEvent(new Event('ideasUpdated'));
+        return true;
+    } catch (error) {
+        console.error('Error setting item priorities:', error);
+        return false;
+    }
+}
+
 // Initialize database immediately when module loads
 const DB_READY_EVENT = 'databaseReady';
 
@@ -1466,31 +1661,22 @@ const DB_READY_EVENT = 'databaseReady';
         console.log('[DATA] Initializing SQL database...');
         await ensureDatabase();
 
-        // Run automatic migrations for legacy tables
-        autoMigrateIdeaWeights();
-        autoMigrateTopicWeights();
-
         // Seed default topics if database is empty
         seedDefaultTopics();
 
         // Ensure unified items table exists
         ensureItemsTable();
 
-        // Migrate legacy data to items table if needed
-        if (needsMigration()) {
-            console.log('[DATA] Legacy data detected, running migration...');
-            const migrationResult = migrateToUnifiedItems();
-            debugLog('MIGRATION_RESULT', migrationResult);
+        // Ensure priorities tables exist
+        if (typeof ensurePrioritiesTables === 'function') {
+            ensurePrioritiesTables();
         }
 
         if (DEBUG_MODE) {
             const stats = getDatabaseStats();
             debugLog('DATA_LAYER_LOADED', {
                 sqlBacked: true,
-                ideasCount: stats.ideas,
-                topicsCount: stats.topics,
                 itemsCount: stats.items || 0,
-                migrated: stats.migrated,
                 backupsCount: listBackups().length
             });
         }

@@ -112,9 +112,6 @@ async function createSchema() {
             status TEXT NOT NULL DEFAULT 'new'
                 CHECK(status IN ('new', 'backlog', 'done')),
 
-            -- Priority
-            weight INTEGER DEFAULT 5 CHECK(weight >= 1 AND weight <= 10),
-
             -- Context
             purpose TEXT,                   -- REQUIRED for topics, optional otherwise
             due_date TEXT,
@@ -123,8 +120,7 @@ async function createSchema() {
             icon TEXT,
             color TEXT,
 
-            -- Legacy fields (for migration compatibility)
-            ranking INTEGER DEFAULT 3 CHECK(ranking >= 1 AND ranking <= 5),
+            -- Legacy field (kept for compatibility during transition)
             difficulty TEXT DEFAULT 'medium' CHECK(difficulty IN ('easy', 'medium', 'hard')),
 
             -- Bookkeeping
@@ -137,12 +133,63 @@ async function createSchema() {
         )
     `);
 
+    // ===========================================
+    // PRIORITIES SYSTEM (Jan 26, 2026)
+    // ===========================================
+    // Priorities are entities that items link to (many-to-many)
+    // e.g., "Get healthy", "Find new job", "Sort out finances"
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS priorities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            rank INTEGER NOT NULL DEFAULT 5 CHECK(rank >= 1 AND rank <= 10),
+            created_at TEXT
+        )
+    `);
+
+    // Priority tier descriptors (configurable labels for rank ranges)
+    db.run(`
+        CREATE TABLE IF NOT EXISTS priority_tiers (
+            id INTEGER PRIMARY KEY,
+            min_rank INTEGER NOT NULL,
+            max_rank INTEGER NOT NULL,
+            label TEXT NOT NULL,
+            description TEXT
+        )
+    `);
+
+    // Junction table for item-priority relationships (many-to-many)
+    db.run(`
+        CREATE TABLE IF NOT EXISTS item_priorities (
+            item_id INTEGER NOT NULL,
+            priority_id INTEGER NOT NULL,
+            PRIMARY KEY (item_id, priority_id),
+            FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+            FOREIGN KEY (priority_id) REFERENCES priorities(id) ON DELETE CASCADE
+        )
+    `);
+
+    // Seed default priority tiers
+    db.run(`
+        INSERT OR IGNORE INTO priority_tiers (id, min_rank, max_rank, label, description) VALUES
+        (1, 1, 2, 'Not immediate', 'Can wait'),
+        (2, 3, 4, 'Attention soon', 'On the radar'),
+        (3, 5, 6, 'Current', 'Actively working on'),
+        (4, 7, 8, 'High', 'Distracting until sorted'),
+        (5, 9, 10, 'Urgent', 'Something isn''t right')
+    `);
+
     // Indexes for items table
     db.run('CREATE INDEX IF NOT EXISTS idx_items_parent ON items(parent_id)');
     db.run('CREATE INDEX IF NOT EXISTS idx_items_topic ON items(topic_id)');
     db.run('CREATE INDEX IF NOT EXISTS idx_items_type ON items(item_type)');
     db.run('CREATE INDEX IF NOT EXISTS idx_items_status ON items(status)');
     db.run('CREATE INDEX IF NOT EXISTS idx_items_topic_status ON items(topic_id, status)');
+
+    // Indexes for priorities system
+    db.run('CREATE INDEX IF NOT EXISTS idx_item_priorities_item ON item_priorities(item_id)');
+    db.run('CREATE INDEX IF NOT EXISTS idx_item_priorities_priority ON item_priorities(priority_id)');
 
     // ===========================================
     // LEGACY TABLES - REMOVED (Jan 22, 2026)
@@ -410,12 +457,10 @@ function ensureItemsTable() {
                     CHECK(item_type IN ('topic', 'idea', 'task', 'project', 'reminder')),
                 status TEXT NOT NULL DEFAULT 'new'
                     CHECK(status IN ('new', 'backlog', 'done')),
-                weight INTEGER DEFAULT 5 CHECK(weight >= 1 AND weight <= 10),
                 purpose TEXT,
                 due_date TEXT,
                 icon TEXT,
                 color TEXT,
-                ranking INTEGER DEFAULT 3 CHECK(ranking >= 1 AND ranking <= 5),
                 difficulty TEXT DEFAULT 'medium' CHECK(difficulty IN ('easy', 'medium', 'hard')),
                 "order" INTEGER NOT NULL DEFAULT 0,
                 created_at TEXT,
@@ -434,6 +479,61 @@ function ensureItemsTable() {
     }
 }
 
+/**
+ * Ensure priorities tables exist (for existing databases)
+ */
+function ensurePrioritiesTables() {
+    const tables = queryAsObjects("SELECT name FROM sqlite_master WHERE type='table' AND name='priorities'");
+    if (tables.length === 0) {
+        console.log('[SQL-DB] Creating priorities tables...');
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS priorities (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                rank INTEGER NOT NULL DEFAULT 5 CHECK(rank >= 1 AND rank <= 10),
+                created_at TEXT
+            )
+        `);
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS priority_tiers (
+                id INTEGER PRIMARY KEY,
+                min_rank INTEGER NOT NULL,
+                max_rank INTEGER NOT NULL,
+                label TEXT NOT NULL,
+                description TEXT
+            )
+        `);
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS item_priorities (
+                item_id INTEGER NOT NULL,
+                priority_id INTEGER NOT NULL,
+                PRIMARY KEY (item_id, priority_id),
+                FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+                FOREIGN KEY (priority_id) REFERENCES priorities(id) ON DELETE CASCADE
+            )
+        `);
+
+        // Seed default priority tiers
+        db.run(`
+            INSERT OR IGNORE INTO priority_tiers (id, min_rank, max_rank, label, description) VALUES
+            (1, 1, 2, 'Not immediate', 'Can wait'),
+            (2, 3, 4, 'Attention soon', 'On the radar'),
+            (3, 5, 6, 'Current', 'Actively working on'),
+            (4, 7, 8, 'High', 'Distracting until sorted'),
+            (5, 9, 10, 'Urgent', 'Something is not right')
+        `);
+
+        db.run('CREATE INDEX IF NOT EXISTS idx_item_priorities_item ON item_priorities(item_id)');
+        db.run('CREATE INDEX IF NOT EXISTS idx_item_priorities_priority ON item_priorities(priority_id)');
+
+        saveDatabase();
+        console.log('[SQL-DB] ✅ Priorities tables created');
+    }
+}
+
 // Export functions for use by other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -447,6 +547,7 @@ if (typeof module !== 'undefined' && module.exports) {
         clearDatabase,
         migrateToUnifiedItems,
         needsMigration,
-        ensureItemsTable
+        ensureItemsTable,
+        ensurePrioritiesTables
     };
 }

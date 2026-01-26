@@ -15,16 +15,29 @@ python3 -m http.server 8081
 - Projects: finite, have children, have end state
 - Tasks: atomic, completable, no children
 
+**Priorities are entities.** Named things (e.g., "Get healthy") that items link to via many-to-many relationship.
+
 See `ROADMAP.md` for full philosophy and development plan.
 
 ## Key Files
 - `dashboard/index.html` - Main dashboard
-- `dashboard/sql-database.js` - SQLite data layer + GitHub integration
+- `dashboard/sql-database.js` - SQLite data layer + schema
 - `dashboard/github-storage.js` - GitHub API for persistence
-- `dashboard/ideas-data.js` - Data API (legacy + new Items API)
+- `dashboard/ideas-data.js` - Data API (Items API + Priorities API)
 - `data/database.sqlite` - Seed database (committed to repo)
 - `ROADMAP.md` - Development roadmap and philosophy
 - `BACKLOG.md` - Detailed task backlog
+
+## Database Schema (Jan 26, 2026)
+```sql
+-- Unified items table
+items (id, text, parent_id, topic_id, item_type, status, purpose, icon, color, difficulty, order, created_at, completed_at)
+
+-- Priorities system
+priorities (id, name, rank, created_at)
+priority_tiers (id, min_rank, max_rank, label, description)
+item_priorities (item_id, priority_id)  -- many-to-many junction
+```
 
 ## Architecture
 - **Primary Storage:** GitHub repo (`data/database.sqlite`)
@@ -32,16 +45,17 @@ See `ROADMAP.md` for full philosophy and development plan.
 - **Database:** SQL.js (SQLite compiled to WebAssembly)
 - **Styling:** Windows 3.1 CSS theme
 
-## Current Status (Jan 2026)
+## Current Status (Jan 26, 2026)
 - GitHub read: ✅ Working (public repo)
 - GitHub write: ⚠️ Needs token (`setGitHubToken()` in console)
 - Unified items table: ✅ Schema complete
-- UI migration to Items API: ❌ Pending
+- UI migration to Items API: ✅ Complete
+- Priorities system: ✅ Schema and API complete
 
 ## Next Steps
 1. Configure GitHub token for write access
-2. Transition UI from legacy functions to Items API
-3. Add "purpose" field to topics
+2. Add "purpose" field to topics
+3. Build Priorities UI (create/edit priorities, link to items)
 4. See `ROADMAP.md` for full plan
 
 ## Don't Touch

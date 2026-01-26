@@ -38,33 +38,108 @@
             align-content: start;
         }
 
-        /* Universe window - opens on double-click */
-        .universe-window {
+        /* Draggable window styles - positioning and interaction only */
+        .window.draggable {
             position: absolute;
+            cursor: default;
+            overflow: hidden;
+        }
+
+        .window.draggable .title-bar {
+            cursor: move;
+        }
+
+        .window.draggable.maximized .title-bar {
+            cursor: default;
+        }
+
+        .window.draggable .window-body {
+            overflow: auto;
+        }
+
+        /* Resize handles */
+        .window.draggable .resize-handle {
+            position: absolute;
+            background: transparent;
+        }
+
+        .window.draggable .resize-handle.n { top: -3px; left: 3px; right: 3px; height: 6px; cursor: n-resize; }
+        .window.draggable .resize-handle.s { bottom: -3px; left: 3px; right: 3px; height: 6px; cursor: s-resize; }
+        .window.draggable .resize-handle.e { right: -3px; top: 3px; bottom: 3px; width: 6px; cursor: e-resize; }
+        .window.draggable .resize-handle.w { left: -3px; top: 3px; bottom: 3px; width: 6px; cursor: w-resize; }
+        .window.draggable .resize-handle.nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; }
+        .window.draggable .resize-handle.ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; }
+        .window.draggable .resize-handle.sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
+        .window.draggable .resize-handle.se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; }
+
+        .window.draggable.maximized .resize-handle { display: none; }
+        .window.draggable.minimized { display: none; }
+
+        /* Minimized window icon */
+        .window-icon {
+            position: absolute;
+            width: 100px;
+            height: 32px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset -1px -1px 0 var(--button-dark),
+                        inset 1px 1px 0 var(--button-light);
+            display: flex;
+            align-items: center;
+            padding: 2px 4px;
+            cursor: pointer;
+            font-size: 11px;
+            user-select: none;
+        }
+
+        .window-icon:active {
+            box-shadow: inset 1px 1px 0 var(--button-dark);
+        }
+
+        .window-icon .icon-symbol {
+            width: 16px;
+            height: 14px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            box-shadow: inset -1px -1px 0 var(--button-dark),
+                        inset 1px 1px 0 var(--button-light);
+            margin-right: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .window-icon .icon-symbol::after {
+            content: '';
+            width: 8px;
+            height: 2px;
+            background: var(--window-fg);
+        }
+
+        .window-icon .icon-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* My Life window specific positioning */
+        #mylife-window {
             top: 40px;
             left: 40px;
-            right: 40px;
-            bottom: 40px;
+            width: calc(100% - 80px);
+            height: calc(100% - 80px);
             display: none;
-            flex-direction: column;
             z-index: 100;
         }
 
-        .universe-window.open {
+        #mylife-window.open {
             display: flex;
         }
 
-        .universe-window .window-body {
-            flex: 1;
-            overflow-y: auto;
+        #mylife-window .window-body {
             padding: 0;
             background: white;
-            /* Account for status bar (20px) */
-            min-height: 0;
-        }
-
-        .universe-window .status-bar {
-            flex-shrink: 0;
         }
 
 
@@ -177,56 +252,21 @@
             gap: 20px;
         }
 
+        /* Topic Card - minimal overrides, inherits from .window */
         .topic-card {
             min-height: 180px;
-            display: flex;
-            flex-direction: column;
             cursor: pointer;
         }
 
-        .topic-card .title-bar {
-            /* Use global title bar styles (22px height, no padding) */
-        }
-
-        .topic-card .title-bar-text {
-            /* Use global styles */
-        }
-
-        .topic-card .title-bar-controls {
-            /* Use global styles */
-        }
-
-        .topic-card .title-bar-controls button {
-            /* Use global button styles (20x20 square) */
-        }
-
-        .topic-card-body {
+        /* Topic card content layout */
+        .topic-card .window-body {
             padding: 16px;
-            flex: 1;
             display: flex;
             flex-direction: column;
-            background: var(--window-bg);
             position: relative;
         }
 
-        .weight-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--border);
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
-
-        .topic-weight {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 32px;
-            height: 32px;
-            font-size: 14px;
-        }
+        /* Weight badges removed - priorities are now linked entities (Jan 26, 2026) */
 
         .topic-header {
             display: flex;
@@ -446,15 +486,27 @@
     </div>
 
     <!-- MY LIFE: Desktop window containing topics (opens from Universe) -->
-    <div class="window universe-window" id="mylife-window">
+    <div class="window draggable active" id="mylife-window"
+         data-restore-left="40" data-restore-top="40"
+         data-restore-width="calc(100% - 80px)" data-restore-height="calc(100% - 80px)">
+        <!-- Resize handles -->
+        <div class="resize-handle n"></div>
+        <div class="resize-handle s"></div>
+        <div class="resize-handle e"></div>
+        <div class="resize-handle w"></div>
+        <div class="resize-handle nw"></div>
+        <div class="resize-handle ne"></div>
+        <div class="resize-handle sw"></div>
+        <div class="resize-handle se"></div>
+
         <div class="title-bar">
             <div class="title-bar-controls">
-                <button class="system-menu" aria-label="System menu" ondblclick="closeMyLife()"></button>
+                <button class="system-menu" aria-label="System menu"></button>
             </div>
             <div class="title-bar-text">My Life</div>
             <div class="title-bar-controls">
-                <button data-minimize aria-label="Minimize" onclick="minimizeMyLife()"></button>
-                <button data-maximize aria-label="Maximize" onclick="toggleMaximize()"></button>
+                <button data-minimize aria-label="Minimize"></button>
+                <button data-maximize aria-label="Maximize"></button>
             </div>
         </div>
         <div class="window-body">
@@ -523,9 +575,6 @@
                     <input type="text" id="new-topic-name" placeholder="Enter topic name">
                 </div>
                 <div class="form-group">
-                    <div id="new-topic-weight-picker"></div>
-                </div>
-                <div class="form-group">
                     <label>Icon</label>
                     <div class="icon-picker-container">
                         <div class="icon-search">
@@ -561,9 +610,6 @@
                     <label for="edit-topic-name">Topic Name</label>
                     <input type="text" id="edit-topic-name">
                 </div>
-                <div class="form-group">
-                    <div id="edit-topic-weight-picker"></div>
-                </div>
                 <div class="modal-actions">
                     <button onclick="closeEditTopicModal()">Cancel</button>
                     <button class="primary" onclick="saveTopicEdit()">Save Changes</button>
@@ -576,15 +622,37 @@
     <script src="github-storage.js"></script>
     <script src="sql-database.js"></script>
     <script src="ideas-data.js"></script>
-    <script src="weight-utils.js"></script>
-    <script src="shared-weight-picker.js"></script>
+    <!-- weight-utils.js and shared-weight-picker.js removed - priorities system (Jan 26, 2026) -->
     <script src="icons-list.js"></script>
     <script src="shared-rendering.js"></script>
     <script src="shared-top-priorities.js"></script>
+    <script src="window-manager.js"></script>
     <script>
-        // Track window state
+        // ===== Window Manager Setup =====
+        let windowManager = null;
         let myLifeOpen = false;
-        let myLifeMaximized = false;
+
+        function initWindowManager() {
+            const desktop = document.getElementById('universe');
+            const myLifeWindow = document.getElementById('mylife-window');
+
+            windowManager = new WindowManager(desktop, {
+                onWindowClose: (win) => {
+                    if (win.id === 'mylife-window') {
+                        win.classList.remove('open');
+                        myLifeOpen = false;
+                    }
+                },
+                onWindowOpen: (win) => {
+                    if (win.id === 'mylife-window') {
+                        myLifeOpen = true;
+                    }
+                }
+            });
+
+            // Set up the My Life window
+            windowManager.setupWindow(myLifeWindow);
+        }
 
         /**
          * Open the My Life desktop window
@@ -592,6 +660,9 @@
         function openMyLife() {
             const myLifeWindow = document.getElementById('mylife-window');
             myLifeWindow.classList.add('open');
+            if (windowManager) {
+                windowManager.setActiveWindow(myLifeWindow);
+            }
             myLifeOpen = true;
         }
 
@@ -602,36 +673,6 @@
             const myLifeWindow = document.getElementById('mylife-window');
             myLifeWindow.classList.remove('open');
             myLifeOpen = false;
-        }
-
-        /**
-         * Minimize the My Life window (close for now)
-         */
-        function minimizeMyLife() {
-            closeMyLife();
-        }
-
-        /**
-         * Toggle maximize state
-         */
-        function toggleMaximize() {
-            const myLifeWindow = document.getElementById('mylife-window');
-
-            if (myLifeMaximized) {
-                // Restore to windowed
-                myLifeWindow.style.top = '40px';
-                myLifeWindow.style.left = '40px';
-                myLifeWindow.style.right = '40px';
-                myLifeWindow.style.bottom = '40px';
-                myLifeMaximized = false;
-            } else {
-                // Maximize
-                myLifeWindow.style.top = '0';
-                myLifeWindow.style.left = '0';
-                myLifeWindow.style.right = '0';
-                myLifeWindow.style.bottom = '0';
-                myLifeMaximized = true;
-            }
         }
 
         // Universe icon selection
@@ -736,7 +777,8 @@
             const container = document.getElementById('topics-grid');
             // Use getTopics() which reads from items table and adapts to legacy format
             const topics = getTopics();
-            topics.sort((a, b) => (b.weight || 5) - (a.weight || 5));
+            // Topics sorted by name (weight sorting removed - use Priorities now)
+            topics.sort((a, b) => a.name.localeCompare(b.name));
 
             const counts = getItemCountsFromItems();
 
@@ -756,10 +798,7 @@
                                 <button data-maximize aria-label="Maximize" onclick="event.stopPropagation()"></button>
                             </div>
                         </div>
-                        <div class="topic-card-body">
-                            <div class="weight-badge topic-weight" style="background: ${getWeightColor(topic.weight || 5)};">
-                                ${topic.weight || 5}
-                            </div>
+                        <div class="window-body">
                             <div class="topic-header">
                                 <div class="topic-icon" style="background-color: ${topic.color}20; border-color: ${topic.color}">
                                     <img src="../Icons/${iconFile}" alt="${topic.name}">
@@ -811,12 +850,6 @@
             currentEditingTopicId = topicId;
             document.getElementById('edit-topic-title').textContent = `Edit: ${topic.name}`;
             document.getElementById('edit-topic-name').value = topic.name;
-            document.getElementById('edit-topic-weight-picker').innerHTML = renderWeightPicker({
-                currentWeight: topic.weight || 5,
-                id: 'edit-topic-weight',
-                label: 'Topic Weight (1-10)',
-                showHelp: true
-            });
             document.getElementById('edit-topic-modal').classList.add('active');
             document.getElementById('edit-topic-name').focus();
         }
@@ -829,12 +862,11 @@
         function saveTopicEdit() {
             if (!currentEditingTopicId) return;
             const name = document.getElementById('edit-topic-name').value.trim();
-            const weight = getWeightValue('edit-topic-weight');
             if (!name) {
                 alert('Please enter a topic name');
                 return;
             }
-            updateTopic(currentEditingTopicId, { name, weight });
+            updateTopic(currentEditingTopicId, { name });
             closeEditTopicModal();
             loadDashboard();
         }
@@ -844,12 +876,6 @@
             document.getElementById('icon-search-input').value = '';
             filteredIcons = allIcons;
             loadIconPicker();
-            document.getElementById('new-topic-weight-picker').innerHTML = renderWeightPicker({
-                currentWeight: 5,
-                id: 'new-topic-weight',
-                label: 'Topic Weight (1-10)',
-                showHelp: true
-            });
             document.getElementById('add-topic-modal').classList.add('active');
             document.getElementById('new-topic-name').focus();
         }
@@ -861,12 +887,11 @@
 
         function createNewTopic() {
             const name = document.getElementById('new-topic-name').value.trim();
-            const weight = getWeightValue('new-topic-weight');
             if (!name) {
                 alert('Please enter a topic name');
                 return;
             }
-            addTopic(name, 'always-on', selectedIcon, weight);
+            addTopic(name, 'always-on', selectedIcon);
             closeAddTopicModal();
             loadDashboard();
         }
@@ -884,6 +909,9 @@
         window.addEventListener('ideasUpdated', loadDashboard);
 
         function initializePage() {
+            // Initialize window manager
+            initWindowManager();
+
             // Initialize icons list
             if (typeof ALL_AVAILABLE_ICONS !== 'undefined') {
                 allIcons = ALL_AVAILABLE_ICONS;
